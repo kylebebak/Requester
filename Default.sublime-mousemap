@@ -1,0 +1,7 @@
+[
+	{
+		"button": "button1", "count": 2, "modifiers": ["alt"],
+		"press_command": "drag_select",
+		"command": "open_url"
+	}
+]
