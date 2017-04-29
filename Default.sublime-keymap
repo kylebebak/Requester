@@ -1,3 +1,3 @@
 [
-	{ "keys": ["ctrl+r"], "command": "request" }
+	{ "keys": ["ctrl+r"], "command": "open_requests" }
 ]
