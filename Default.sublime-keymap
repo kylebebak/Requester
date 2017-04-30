@@ -1,3 +1,4 @@
 [
-	{ "keys": ["ctrl+r"], "command": "open_requests" }
+  { "keys": ["ctrl+r"], "command": "open_requests_project" },
+	{ "keys": ["ctrl+shift+r"], "command": "open_requests_collection" }
 ]

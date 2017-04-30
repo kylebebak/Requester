@@ -1,3 +1,4 @@
 [
-	{ "caption": "Requests", "command": "open_requests" }
+  { "caption": "Requests: Current Project", "command": "open_requests_project" },
+	{ "caption": "Requests: Named Collection", "command": "open_requests_collection" }
 ]
