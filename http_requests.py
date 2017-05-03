@@ -1,10 +1,17 @@
 import sublime, sublime_plugin
 
 import requests
+from requests import delete, get, head, options, patch, post, put
 
 
-class OpenRequestsProjectCommand(sublime_plugin.TextCommand):
+class RequestCommand(sublime_plugin.TextCommand):
 
     def run(self, edit):
-        r = requests.get('https://jsonplaceholder.typicode.com/posts')
-        print(r.json())
+        self.import_variables()
+        request = self.view.substr(self.view.line(self.view.sel()[0]))
+        response = eval(request)
+        print(response.text)
+
+    def import_variables(self):
+        with open('/Users/kylebebak/GoogleDrive/Code/Config/ST/Packages/http_requests/_request_variables.py') as f:
+            exec(f.read(), globals())
