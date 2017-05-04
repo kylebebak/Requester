@@ -2,6 +2,7 @@ import sublime, sublime_plugin
 
 import os
 import re
+from urllib import parse
 
 import requests
 from requests import delete, get, head, options, patch, post, put
@@ -15,7 +16,28 @@ class RequestCommand(sublime_plugin.TextCommand):
         selections = self.get_selections()
         for s in selections:
             response = eval(s)
-            print(response.text)
+            self.open_response_view(edit, s, response)
+
+    def open_response_view(self, edit, request, response):
+        r = response
+        window = self.view.window()
+        view = window.new_file()
+        view.set_scratch(True)
+        view.set_name('{}: {}'.format(
+            r.request.method, parse.urlparse(r.url).path
+        ))
+
+        header = '{} {} {}s\n{}'.format(
+            r.status_code, r.reason, r.elapsed.total_seconds(), r.url
+        )
+        headers = '\n'.join(
+            [ '{}: {}'.format(k, v) for k, v in sorted(r.headers.items()) ]
+        )
+        content = r.text
+
+        view.insert( edit, 0, '\n\n'.join(
+            [' '.join(request.split()), header, headers, content]
+        ))
 
     def import_variables(self):
         requests_file_path = self.view.file_name()
