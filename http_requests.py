@@ -8,26 +8,10 @@ import requests
 from requests import delete, get, head, options, patch, post, put
 
 
-class RequestCommand(sublime_plugin.TextCommand):
+class RequestCommandMixin:
 
-    def run(self, edit):
-        self.config = sublime.load_settings('http_requests.sublime-settings')
-        self.import_variables()
-        selections = self.get_selections()
-        for s in selections:
-            response = eval(s)
-            self.open_response_view(edit, s, response)
-
-    def open_response_view(self, edit, request, response):
+    def response_content(self, request, response):
         r = response
-        window = self.view.window()
-        view = window.new_file()
-        view.set_scratch(True)
-        view.settings().set('http_requests.response_view', True)
-        view.set_name('{}: {}'.format(
-            r.request.method, parse.urlparse(r.url).path
-        ))
-
         header = '{} {}\n{}s\n{}'.format(
             r.status_code, r.reason, r.elapsed.total_seconds(), r.url
         )
@@ -36,12 +20,12 @@ class RequestCommand(sublime_plugin.TextCommand):
         )
         content = r.text
 
-        view.insert( edit, 0, '\n\n'.join(
+        return '\n\n'.join(
             [' '.join(request.split()), header, '[cmd+r] replay request', headers, content]
-        ))
+        )
 
-    def import_variables(self):
-        requests_file_path = self.view.file_name()
+    def import_variables(self, requests_file_path=None):
+        requests_file_path = requests_file_path or self.view.file_name()
         requests_file_dir = os.path.dirname( requests_file_path )
 
         globals()['env_file'] = self.config.get('env_file') # default `env_file` read from settings
@@ -51,13 +35,24 @@ class RequestCommand(sublime_plugin.TextCommand):
                 m = p.match(line)
                 if m:
                     exec(line, globals())
-                    break
+                    break # stop looking after first match
 
         env_file = globals().get('env_file')
         if env_file:
             env_file_path = os.path.join( requests_file_dir, env_file )
             with open(env_file_path) as f:
                 exec(f.read(), globals())
+
+
+class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
+
+    def run(self, edit):
+        self.config = sublime.load_settings('http_requests.sublime-settings')
+        self.import_variables()
+        selections = self.get_selections()
+        for selection in selections:
+            response = eval(selection)
+            self.open_response_view(edit, selection, response)
 
     def get_selections(self):
         view = self.view
@@ -69,8 +64,35 @@ class RequestCommand(sublime_plugin.TextCommand):
                 selections.append( view.substr(view.line(region)) )
         return selections
 
+    def open_response_view(self, edit, request, response):
+        window = self.view.window()
+        view = window.new_file()
+        view.set_scratch(True)
+        view.settings().set('http_requests.response_view', True)
+        view.set_name('{}: {}'.format(
+            response.request.method, parse.urlparse(response.url).path
+        ))
+        view.insert(edit, 0, self.response_content(request, response))
 
-class ReplayRequestCommand(sublime_plugin.TextCommand):
+
+class ReplayRequestCommand(sublime_plugin.TextCommand, RequestCommandMixin):
 
     def run(self, edit):
-        print('replaying request')
+        self.config = sublime.load_settings('http_requests.sublime-settings')
+        self.import_variables('/Users/kylebebak/GoogleDrive/Code/Config/ST/Packages/http_requests/_requests.py')
+        selection = self.get_selection()
+        response = eval(selection)
+        self.open_response_view(edit, selection, response)
+
+    def get_selection(self):
+        return 'get(site)'
+
+    def open_response_view(self, edit, request, response):
+        window = self.view.window()
+        view = window.new_file()
+        view.set_scratch(True)
+        view.settings().set('http_requests.response_view', True)
+        view.set_name('{}: {}'.format(
+            response.request.method, parse.urlparse(response.url).path
+        ))
+        view.insert(edit, 0, self.response_content(request, response))
