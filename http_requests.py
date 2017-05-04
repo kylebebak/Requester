@@ -20,19 +20,21 @@ class RequestCommand(sublime_plugin.TextCommand):
     def import_variables(self):
         requests_file_path = self.view.file_name()
         requests_file_dir = os.path.dirname( requests_file_path )
-        env_file = self.config.get('env_file') # first get `env_file` from settings
 
+        globals()['env_file'] = self.config.get('env_file') # default `env_file` read from settings
         p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requests file
         with open(requests_file_path) as f:
             for line in f:
                 m = p.match(line)
                 if m:
-                    exec(line, globals(), locals())
+                    exec(line, globals())
                     break
 
-        env_file_path = os.path.join( requests_file_dir, env_file )
-        with open(env_file_path) as f:
-            exec(f.read(), globals())
+        env_file = globals().get('env_file')
+        if env_file:
+            env_file_path = os.path.join( requests_file_dir, env_file )
+            with open(env_file_path) as f:
+                exec(f.read(), globals())
 
     def get_selections(self):
         view = self.view
