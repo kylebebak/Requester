@@ -1,3 +1,14 @@
 [
-  { "keys": ["ctrl+r"], "command": "request" }
+  { "keys": ["ctrl+r"], "command": "request" },
+
+  ///////////////////
+  // RESPONSE VIEW //
+  ///////////////////
+  {
+    "keys": ["super+r"],
+    "command": "replay_request",
+    "context": [
+      { "key": "setting.http_requests.response_view", "operator": "equal", "operand": true }
+    ]
+  }
 ]

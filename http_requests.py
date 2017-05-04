@@ -23,11 +23,12 @@ class RequestCommand(sublime_plugin.TextCommand):
         window = self.view.window()
         view = window.new_file()
         view.set_scratch(True)
+        view.settings().set('http_requests.response_view', True)
         view.set_name('{}: {}'.format(
             r.request.method, parse.urlparse(r.url).path
         ))
 
-        header = '{} {} {}s\n{}'.format(
+        header = '{} {}\n{}s\n{}'.format(
             r.status_code, r.reason, r.elapsed.total_seconds(), r.url
         )
         headers = '\n'.join(
@@ -36,7 +37,7 @@ class RequestCommand(sublime_plugin.TextCommand):
         content = r.text
 
         view.insert( edit, 0, '\n\n'.join(
-            [' '.join(request.split()), header, headers, content]
+            [' '.join(request.split()), header, '[cmd+r] replay request', headers, content]
         ))
 
     def import_variables(self):
@@ -68,3 +69,8 @@ class RequestCommand(sublime_plugin.TextCommand):
                 selections.append( view.substr(view.line(region)) )
         return selections
 
+
+class ReplayRequestCommand(sublime_plugin.TextCommand):
+
+    def run(self, edit):
+        print('replaying request')
