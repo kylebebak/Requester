@@ -69,6 +69,7 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         view = window.new_file()
         view.set_scratch(True)
         view.settings().set('http_requests.response_view', True)
+        view.settings().set('http_requests.requests_file_path', self.view.file_name())
         view.set_name('{}: {}'.format(
             response.request.method, parse.urlparse(response.url).path
         ))
@@ -79,20 +80,14 @@ class ReplayRequestCommand(sublime_plugin.TextCommand, RequestCommandMixin):
 
     def run(self, edit):
         self.config = sublime.load_settings('http_requests.sublime-settings')
-        self.import_variables('/Users/kylebebak/GoogleDrive/Code/Config/ST/Packages/http_requests/_requests.py')
+        self.import_variables( self.view.settings().get('http_requests.requests_file_path') )
         selection = self.get_selection()
         response = eval(selection)
         self.open_response_view(edit, selection, response)
 
     def get_selection(self):
-        return 'get(site)'
+        return self.view.substr( self.view.line(0) )
 
     def open_response_view(self, edit, request, response):
-        window = self.view.window()
-        view = window.new_file()
-        view.set_scratch(True)
-        view.settings().set('http_requests.response_view', True)
-        view.set_name('{}: {}'.format(
-            response.request.method, parse.urlparse(response.url).path
-        ))
-        view.insert(edit, 0, self.response_content(request, response))
+        self.view.erase( edit, sublime.Region(0, self.view.size()) )
+        self.view.insert(edit, 0, self.response_content(request, response))
