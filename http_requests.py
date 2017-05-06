@@ -2,6 +2,7 @@ import sublime, sublime_plugin
 
 import os
 import re
+from collections import namedtuple
 from urllib import parse
 from concurrent import futures
 
@@ -9,13 +10,15 @@ import requests
 from requests import delete, get, head, options, patch, post, put
 
 
+Response = namedtuple('Response', 'selection, response')
+
 class ResponseThreadPool(object):
 
     MAX_WORKERS = 20
 
     @staticmethod
     def get_response(selection):
-        response = eval(selection)
+        response = Response(selection, eval(selection))
         return response
 
     def __init__(self, selections):
@@ -81,8 +84,8 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         self.import_variables()
         selections = self.get_selections()
         responses = self.get_responses(selections)
-        for i, response in enumerate(responses):
-            self.open_response_view(edit, selections[i], response)
+        for r in responses:
+            self.open_response_view(edit, r.selection, r.response)
 
     def get_selections(self):
         view = self.view
@@ -113,8 +116,8 @@ class ReplayRequestCommand(sublime_plugin.TextCommand, RequestCommandMixin):
         self.import_variables( self.view.settings().get('http_requests.requests_file_path') )
         selections = self.get_selections()
         responses = self.get_responses(selections)
-        for i, response in enumerate(responses):
-            self.open_response_view(edit, selections[i], response)
+        for r in responses:
+            self.open_response_view(edit, r.selection, r.response)
 
     def get_selections(self):
         return [self.view.substr( self.view.line(0) )]
