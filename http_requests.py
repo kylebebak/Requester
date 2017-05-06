@@ -82,9 +82,11 @@ class RequestCommandMixin:
             sublime.set_timeout_async(lambda: self._pool.run(), 0)
             sublime.set_timeout(lambda: self.get_responses(selections), 100)
         else:
+            while len(self._pool.responses):
+                r = self._pool.responses.pop(0)
+                self.open_response_view(r.selection, r.response)
+
             if self._pool.is_done:
-                for r in self._pool.responses:
-                    self.open_response_view(r.selection, r.response)
                 del self._pool
                 return
             sublime.set_timeout(lambda: self.get_responses(selections), 100)
