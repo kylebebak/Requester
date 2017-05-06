@@ -9,14 +9,32 @@ import requests
 from requests import delete, get, head, options, patch, post, put
 
 
-def get_response(selection):
-    response = eval(selection)
-    return response
+class ResponseThreadPool(object):
+
+    MAX_WORKERS = 20
+
+    @staticmethod
+    def get_response(selection):
+        response = eval(selection)
+        return response
+
+    def __init__(self, selections):
+        self.responses = []
+
+        with futures.ThreadPoolExecutor(
+            max_workers=min(self.MAX_WORKERS, len(selections))
+        ) as executor:
+            to_do = []
+            for selection in selections:
+                future = executor.submit(self.get_response, selection)
+                to_do.append(future)
+
+            for future in futures.as_completed(to_do):
+                result = future.result()
+                self.responses.append(result)
 
 
 class RequestCommandMixin:
-
-    MAX_WORKERS = 20
 
     def import_variables(self, requests_file_path=None):
         requests_file_path = requests_file_path or self.view.file_name()
@@ -52,19 +70,8 @@ class RequestCommandMixin:
         )
 
     def get_responses(self, selections):
-        with futures.ThreadPoolExecutor(
-            max_workers=min(self.MAX_WORKERS, len(selections))
-        ) as executor:
-            to_do = []
-            for selection in selections:
-                future = executor.submit(get_response, selection)
-                to_do.append(future)
-
-            results = []
-            for future in futures.as_completed(to_do):
-                result = future.result()
-                results.append(result)
-        return results
+        pool = ResponseThreadPool(selections)
+        return pool.responses
 
 
 class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -105,9 +112,9 @@ class ReplayRequestCommand(sublime_plugin.TextCommand, RequestCommandMixin):
         self.config = sublime.load_settings('http_requests.sublime-settings')
         self.import_variables( self.view.settings().get('http_requests.requests_file_path') )
         selections = self.get_selections()
-        for selection in selections:
-            response = eval(selection)
-            self.open_response_view(edit, selection, response)
+        responses = self.get_responses(selections)
+        for i, response in enumerate(responses):
+            self.open_response_view(edit, selections[i], response)
 
     def get_selections(self):
         return [self.view.substr( self.view.line(0) )]
