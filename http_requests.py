@@ -22,19 +22,23 @@ class ResponseThreadPool(object):
         return response
 
     def __init__(self, selections):
+        self.is_done = False
         self.responses = []
+        self.selections = selections
 
+    def run(self):
         with futures.ThreadPoolExecutor(
-            max_workers=min(self.MAX_WORKERS, len(selections))
+            max_workers=min(self.MAX_WORKERS, len(self.selections))
         ) as executor:
             to_do = []
-            for selection in selections:
+            for selection in self.selections:
                 future = executor.submit(self.get_response, selection)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):
                 result = future.result()
                 self.responses.append(result)
+        self.is_done = True
 
 
 class RequestCommandMixin:
@@ -73,8 +77,17 @@ class RequestCommandMixin:
         )
 
     def get_responses(self, selections):
-        pool = ResponseThreadPool(selections)
-        return pool.responses
+        if not hasattr(self, '_pool'):
+            self._pool = ResponseThreadPool(selections)
+            sublime.set_timeout_async(lambda: self._pool.run(), 0)
+            sublime.set_timeout(lambda: self.get_responses(selections), 100)
+        else:
+            if self._pool.is_done:
+                for r in self._pool.responses:
+                    self.open_response_view(r.selection, r.response)
+                del self._pool
+                return
+            sublime.set_timeout(lambda: self.get_responses(selections), 100)
 
 
 class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -83,9 +96,7 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         self.config = sublime.load_settings('http_requests.sublime-settings')
         self.import_variables()
         selections = self.get_selections()
-        responses = self.get_responses(selections)
-        for r in responses:
-            self.open_response_view(edit, r.selection, r.response)
+        self.get_responses(selections)
 
     def get_selections(self):
         view = self.view
@@ -97,7 +108,7 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 selections.append( view.substr(view.line(region)) )
         return selections
 
-    def open_response_view(self, edit, request, response):
+    def open_response_view(self, request, response):
         window = self.view.window()
         view = window.new_file()
         view.set_scratch(True)
@@ -106,7 +117,8 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         view.set_name('{}: {}'.format(
             response.request.method, parse.urlparse(response.url).path
         ))
-        view.insert(edit, 0, self.response_content(request, response))
+        view.run_command('http_requests_replace_view_text',
+                         {'text': self.response_content(request, response)})
 
 
 class ReplayRequestCommand(sublime_plugin.TextCommand, RequestCommandMixin):
@@ -115,13 +127,11 @@ class ReplayRequestCommand(sublime_plugin.TextCommand, RequestCommandMixin):
         self.config = sublime.load_settings('http_requests.sublime-settings')
         self.import_variables( self.view.settings().get('http_requests.requests_file_path') )
         selections = self.get_selections()
-        responses = self.get_responses(selections)
-        for r in responses:
-            self.open_response_view(edit, r.selection, r.response)
+        self.get_responses(selections)
 
     def get_selections(self):
         return [self.view.substr( self.view.line(0) )]
 
-    def open_response_view(self, edit, request, response):
-        self.view.erase( edit, sublime.Region(0, self.view.size()) )
-        self.view.insert(edit, 0, self.response_content(request, response))
+    def open_response_view(self, request, response):
+        self.view.run_command('http_requests_replace_view_text',
+                             {'text': self.response_content(request, response)})
