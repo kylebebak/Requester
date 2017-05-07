@@ -11,10 +11,11 @@ from requests import delete, get, head, options, patch, post, put
 
 
 Response = namedtuple('Response', 'selection, response')
+Content = namedtuple('Content', 'content, point')
 
-class ResponseThreadPool(object):
+class ResponseThreadPool:
 
-    MAX_WORKERS = 4
+    MAX_WORKERS = 10
 
     @staticmethod
     def get_response(selection):
@@ -80,9 +81,10 @@ class RequestCommandMixin:
         )
         content = r.text
 
-        return '\n\n'.join(
-            [' '.join(request.split()), header, '[cmd+r] replay request', headers, content]
+        before_content = '\n\n'.join(
+            [' '.join(request.split()), header, '[cmd+r] replay request', headers]
         )
+        return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
     def get_responses(self, selections):
         if not hasattr(self, '_pool'):
@@ -124,8 +126,10 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         view.set_name('{}: {}'.format(
             response.request.method, parse.urlparse(response.url).path
         ))
+        content = self.response_content(request, response)
         view.run_command('http_requests_replace_view_text',
-                         {'text': self.response_content(request, response)})
+                         {'text': content.content, 'point': content.point})
+
         if num_selections > 1:
             window.focus_sheet(sheet) # make sure focus stays on requests sheet
 
@@ -136,5 +140,6 @@ class ReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         return [self.view.substr( self.view.line(0) )]
 
     def open_response_view(self, request, response, **kwargs):
+        content = self.response_content(request, response)
         self.view.run_command('http_requests_replace_view_text',
-                             {'text': self.response_content(request, response)})
+                             {'text': content.content, 'point': content.point})

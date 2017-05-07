@@ -8,4 +8,5 @@ class HttpRequestsReplaceViewTextCommand(sublime_plugin.TextCommand):
         )
         self.view.insert(edit, 0, text)
         if point:
-            self.view.show_at_center(point)
+            self.view.sel().clear()
+            self.view.sel().add(sublime.Region(point))
