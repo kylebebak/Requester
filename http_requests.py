@@ -86,18 +86,21 @@ class RequestCommandMixin:
         )
         return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
-    def get_responses(self, selections):
+    def get_responses(self, selections, is_done=False):
         if not hasattr(self, '_pool'):
             self._pool = ResponseThreadPool(selections)
             sublime.set_timeout_async(lambda: self._pool.run(), 0)
             sublime.set_timeout(lambda: self.get_responses(selections), 100)
-        else:
+        else: # this  code has to be thread-safe...
+            if self._pool.is_done:
+                is_done = True
+
             while len(self._pool.responses):
                 r = self._pool.responses.pop(0)
                 self.open_response_view(r.selection, r.response,
                                         num_selections=len(selections))
 
-            if self._pool.is_done:
+            if is_done:
                 del self._pool
                 return
             sublime.set_timeout(lambda: self.get_responses(selections), 100)
