@@ -14,7 +14,7 @@ Response = namedtuple('Response', 'selection, response')
 
 class ResponseThreadPool(object):
 
-    MAX_WORKERS = 20
+    MAX_WORKERS = 4
 
     @staticmethod
     def get_response(selection):
@@ -42,6 +42,14 @@ class ResponseThreadPool(object):
 
 
 class RequestCommandMixin:
+
+    def run(self, edit):
+        self.config = sublime.load_settings('http_requests.sublime-settings')
+        self.import_variables(
+            self.view.settings().get('http_requests.requests_file_path', None)
+        )
+        selections = self.get_selections()
+        self.get_responses(selections)
 
     def import_variables(self, requests_file_path=None):
         requests_file_path = requests_file_path or self.view.file_name()
@@ -84,7 +92,8 @@ class RequestCommandMixin:
         else:
             while len(self._pool.responses):
                 r = self._pool.responses.pop(0)
-                self.open_response_view(r.selection, r.response)
+                self.open_response_view(r.selection, r.response,
+                                        num_selections=len(selections))
 
             if self._pool.is_done:
                 del self._pool
@@ -93,12 +102,6 @@ class RequestCommandMixin:
 
 
 class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
-
-    def run(self, edit):
-        self.config = sublime.load_settings('http_requests.sublime-settings')
-        self.import_variables()
-        selections = self.get_selections()
-        self.get_responses(selections)
 
     def get_selections(self):
         view = self.view
@@ -110,8 +113,10 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 selections.append( view.substr(view.line(region)) )
         return selections
 
-    def open_response_view(self, request, response):
+    def open_response_view(self, request, response, num_selections):
         window = self.view.window()
+        sheet = window.active_sheet()
+
         view = window.new_file()
         view.set_scratch(True)
         view.settings().set('http_requests.response_view', True)
@@ -121,19 +126,15 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         ))
         view.run_command('http_requests_replace_view_text',
                          {'text': self.response_content(request, response)})
+        if num_selections > 1:
+            window.focus_sheet(sheet) # make sure focus stays on requests sheet
 
 
-class ReplayRequestCommand(sublime_plugin.TextCommand, RequestCommandMixin):
-
-    def run(self, edit):
-        self.config = sublime.load_settings('http_requests.sublime-settings')
-        self.import_variables( self.view.settings().get('http_requests.requests_file_path') )
-        selections = self.get_selections()
-        self.get_responses(selections)
+class ReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
     def get_selections(self):
         return [self.view.substr( self.view.line(0) )]
 
-    def open_response_view(self, request, response):
+    def open_response_view(self, request, response, **kwargs):
         self.view.run_command('http_requests_replace_view_text',
                              {'text': self.response_content(request, response)})
