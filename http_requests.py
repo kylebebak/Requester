@@ -13,8 +13,15 @@ Content = namedtuple('Content', 'content, point')
 
 class RequestCommandMixin:
 
+    def get_selections(self):
+        raise NotImplementedError
+
+    def open_response_view(self, request, response, **kwargs):
+        raise NotImplementedError
+
     def run(self, edit):
         self.config = sublime.load_settings('http_requests.sublime-settings')
+        # this method runs first, which means `self.config` is available to all methods
         env = self.get_env(
             self.view.settings().get('http_requests.requests_file_path', None)
         )
@@ -52,9 +59,12 @@ class RequestCommandMixin:
         return None
 
     def get_response_content(self, request, response):
+        """Returns a response string that includes metadata, headers and content,
+        and the index of the string at which the response content begins.
+        """
         r = response
-        redirects = [res.url for res in r.history]
-        redirects.append(r.url)
+        redirects = [res.url for res in r.history] # URLs traversed due to redirects
+        redirects.append(r.url) # final URL
 
         header = '{} {}\n{}s\n{}'.format(
             r.status_code, r.reason, r.elapsed.total_seconds(),
@@ -71,15 +81,23 @@ class RequestCommandMixin:
         return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
     def display_responses(self, selections, env=None, is_done=False):
+        """Make requests concurrently using a `ThreadPool`. Display responses as
+        they are returned.
+
+        Thread pool runs on alternate thread, and is inspected at regular
+        intervals to remove completed responses and display them, or display any
+        errors for a given request.
+        """
         if not hasattr(self, '_pool'):
-            self._pool = ResponseThreadPool(selections, env)
-            sublime.set_timeout_async(lambda: self._pool.run(), 0)
+            self._pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
+            sublime.set_timeout_async(lambda: self._pool.run(), 0) # run on an alternate thread
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
+
         else: # this code has to be thread-safe...
             if self._pool.is_done:
                 is_done = True
 
-            while len(self._pool.responses):
+            while len(self._pool.responses): # remove completed responses from thread pool and display them
                 r = self._pool.responses.pop(0)
                 self.open_response_view(r.selection, r.response,
                                         num_selections=len(selections))
@@ -90,6 +108,8 @@ class RequestCommandMixin:
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
     def set_syntax(self, view, response):
+        """Try to set syntax for `view` based on `content-type` response header.
+        """
         content_type = response.headers.get('content-type', None)
         if not content_type:
             return
@@ -109,6 +129,12 @@ class RequestCommandMixin:
         view.set_syntax_file(syntax)
 
     def prepare_selection(self, s, add_timeout_arg=True):
+        """Ensure selection is prefixed with "requests.", because this module is
+        guaranteed to be in the scope under which the selection is evaluated.
+
+        Also, ensure request can time out so it doesn't hang indefinitely.
+        http://docs.python-requests.org/en/master/user/advanced/#timeouts
+        """
         s = s.strip()
         if not s.startswith('requests.'):
             s = 'requests.' + s
@@ -120,8 +146,14 @@ class RequestCommandMixin:
 
 
 class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
+    """Execute requests concurrently from requests file and open multiple response
+    views.
+    """
 
     def get_selections(self):
+        """Gets multiple selections. If nothing is highlighted, cursor's current
+        line is taken as selection.
+        """
         view = self.view
         selections = []
         for region in view.sel():
@@ -133,33 +165,44 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         return selections
 
     def open_response_view(self, request, response, num_selections):
+        """Create a response view and insert response content into it.
+        """
         window = self.view.window()
         sheet = window.active_sheet()
 
         view = window.new_file()
         view.set_scratch(True)
         view.settings().set('http_requests.response_view', True)
+        # this setting allows keymap to target response views separately
         view.settings().set('http_requests.requests_file_path', self.view.file_name())
         view.set_name('{}: {}'.format(
             response.request.method, parse.urlparse(response.url).path
-        ))
+        )) # short but descriptive, to facilitate navigation between response tabs using Goto Anything
+
         content = self.get_response_content(request, response)
         view.run_command('http_requests_replace_view_text',
                          {'text': content.content, 'point': content.point})
         self.set_syntax(view, response)
 
         if num_selections > 1:
-            window.focus_sheet(sheet) # make sure focus stays on requests sheet
+            # keep focus on requests view if multiple requests are being executed
+            window.focus_sheet(sheet)
 
 
 class ReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
+    """Replay a request from a response view.
+    """
 
     def get_selections(self):
+        """Returns only one selection, the one on the first line.
+        """
         return [self.prepare_selection(
             self.view.substr( self.view.line(0) ), False
         )]
 
     def open_response_view(self, request, response, **kwargs):
+        """Overwrites content in current view.
+        """
         content = self.get_response_content(request, response)
         self.view.run_command('http_requests_replace_view_text',
                              {'text': content.content, 'point': content.point})

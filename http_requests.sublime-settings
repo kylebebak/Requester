@@ -1,4 +1,7 @@
 {
+  // relative to requests file
   "env_file": "_requests_env.py",
+
+  // display error if request doesn't return after this many seconds
   "timeout": 30
 }
