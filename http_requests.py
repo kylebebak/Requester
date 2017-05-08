@@ -2,6 +2,7 @@ import sublime, sublime_plugin
 
 import os
 import re
+import imp
 from collections import namedtuple
 from urllib import parse
 from concurrent import futures
@@ -18,14 +19,15 @@ class ResponseThreadPool:
     MAX_WORKERS = 10
 
     @staticmethod
-    def get_response(selection):
-        response = Response(selection, eval(selection))
+    def get_response(selection, env=None):
+        response = Response(selection, eval(selection, globals(), env or {}))
         return response
 
-    def __init__(self, selections):
+    def __init__(self, selections, env):
         self.is_done = False
         self.responses = []
         self.selections = selections
+        self.env = env
 
     def run(self):
         with futures.ThreadPoolExecutor(
@@ -33,7 +35,7 @@ class ResponseThreadPool:
         ) as executor:
             to_do = []
             for selection in self.selections:
-                future = executor.submit(self.get_response, selection)
+                future = executor.submit(self.get_response, selection, self.env)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):
@@ -46,13 +48,16 @@ class RequestCommandMixin:
 
     def run(self, edit):
         self.config = sublime.load_settings('http_requests.sublime-settings')
-        self.import_variables(
+        env = self.get_env(
             self.view.settings().get('http_requests.requests_file_path', None)
         )
         selections = self.get_selections()
-        self.get_responses(selections)
+        self.get_responses(selections, env)
 
-    def import_variables(self, requests_file_path=None):
+    def get_env(self, requests_file_path=None):
+        """
+        http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
+        """
         requests_file_path = requests_file_path or self.view.file_name()
         requests_file_dir = os.path.dirname( requests_file_path )
 
@@ -68,8 +73,8 @@ class RequestCommandMixin:
         env_file = scope.get('env_file')
         if env_file:
             env_file_path = os.path.join( requests_file_dir, env_file )
-            with open(env_file_path) as f:
-                exec(f.read(), globals())
+            return vars(imp.load_source('http_requests.env', env_file_path))
+        return None
 
     def response_content(self, request, response):
         r = response
@@ -86,9 +91,9 @@ class RequestCommandMixin:
         )
         return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
-    def get_responses(self, selections, is_done=False):
+    def get_responses(self, selections, env=None, is_done=False):
         if not hasattr(self, '_pool'):
-            self._pool = ResponseThreadPool(selections)
+            self._pool = ResponseThreadPool(selections, env)
             sublime.set_timeout_async(lambda: self._pool.run(), 0)
             sublime.set_timeout(lambda: self.get_responses(selections), 100)
         else: # this code has to be thread-safe...
