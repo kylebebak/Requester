@@ -196,7 +196,9 @@ class HttpRequestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             if not region.empty():
                 selections.append( view.substr(region) )
             else:
-                selections.append( view.substr(view.line(region)) )
+                selection = view.substr(view.line(region))
+                if selection: # ignore empty strings, i.e. blank lines
+                    selections.append( selection )
         selections = [self.prepare_selection(s) for s in selections]
         return selections
 

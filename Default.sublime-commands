@@ -2,4 +2,6 @@
   { "caption": "Requests: Run Requests", "command": "http_requests" },
 
   { "caption": "Requests: Replay Request", "command": "http_requests_replay_request" },
+
+  { "caption": "Requests: Close All Response Tabs", "command": "http_requests_close_response_tabs" }
 ]
