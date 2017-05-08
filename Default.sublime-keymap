@@ -10,5 +10,12 @@
     "context": [
       { "key": "setting.http_requests.response_view", "operator": "equal", "operand": true }
     ]
+  },
+  {
+    "keys": ["ctrl+r"],
+    "command": "replay_request",
+    "context": [
+      { "key": "setting.http_requests.response_view", "operator": "equal", "operand": true }
+    ]
   }
 ]
