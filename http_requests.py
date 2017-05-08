@@ -5,44 +5,11 @@ import re
 import imp
 from collections import namedtuple
 from urllib import parse
-from concurrent import futures
 
-import requests
-from requests import delete, get, head, options, patch, post, put
+from .responses import ResponseThreadPool
 
 
-Response = namedtuple('Response', 'selection, response')
 Content = namedtuple('Content', 'content, point')
-
-class ResponseThreadPool:
-
-    MAX_WORKERS = 10
-
-    @staticmethod
-    def get_response(selection, env=None):
-        response = Response(selection, eval(selection, globals(), env or {}))
-        return response
-
-    def __init__(self, selections, env):
-        self.is_done = False
-        self.responses = []
-        self.selections = selections
-        self.env = env
-
-    def run(self):
-        with futures.ThreadPoolExecutor(
-            max_workers=min(self.MAX_WORKERS, len(self.selections))
-        ) as executor:
-            to_do = []
-            for selection in self.selections:
-                future = executor.submit(self.get_response, selection, self.env)
-                to_do.append(future)
-
-            for future in futures.as_completed(to_do):
-                result = future.result()
-                self.responses.append(result)
-        self.is_done = True
-
 
 class RequestCommandMixin:
 
