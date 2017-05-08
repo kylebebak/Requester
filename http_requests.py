@@ -3,6 +3,7 @@ import sublime, sublime_plugin
 import os
 import re
 import imp
+import json
 from collections import namedtuple
 from urllib import parse
 
@@ -76,7 +77,12 @@ class RequestCommandMixin:
         headers = '\n'.join(
             [ '{}: {}'.format(k, v) for k, v in sorted(r.headers.items()) ]
         )
-        content = r.text
+        try:
+            json_dict = r.json()
+        except:
+            content = r.text
+        else: # prettify json regardless of what raw response looks like
+            content = json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
 
         before_content_items = [' '.join(request.split()), header, '[cmd+r] replay request', headers]
         before_content = '\n\n'.join(before_content_items)
@@ -116,7 +122,7 @@ class RequestCommandMixin:
                     sublime.error_message('\n\n'.join(self._errors)) # display all errors together
                 del self._errors
 
-                self.view.set_status('http_requests.progress', '')
+                self.view.set_status('http_requests.activity', '') # remove activity indicator from status bar
                 return
 
             self._count += 1
@@ -134,8 +140,8 @@ class RequestCommandMixin:
         else:
             before = blanks - (count % blanks)
         after = blanks - before
-        progress = 'Requests [{}={}]'.format(' ' * before, ' ' * after)
-        self.view.set_status('http_requests.progress', progress)
+        activity = 'Requests [{}={}]'.format(' ' * before, ' ' * after)
+        self.view.set_status('http_requests.activity', activity)
 
     def set_syntax(self, view, response):
         """Try to set syntax for `view` based on `content-type` response header.
@@ -175,7 +181,7 @@ class RequestCommandMixin:
         return s
 
 
-class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
+class HttpRequestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     """Execute requests concurrently from requests file and open multiple response
     views.
     """
@@ -219,7 +225,7 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             window.focus_sheet(sheet)
 
 
-class ReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
+class HttpRequestsReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     """Replay a request from a response view.
     """
 

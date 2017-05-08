@@ -1,3 +1,5 @@
 [
-  { "caption": "Requests: Current Project", "command": "request" }
+  { "caption": "Requests: Run Requests", "command": "http_requests" },
+
+  { "caption": "Requests: Replay Request", "command": "http_requests_replay_request" },
 ]

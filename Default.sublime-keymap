@@ -1,19 +1,19 @@
 [
-  { "keys": ["ctrl+r"], "command": "request" },
+  { "keys": ["ctrl+r"], "command": "http_requests" },
 
   ///////////////////
   // RESPONSE VIEW //
   ///////////////////
   {
     "keys": ["super+r"],
-    "command": "replay_request",
+    "command": "http_requests_replay_request",
     "context": [
       { "key": "setting.http_requests.response_view", "operator": "equal", "operand": true }
     ]
   },
   {
     "keys": ["ctrl+r"],
-    "command": "replay_request",
+    "command": "http_requests_replay_request",
     "context": [
       { "key": "setting.http_requests.response_view", "operator": "equal", "operand": true }
     ]
