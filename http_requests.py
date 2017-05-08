@@ -19,7 +19,7 @@ class RequestCommandMixin:
             self.view.settings().get('http_requests.requests_file_path', None)
         )
         selections = self.get_selections()
-        self.get_responses(selections, env)
+        self.display_responses(selections, env)
 
     def get_env(self, requests_file_path=None):
         """
@@ -43,26 +43,30 @@ class RequestCommandMixin:
             return vars(imp.load_source('http_requests.env', env_file_path))
         return None
 
-    def response_content(self, request, response):
+    def get_response_content(self, request, response):
         r = response
+        redirects = [res.url for res in r.history]
+        redirects.append(r.url)
+
         header = '{} {}\n{}s\n{}'.format(
-            r.status_code, r.reason, r.elapsed.total_seconds(), r.url
+            r.status_code, r.reason, r.elapsed.total_seconds(),
+            ' -> '.join(redirects)
         )
         headers = '\n'.join(
             [ '{}: {}'.format(k, v) for k, v in sorted(r.headers.items()) ]
         )
         content = r.text
 
-        before_content = '\n\n'.join(
-            [' '.join(request.split()), header, '[cmd+r] replay request', headers]
-        )
+        before_content_items = [' '.join(request.split()), header, '[cmd+r] replay request', headers]
+        before_content = '\n\n'.join(before_content_items)
+
         return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
-    def get_responses(self, selections, env=None, is_done=False):
+    def display_responses(self, selections, env=None, is_done=False):
         if not hasattr(self, '_pool'):
             self._pool = ResponseThreadPool(selections, env)
             sublime.set_timeout_async(lambda: self._pool.run(), 0)
-            sublime.set_timeout(lambda: self.get_responses(selections), 100)
+            sublime.set_timeout(lambda: self.display_responses(selections), 100)
         else: # this code has to be thread-safe...
             if self._pool.is_done:
                 is_done = True
@@ -75,7 +79,7 @@ class RequestCommandMixin:
             if is_done:
                 del self._pool
                 return
-            sublime.set_timeout(lambda: self.get_responses(selections), 100)
+            sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
     def set_syntax(self, view, response):
         content_type = response.headers.get('content-type', None)
@@ -120,7 +124,7 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         view.set_name('{}: {}'.format(
             response.request.method, parse.urlparse(response.url).path
         ))
-        content = self.response_content(request, response)
+        content = self.get_response_content(request, response)
         view.run_command('http_requests_replace_view_text',
                          {'text': content.content, 'point': content.point})
         self.set_syntax(view, response)
@@ -135,7 +139,7 @@ class ReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         return [self.view.substr( self.view.line(0) )]
 
     def open_response_view(self, request, response, **kwargs):
-        content = self.response_content(request, response)
+        content = self.get_response_content(request, response)
         self.view.run_command('http_requests_replace_view_text',
                              {'text': content.content, 'point': content.point})
         self.set_syntax(self.view, response)
