@@ -4,7 +4,7 @@ from collections import namedtuple
 requests = __import__('requests')
 
 
-Response = namedtuple('Response', 'selection, response')
+Response = namedtuple('Response', 'selection, response, error')
 
 class ResponseThreadPool:
     """Allows requests to be invoked concurrently, and allows client code to
@@ -20,8 +20,25 @@ class ResponseThreadPool:
         """
         env = env or {}
         env['requests'] = requests
-        response = Response(selection, eval(selection, env))
-        return response
+
+        response, error = None, ''
+        try:
+            response = eval(selection, env)
+        except requests.Timeout:
+            error = 'Timeout Error: the request timed out'
+        except requests.ConnectionError:
+            error = 'Connection Error: check your connection'
+        except SyntaxError as e:
+            error = '{}: {}\n\n{}'.format('Syntax Error', e,
+                                          'Review properly formatted requests in README.md')
+        except Exception as e:
+            error = '{}: {}'.format('Other Error', e)
+        else: # only check response type if no exceptions were raised
+            if not isinstance(response, requests.Response):
+                error = '{}: {}'.format('Type Error',
+                                        'request did not return an instance of requests.Response')
+
+        return Response(selection, response, error)
 
     def __init__(self, selections, env):
         self.is_done = False

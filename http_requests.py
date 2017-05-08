@@ -42,18 +42,21 @@ class RequestCommandMixin:
             for line in f:
                 m = p.match(line) # matches only at beginning of string
                 if m:
-                    exec(line, scope) # add `env_file` to `scope` dict
+                    try:
+                        exec(line, scope) # add `env_file` to `scope` dict
+                    except:
+                        pass
                     break # stop looking after first match
 
         env_file = scope.get('env_file')
         if env_file:
-            env_file_path = os.path.join( requests_file_dir, env_file )
+            env_file_path = os.path.join( requests_file_dir, str(env_file) )
             try:
                 env = imp.load_source('http_requests.env', env_file_path)
-            except FileNotFoundError:
-                pass # display error
-            except SyntaxError:
-                pass # display error
+            except (FileNotFoundError, SyntaxError) as e:
+                sublime.error_message('EnvFile Error:\n{}'.format(e))
+            except Exception as e:
+                sublime.error_message('Other EnvFile Error:\n{}'.format(e))
             else:
                 return vars(env)
         return None
@@ -90,6 +93,7 @@ class RequestCommandMixin:
         """
         if not hasattr(self, '_pool'):
             self._pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
+            self._errors = []
             sublime.set_timeout_async(lambda: self._pool.run(), 0) # run on an alternate thread
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
@@ -99,11 +103,17 @@ class RequestCommandMixin:
 
             while len(self._pool.responses): # remove completed responses from thread pool and display them
                 r = self._pool.responses.pop(0)
-                self.open_response_view(r.selection, r.response,
+                if r.error:
+                    self._errors.append('{}\n{}'.format(r.selection, r.error))
+                else:
+                    self.open_response_view(r.selection, r.response,
                                         num_selections=len(selections))
 
             if is_done:
                 del self._pool
+                if len(self._errors):
+                    sublime.error_message('\n\n'.join(self._errors)) # display all errors together
+                del self._errors
                 return
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
