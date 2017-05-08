@@ -1,3 +1,4 @@
 {
-  "env_file": "_requests_env.py"
+  "env_file": "_requests_env.py",
+  "timeout": 30
 }
