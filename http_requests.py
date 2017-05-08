@@ -22,7 +22,8 @@ class RequestCommandMixin:
         self.display_responses(selections, env)
 
     def get_env(self, requests_file_path=None):
-        """
+        """Imports the user-specified `env_file` and returns an env dictionary.
+
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
         requests_file_path = requests_file_path or self.view.file_name()
@@ -32,15 +33,22 @@ class RequestCommandMixin:
         p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requests file
         with open(requests_file_path) as f:
             for line in f:
-                m = p.match(line)
+                m = p.match(line) # matches only at beginning of string
                 if m:
-                    exec(line, scope)
+                    exec(line, scope) # add `env_file` to `scope` dict
                     break # stop looking after first match
 
         env_file = scope.get('env_file')
         if env_file:
             env_file_path = os.path.join( requests_file_dir, env_file )
-            return vars(imp.load_source('http_requests.env', env_file_path))
+            try:
+                env = imp.load_source('http_requests.env', env_file_path)
+            except FileNotFoundError:
+                pass # display error
+            except SyntaxError:
+                pass # display error
+            else:
+                return vars(env)
         return None
 
     def get_response_content(self, request, response):
