@@ -1,7 +1,7 @@
 import sublime, sublime_plugin
 
 
-class HttpRequestsReplaceViewTextCommand(sublime_plugin.TextCommand):
+class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
     """`TextCommand` to replace all text in view, without highlighting text after.
     Optionally leave cursor at `point`.
     """
@@ -15,12 +15,12 @@ class HttpRequestsReplaceViewTextCommand(sublime_plugin.TextCommand):
             self.view.sel().add(sublime.Region(point))
 
 
-class HttpRequestsCloseResponseTabsCommand(sublime_plugin.WindowCommand):
+class RequesterCloseResponseTabsCommand(sublime_plugin.WindowCommand):
     """`TextCommand` to replace all text in view, without highlighting text after.
     Optionally leave cursor at `point`.
     """
     def run(self):
         for sheet in self.window.sheets():
             view = sheet.view()
-            if view and view.settings().get('http_requests.response_view', False):
+            if view and view.settings().get('requester.response_view', False):
                 view.close()

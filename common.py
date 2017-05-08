@@ -1,11 +1,10 @@
-import sublime, sublime_plugin
+import sublime
 
 import os
 import re
 import imp
 import json
 from collections import namedtuple
-from urllib import parse
 
 from .responses import ResponseThreadPool
 
@@ -21,10 +20,10 @@ class RequestCommandMixin:
         raise NotImplementedError
 
     def run(self, edit):
-        self.config = sublime.load_settings('http_requests.sublime-settings')
+        self.config = sublime.load_settings('Requester.sublime-settings')
         # this method runs first, which means `self.config` is available to all methods
         env = self.get_env(
-            self.view.settings().get('http_requests.requests_file_path', None)
+            self.view.settings().get('requester.requests_file_path', None)
         )
         selections = self.get_selections()
         self.display_responses(selections, env)
@@ -53,7 +52,7 @@ class RequestCommandMixin:
         if env_file:
             env_file_path = os.path.join( requests_file_dir, str(env_file) )
             try:
-                env = imp.load_source('http_requests.env', env_file_path)
+                env = imp.load_source('requester.env', env_file_path)
             except (FileNotFoundError, SyntaxError) as e:
                 sublime.error_message('EnvFile Error:\n{}'.format(e))
             except Exception as e:
@@ -122,7 +121,7 @@ class RequestCommandMixin:
                     sublime.error_message('\n\n'.join(self._errors)) # display all errors together
                 del self._errors
 
-                self.view.set_status('http_requests.activity', '') # remove activity indicator from status bar
+                self.view.set_status('requester.activity', '') # remove activity indicator from status bar
                 return
 
             self._count += 1
@@ -141,7 +140,7 @@ class RequestCommandMixin:
             before = blanks - (count % blanks)
         after = blanks - before
         activity = 'Requests [{}={}]'.format(' ' * before, ' ' * after)
-        self.view.set_status('http_requests.activity', activity)
+        self.view.set_status('requester.activity', activity)
 
     def set_syntax(self, view, response):
         """Try to set syntax for `view` based on `content-type` response header.
@@ -179,69 +178,3 @@ class RequestCommandMixin:
             timeout_string = ', timeout={})'.format(self.config.get('timeout', 30))
             return s[:-1] + timeout_string
         return s
-
-
-class HttpRequestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
-    """Execute requests concurrently from requests file and open multiple response
-    views.
-    """
-
-    def get_selections(self):
-        """Gets multiple selections. If nothing is highlighted, cursor's current
-        line is taken as selection.
-        """
-        view = self.view
-        selections = []
-        for region in view.sel():
-            if not region.empty():
-                selections.append( view.substr(region) )
-            else:
-                selection = view.substr(view.line(region))
-                if selection: # ignore empty strings, i.e. blank lines
-                    selections.append( selection )
-        selections = [self.prepare_selection(s) for s in selections]
-        return selections
-
-    def open_response_view(self, request, response, num_selections):
-        """Create a response view and insert response content into it.
-        """
-        window = self.view.window()
-        sheet = window.active_sheet()
-
-        view = window.new_file()
-        view.set_scratch(True)
-        view.settings().set('http_requests.response_view', True)
-        # this setting allows keymap to target response views separately
-        view.settings().set('http_requests.requests_file_path', self.view.file_name())
-        view.set_name('{}: {}'.format(
-            response.request.method, parse.urlparse(response.url).path
-        )) # short but descriptive, to facilitate navigation between response tabs using Goto Anything
-
-        content = self.get_response_content(request, response)
-        view.run_command('http_requests_replace_view_text',
-                         {'text': content.content, 'point': content.point})
-        self.set_syntax(view, response)
-
-        if num_selections > 1:
-            # keep focus on requests view if multiple requests are being executed
-            window.focus_sheet(sheet)
-
-
-class HttpRequestsReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
-    """Replay a request from a response view.
-    """
-
-    def get_selections(self):
-        """Returns only one selection, the one on the first line.
-        """
-        return [self.prepare_selection(
-            self.view.substr( self.view.line(0) ), False
-        )]
-
-    def open_response_view(self, request, response, **kwargs):
-        """Overwrites content in current view.
-        """
-        content = self.get_response_content(request, response)
-        self.view.run_command('http_requests_replace_view_text',
-                             {'text': content.content, 'point': content.point})
-        self.set_syntax(self.view, response)
