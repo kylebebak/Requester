@@ -91,7 +91,7 @@ class RequestCommandMixin:
             self._pool = ResponseThreadPool(selections)
             sublime.set_timeout_async(lambda: self._pool.run(), 0)
             sublime.set_timeout(lambda: self.get_responses(selections), 100)
-        else: # this  code has to be thread-safe...
+        else: # this code has to be thread-safe...
             if self._pool.is_done:
                 is_done = True
 
@@ -104,6 +104,25 @@ class RequestCommandMixin:
                 del self._pool
                 return
             sublime.set_timeout(lambda: self.get_responses(selections), 100)
+
+    def set_syntax(self, view, response):
+        content_type = response.headers.get('content-type', None)
+        if not content_type:
+            return
+        content_type = content_type.split(';')[0]
+
+        content_type_syntax = {
+            'application/json': 'Packages/JavaScript/JSON.sublime-syntax',
+            'text/json': 'Packages/JavaScript/JSON.sublime-syntax',
+            'application/xml': 'Packages/XML/XML.sublime-syntax',
+            'text/xml': 'Packages/XML/XML.sublime-syntax',
+            'application/xhtml+xml': 'Packages/HTML/HTML.sublime-syntax',
+            'text/html': 'Packages/HTML/HTML.sublime-syntax',
+        }
+        syntax = content_type_syntax.get(content_type, None)
+        if syntax is None:
+            return
+        view.set_syntax_file(syntax)
 
 
 class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -132,6 +151,7 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         content = self.response_content(request, response)
         view.run_command('http_requests_replace_view_text',
                          {'text': content.content, 'point': content.point})
+        self.set_syntax(view, response)
 
         if num_selections > 1:
             window.focus_sheet(sheet) # make sure focus stays on requests sheet
@@ -146,3 +166,4 @@ class ReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         content = self.response_content(request, response)
         self.view.run_command('http_requests_replace_view_text',
                              {'text': content.content, 'point': content.point})
+        self.set_syntax(self.view, response)
