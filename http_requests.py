@@ -100,6 +100,16 @@ class RequestCommandMixin:
             return
         view.set_syntax_file(syntax)
 
+    def prepare_selection(self, s, add_timeout_arg=True):
+        s = s.strip()
+        if not s.startswith('requests.'):
+            s = 'requests.' + s
+
+        if add_timeout_arg:
+            timeout_string = ', timeout={})'.format(self.config.get('timeout', 30))
+            return s[:-1] + timeout_string
+        return s
+
 
 class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
@@ -111,6 +121,7 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 selections.append( view.substr(region) )
             else:
                 selections.append( view.substr(view.line(region)) )
+        selections = [self.prepare_selection(s) for s in selections]
         return selections
 
     def open_response_view(self, request, response, num_selections):
@@ -136,7 +147,9 @@ class RequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 class ReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
     def get_selections(self):
-        return [self.view.substr( self.view.line(0) )]
+        return [self.prepare_selection(
+            self.view.substr( self.view.line(0) ), False
+        )]
 
     def open_response_view(self, request, response, **kwargs):
         content = self.get_response_content(request, response)
