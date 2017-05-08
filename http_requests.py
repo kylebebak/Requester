@@ -94,6 +94,7 @@ class RequestCommandMixin:
         if not hasattr(self, '_pool'):
             self._pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
             self._errors = []
+            self._count = 0
             sublime.set_timeout_async(lambda: self._pool.run(), 0) # run on an alternate thread
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
@@ -114,8 +115,27 @@ class RequestCommandMixin:
                 if len(self._errors):
                     sublime.error_message('\n\n'.join(self._errors)) # display all errors together
                 del self._errors
+
+                self.view.set_status('http_requests.progress', '')
                 return
+
+            self._count += 1
+            self.show_activity_indicator(self._count)
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
+
+    def show_activity_indicator(self, count):
+        """Displays an activity indicator in status bar if there are pending
+        requests.
+        """
+        blanks = 7
+        cycle = count // blanks
+        if cycle % 2 == 0:
+            before = count % blanks
+        else:
+            before = blanks - (count % blanks)
+        after = blanks - before
+        progress = 'Requests [{}={}]'.format(' ' * before, ' ' * after)
+        self.view.set_status('http_requests.progress', progress)
 
     def set_syntax(self, view, response):
         """Try to set syntax for `view` based on `content-type` response header.
