@@ -5,5 +5,7 @@
 
   { "caption": "Requester: Close All Response Tabs", "command": "requester_close_response_tabs" },
 
-  { "caption": "Requester: Show Tutorial", "command": "requester_show_tutorial" }
+  { "caption": "Requester: Show Tutorial", "command": "requester_show_tutorial" },
+
+  { "caption": "Requester: Show Syntax", "command": "requester_show_syntax" }
 ]

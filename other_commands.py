@@ -1,5 +1,6 @@
 import sublime, sublime_plugin
 
+import webbrowser
 from os.path import join, dirname
 from shutil import copyfile
 
@@ -42,3 +43,11 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
 
         view = self.window.open_file(tutorial_copy)
         view.set_read_only(True)
+
+
+class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
+    """Show a modified, read-only version of README that can be used to see how
+    Requester works.
+    """
+    def run(self):
+        webbrowser.open_new_tab('http://docs.python-requests.org/en/master/user/quickstart/')

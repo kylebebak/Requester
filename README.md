@@ -21,7 +21,7 @@ Requester is like Postman for your text editor. Get environment variables, concu
 
 
 ## Getting Started
->\* An interactive version of this tutorial that doesn't require you to create any files is also available. Look for __Requester: Show Tutorial__ in the command palette.
+>An interactive version of this tutorial that doesn't require you to create any files is also available. Look for __Requester: Show Tutorial__ in the command palette.
 
 Open a file and insert the following:
 ~~~py
@@ -92,7 +92,7 @@ Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cook
 
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
 
-If you don't know how to do something, just have a look at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
+If you don't know how to do something, check out __Requester: Show Tutorial__ from the command palette, or review syntax at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
 
 
 ## Commands
@@ -102,6 +102,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __requester_replay_request__
 - __requester_close_response_tabs__
 - __requester_show_tutorial__
+- __requester_show_syntax__
 
 
 ## Settings
