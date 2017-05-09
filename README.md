@@ -1,53 +1,36 @@
 # Requester
-A __simple__ and __powerful__ Sublime Text 3 HTTP client built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive, expressive, and __extremely easy to use__.
+A simple and powerful Sublime Text 3 HTTP client built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive, expressive, and easy to use.
 
-Requester is like [Postman](https://www.getpostman.com/) for your text editor. Get __environment variables__, __concurrent requests__, __multiple, editable response tabs__ and the __famously elegant syntax__ of Requests, without neutering your keyboard.
+Requester is like [Postman](https://www.getpostman.com/) for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
 
 
 ## Features
-- [Requests' beautiful syntax](http://docs.python-requests.org/en/master/user/quickstart/)
+- [Requests' syntax](http://docs.python-requests.org/en/master/user/quickstart/)
   + easily set request body, custom headers, cookies, query params, etc
-- environment variables
-  + separate env vars for each project
-  + define env vars using Python code
-- execute requests and display responses in parallel
-- display responses in response tabs
-  + edit and replay individual requests from response tabs
-  + view response metadata, headers, content
-  + sensible tab names make navigation easy
-- automatic response syntax highlighting
-- JSON response pretty printing
-- comprehensive error handling and clear error messages
-
-
-## Requester How To
-close all tabs
-timeout
-env_var_file
-redirect history
-requests open in same tab
+- Environment variables
+- Execute requests and display responses in parallel
+- Display responses in response tabs
+  + Edit and replay individual requests from response tabs
+  + View response metadata, headers, content
+- Automatic response syntax highlighting and pretty printing
+- Clear error handling and error messages
 
 
 ## Why Requester?
-There are already several HTTP clients for Sublime Text, but they lack many of the following:
+There are several HTTP clients for Sublime Text, but they lack many of the following:
 
-- well-documented syntax
-- intuitive syntax
-- environment variables
-- multiple response tabs
-- editable response tabs
-- automatic syntax highlighting
+- Well-documented, intuitive syntax
+- Environment variables
+- Multiple, editable response tabs
+- Automatic syntax highlighting
 
-Postman addresses these concerns, which is why so many web developers use it. But using an app like Postman instead of a text editor has its own disadvantages:
+Postman addresses these concerns, which might be why it's so popular... But using an app like Postman has its own disadvantages:
 
-- you're constantly switching contexts between your HTTP client and your code
-- manipulating requests requires lots of point and click
-  + your keyboard wizardry is suddenly worthless 
-- requests are stored in a proprietary format
-  + they're difficult to share
-  + they can't be added to version control
+- Constantly switching contexts between HTTP client and code.
+- Manipulating requests requires lots of point and click: __keyboard wizardry is worthless__.
+- Requests are stored in a proprietary format: difficult to share, difficult to add to version control.
 
-Requester is built from the ground up to give you the best of both worlds.
+Requester is built from the ground up to give you the best of both worlds. Try it, see for yourself =)
 
 
 ## Installation
