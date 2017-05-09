@@ -51,7 +51,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
         # this setting allows keymap to target response views separately
         view.settings().set('requester.response_view', True)
-        view.settings().set('requester.requests_file_path', self.view.file_name())
+        view.settings().set('requester.requester_file', self.view.file_name())
         view.settings().set('requester.selection', request)
 
         view.set_name('{}: {}'.format(
