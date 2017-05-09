@@ -26,7 +26,7 @@ class RequestCommandMixin:
             self.view.settings().get('requester.requests_file_path', None)
         )
         selections = self.get_selections()
-        self.display_responses(selections, env)
+        self.make_requests(selections, env)
 
     def get_env(self, requests_file_path=None):
         """Imports the user-specified `env_file` and returns an env dictionary.
@@ -88,13 +88,9 @@ class RequestCommandMixin:
 
         return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
-    def display_responses(self, selections, env=None, is_done=False):
-        """Make requests concurrently using a `ThreadPool`. Display responses as
-        they are returned.
-
-        Thread pool runs on alternate thread, and is inspected at regular
-        intervals to remove completed responses and display them, or display any
-        errors for a given request.
+    def make_requests(self, selections, env=None):
+        """Make requests concurrently using a `ThreadPool`, which runs on an
+        alternate thread.
         """
         if not hasattr(self, '_pool'):
             self._pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
@@ -103,42 +99,46 @@ class RequestCommandMixin:
             sublime.set_timeout_async(lambda: self._pool.run(), 0) # run on an alternate thread
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
-        else: # this code has to be thread-safe...
-            if self._pool.is_done:
-                is_done = True
+    def display_responses(self, selections):
+        """Inspect thread pool at regular intervals to remove completed responses
+        and display them, or display any errors for a given request.
+        """
+        if not hasattr(self, '_pool'):
+            return
+        is_done = self._pool.is_done # cache `is_done` before removing responses from pool
 
-            while len(self._pool.responses): # remove completed responses from thread pool and display them
-                r = self._pool.responses.pop(0)
-                if r.error:
-                    self._errors.append('{}\n{}'.format(r.selection, r.error))
-                else:
-                    self.open_response_view(r.selection, r.response,
-                                        num_selections=len(selections))
+        while len(self._pool.responses): # remove completed responses from thread pool and display them
+            r = self._pool.responses.pop(0)
+            if r.error:
+                self._errors.append('{}\n{}'.format(r.selection, r.error))
+            else:
+                self.open_response_view(r.selection, r.response,
+                                    num_selections=len(selections))
 
-            if is_done:
-                del self._pool
-                if len(self._errors):
-                    sublime.error_message('\n\n'.join(self._errors)) # display all errors together
-                del self._errors
+        if is_done:
+            del self._pool
+            if len(self._errors):
+                sublime.error_message('\n\n'.join(self._errors)) # display all errors together
+            del self._errors
 
-                self.view.set_status('requester.activity', '') # remove activity indicator from status bar
-                return
+            self.view.set_status('requester.activity', '') # remove activity indicator from status bar
+            return
 
-            self._count += 1
-            self.show_activity_indicator(self._count)
-            sublime.set_timeout(lambda: self.display_responses(selections), 100)
+        self._count += 1
+        self.show_activity_indicator(self._count)
+        sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
     def show_activity_indicator(self, count):
         """Displays an activity indicator in status bar if there are pending
         requests.
         """
-        blanks = 7
-        cycle = count // blanks
+        spaces = 7
+        cycle = count // spaces
         if cycle % 2 == 0:
-            before = count % blanks
+            before = count % spaces
         else:
-            before = blanks - (count % blanks)
-        after = blanks - before
+            before = spaces - (count % spaces)
+        after = spaces - before
         activity = 'Requests [{}={}]'.format(' ' * before, ' ' * after)
         self.view.set_status('requester.activity', activity)
 
