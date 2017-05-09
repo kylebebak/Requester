@@ -1,19 +1,26 @@
 # Requester
-A simple and powerful Sublime Text 3 HTTP client built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive, expressive, and easy to use.
+A simple and powerful HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive, expressive, and easy to use.
 
-Requester is like [Postman](https://www.getpostman.com/) for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
+Requester is like Postman for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
 
 
 ## Features
 - [Requests' syntax](http://docs.python-requests.org/en/master/user/quickstart/)
-  + easily set request body, custom headers, cookies, query params, etc
+  + easily set request body, custom headers, cookies, query params...
 - Environment variables
 - Execute requests and display responses in parallel
-- Display responses in response tabs
-  + Edit and replay individual requests from response tabs
-  + View response metadata, headers, content
-- Automatic response syntax highlighting and pretty printing
+- Edit and replay requests from individual response tabs
+- Automatic syntax highlighting and pretty printing
 - Clear error handling and error messages
+
+
+## Requester How To
+close all tabs
+timeout
+env_var_file
+redirect history
+requests open in same tab
+Sensible tab names make navigation easy
 
 
 ## Why Requester?
@@ -24,7 +31,7 @@ There are several HTTP clients for Sublime Text, but they lack many of the follo
 - Multiple, editable response tabs
 - Automatic syntax highlighting
 
-Postman addresses these concerns, which might be why it's so popular... But using an app like Postman has its own disadvantages:
+Postman addresses these concerns, which might be why it's so popular. But using an app like Postman has its own disadvantages:
 
 - Constantly switching contexts between HTTP client and code.
 - Manipulating requests requires lots of point and click: __keyboard wizardry is worthless__.
