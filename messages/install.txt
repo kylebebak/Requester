@@ -1,0 +1,10 @@
+# Welcome to Requester
+
+Requester is an HTTP client that gives you the functionality of Postman combined with the elegance of Requests, without having to leave your text editor.
+
+## Getting Started
+From the command palette, type `Resquester: Show Tutorial`.
+
+## Issues
+If you find any bugs or if you think something should be added to Requester, please open an issue:
+https://github.com/kylebebak/Requester/issues
