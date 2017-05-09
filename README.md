@@ -1,12 +1,12 @@
 # Requester
-A simple and powerful HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive and and easy to use.
+A simple and powerful HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive and easy to use.
 
 Requester is like Postman for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
 
 
 ## Features
 - [Requests' syntax](http://docs.python-requests.org/en/master/user/quickstart/)
-  + easily set request body, custom headers, cookies, query params...
+  + easily set request body, query params, custom headers, cookies...
 - Environment variables
 - Execute requests and display responses in parallel
 - Edit and replay requests from individual response tabs
@@ -36,9 +36,9 @@ Head to the response tab and check out the response. Hit <kbd>ctrl+r</kbd> or <k
 
 Now, go back to the requester file and use [multiple selection](https://www.sublimetext.com/docs/3/multiple_selection_with_the_keyboard.html) to select all 5 lines, and once again hit <kbd>ctrl+r</kbd>.
 
-Tabs will open for all 4 requests. Before leaving your requester file, hit <kbd>ctrl+r</kbd> yet again. The response tabs will close before being reopened, so that you don't have multiple tabs open for each request.
+Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before leaving your requester file, hit <kbd>ctrl+r</kbd> yet again. Duplicate response tabs will close before reopening, so that you don't have multiple tabs for each request.
 
-You might have noticed that prefixing your requests with `requests.` is optional. Also, If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
+Prefixing your requests with __requests.__ is optional. If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
 
 ### Environment Variables
@@ -52,13 +52,13 @@ get(base_url + '/posts')
 post(base_url + '/posts')
 ~~~
 
-Next, save a file with the name `requester_env.py` __in the same directory__ as `requester.py`, and add the `base_url` env var to it.
+Next, save a file with the name `requester_env.py` __in the same directory__ as `requester.py`, and add an env var to it.
 
 ~~~py
 base_url = 'https://jsonplaceholder.typicode.com'
 ~~~
 
-When you run your requests, __Requester__ will look for a requester env file with the name `requester_env.py` in the same directory as the requester file, and include the variables defined in this file with your requests.
+When you run your requests, __Requester__ looks for a requester env file with the name `requester_env.py` in the same directory as the requester file. It includes the variables defined in this file with your requests.
 
 If you want to change the name or location of the env file, simply define a new `env_file` in your requester file like so:
 
@@ -75,14 +75,17 @@ post(base_url + '/posts')
 Requester will now look for the env file at `relative/path/to/env.py`, which is relative to the location of the requester file.
 
 
-### Request Body, Custom Headers, Cookies, Query Params
+### Request Body, Query Params, Custom Headers, Cookies
 ~~~py
 get('http://httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
 get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
+get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 get('http://httpbin.org/redirect-to?url=foo') # response tab shows redirects
 ~~~
 
-If you execute the third request, you'll notice the response tab shows the series of redirects followed by the browser.
+Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`. If you want to pass cookies in this way, they must be instantiated in your env vars file.
+
+If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
 
 If you don't know how to do something, just have a look at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
 
@@ -103,7 +106,7 @@ Commands defined by this package, in case you want to change key bindings.
 
 
 ## Gotchas
-Requester automatically includes the `timeout` argument in requests executed from your requester file. If you include this arg in your requests, __Requester will raise a Syntax Error__.
+Requester automatically includes the `timeout` argument in requests executed from your requester file. If you include this arg in your requests, __Requester will raise a SyntaxError__.
 
 That's it.
 

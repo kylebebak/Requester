@@ -23,23 +23,23 @@ class RequestCommandMixin:
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
         env = self.get_env(
-            self.view.settings().get('requester.requests_file_path', None)
+            self.view.settings().get('requester.requester_file', None)
         )
         selections = self.get_selections()
         self.make_requests(selections, env)
 
-    def get_env(self, requests_file_path=None):
+    def get_env(self, requester_file=None):
         """Imports the user-specified `env_file` and returns an env dictionary.
 
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
-        requests_file_path = requests_file_path or self.view.file_name()
-        requests_file_dir = os.path.dirname( requests_file_path )
+        requester_file = requester_file or self.view.file_name()
+        requester_dir = os.path.dirname(requester_file)
 
         from_requests_file = False
         scope = {'env_file': self.config.get('env_file')} # default `env_file` read from settings
         p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requests file
-        with open(requests_file_path) as f:
+        with open(requester_file) as f:
             for line in f:
                 m = p.match(line) # matches only at beginning of string
                 if m:
@@ -52,7 +52,7 @@ class RequestCommandMixin:
 
         env_file = scope.get('env_file')
         if env_file:
-            env_file_path = os.path.join( requests_file_dir, str(env_file) )
+            env_file_path = os.path.join( requester_dir, str(env_file) )
             try:
                 env = imp.load_source('requester.env', env_file_path)
             except (FileNotFoundError, SyntaxError) as e:
