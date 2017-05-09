@@ -21,7 +21,7 @@ class RequestCommandMixin:
 
     def run(self, edit):
         self.config = sublime.load_settings('Requester.sublime-settings')
-        # this method runs first, which means `self.config` is available to all methods
+        # `run` runs first, which means `self.config` is available to all methods
         env = self.get_env(
             self.view.settings().get('requester.requests_file_path', None)
         )
