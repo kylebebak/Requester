@@ -36,6 +36,7 @@ class RequestCommandMixin:
         requests_file_path = requests_file_path or self.view.file_name()
         requests_file_dir = os.path.dirname( requests_file_path )
 
+        from_requests_file = False
         scope = {'env_file': self.config.get('env_file')} # default `env_file` read from settings
         p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requests file
         with open(requests_file_path) as f:
@@ -46,6 +47,7 @@ class RequestCommandMixin:
                         exec(line, scope) # add `env_file` to `scope` dict
                     except:
                         pass
+                    from_requests_file = True
                     break # stop looking after first match
 
         env_file = scope.get('env_file')
@@ -54,7 +56,8 @@ class RequestCommandMixin:
             try:
                 env = imp.load_source('requester.env', env_file_path)
             except (FileNotFoundError, SyntaxError) as e:
-                sublime.error_message('EnvFile Error:\n{}'.format(e))
+                if from_requests_file: # don't alert user unless user specified env file from within request file
+                    sublime.error_message('EnvFile Error:\n{}'.format(e))
             except Exception as e:
                 sublime.error_message('Other EnvFile Error:\n{}'.format(e))
             else:
