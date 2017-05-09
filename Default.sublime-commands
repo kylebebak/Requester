@@ -3,5 +3,7 @@
 
   { "caption": "Requester: Replay Request", "command": "requester_replay_request" },
 
-  { "caption": "Requester: Close All Response Tabs", "command": "requester_close_response_tabs" }
+  { "caption": "Requester: Close All Response Tabs", "command": "requester_close_response_tabs" },
+
+  { "caption": "Requester: Show Tutorial", "command": "requester_show_tutorial" }
 ]

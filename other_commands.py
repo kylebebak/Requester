@@ -1,5 +1,8 @@
 import sublime, sublime_plugin
 
+from os.path import join, dirname
+from shutil import copyfile
+
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
     """`TextCommand` to replace all text in view, without highlighting text after.
@@ -24,3 +27,18 @@ class RequesterCloseResponseTabsCommand(sublime_plugin.WindowCommand):
             view = sheet.view()
             if view and view.settings().get('requester.response_view', False):
                 view.close()
+
+
+class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
+    """Show a modified, read-only version of README that can be used to see how
+    Requester works.
+    """
+    def run(self):
+        tutorial_file = join(sublime.packages_path(), 'Requester/docs/_tutorial.md')
+        tutorial_dir = dirname(tutorial_file)
+        tutorial_copy = join(tutorial_dir, 'tutorial.md')
+
+        copyfile(tutorial_file, tutorial_copy)
+
+        view = self.window.open_file(tutorial_copy)
+        view.set_read_only(True)

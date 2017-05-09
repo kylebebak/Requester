@@ -21,6 +21,8 @@ Requester is like Postman for your text editor. Get environment variables, concu
 
 
 ## Getting Started
+>\* An interactive version of this tutorial that doesn't require you to create any files is also available. Look for __Requester: Show Tutorial__ in the command palette.
+
 Open a file and insert the following:
 ~~~py
 requests.get('https://jsonplaceholder.typicode.com/albums')
@@ -78,8 +80,11 @@ Requester will now look for the env file at `relative/path/to/env.py`, which is 
 ### Request Body, Query Params, Custom Headers, Cookies
 ~~~py
 get('http://httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
+
 get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
+
 get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
+
 get('http://httpbin.org/redirect-to?url=foo') # response tab shows redirects
 ~~~
 
@@ -96,6 +101,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __requester__
 - __requester_replay_request__
 - __requester_close_response_tabs__
+- __requester_show_tutorial__
 
 
 ## Settings

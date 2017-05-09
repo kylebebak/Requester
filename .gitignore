@@ -3,3 +3,6 @@
 *.sublime-project
 *.sublime-workspace
 package-metadata.json
+
+# tutorial
+tutorial.md
