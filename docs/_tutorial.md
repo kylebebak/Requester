@@ -82,6 +82,7 @@ Commands defined by this package, in case you want to change key bindings.
   + this can be overridden by defining the `env_file` variable in an individual requester file
 - __timeout__: default timeout in seconds for all requests
   + if you want to change this for a single request, __do so directly in the response tab__, not in your requester file
+- __highlighting__: toggle automatic syntax highlighting
 
 
 ## Gotchas

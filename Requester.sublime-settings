@@ -3,5 +3,8 @@
   "env_file": "requester_env.py",
 
   // display error if request doesn't return after this many seconds
-  "timeout": 30
+  "timeout": 30,
+
+  // toggle automatic syntax highlighting
+  "highlighting": true
 }

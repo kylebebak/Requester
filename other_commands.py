@@ -35,7 +35,7 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
     Requester works.
     """
     def run(self):
-        tutorial_file = join(sublime.packages_path(), 'Requester/docs/_tutorial.md')
+        tutorial_file = join(sublime.packages_path(), 'Requester', 'docs', '_tutorial.md')
         tutorial_dir = dirname(tutorial_file)
         tutorial_copy = join(tutorial_dir, 'tutorial.md')
 

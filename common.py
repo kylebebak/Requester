@@ -148,6 +148,9 @@ class RequestCommandMixin:
     def set_syntax(self, view, response):
         """Try to set syntax for `view` based on `content-type` response header.
         """
+        if not self.config.get('highlighting', False):
+            return
+
         content_type = response.headers.get('content-type', None)
         if not content_type:
             return

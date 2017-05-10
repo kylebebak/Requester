@@ -44,7 +44,7 @@ Prefixing your requests with __requests.__ is optional. If you want to close all
 
 
 ### Environment Variables
-It's time to add environment variables your requests. To do this, you first need to save your requester file. Save it with any name, like `requester.py`. Then modify it to use some environment variables.
+It's time to add environment variables to your requests. To do this, you first need to save your requester file. Save it with any name, like `requester.py`. Then modify it to use some environment variables.
 
 ~~~py
 requests.get(base_url + '/albums')
@@ -110,6 +110,7 @@ Commands defined by this package, in case you want to change key bindings.
   + this can be overridden by defining the `env_file` variable in an individual requester file
 - __timeout__: default timeout in seconds for all requests
   + if you want to change this for a single request, __do so directly in the response tab__, not in your requester file
+- __highlighting__: toggle automatic syntax highlighting
 
 
 ## Gotchas
