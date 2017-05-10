@@ -1,19 +1,18 @@
-// Linux and Windows
 [
-  { "keys": ["ctrl+alt+r"], "command": "requester" },
+  { "keys": ["ctrl+r"], "command": "requester" },
 
   ///////////////////
   // RESPONSE VIEW //
   ///////////////////
   {
-    "keys": ["ctrl+r"],
+    "keys": ["super+r"],
     "command": "requester_replay_request",
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
     ]
   },
   {
-    "keys": ["ctrl+alt+r"],
+    "keys": ["ctrl+r"],
     "command": "requester_replay_request",
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
