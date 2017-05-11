@@ -31,8 +31,19 @@ class RequestCommandMixin:
     def get_env(self, requester_file=None):
         """Imports the user-specified `env_file` and returns an env dictionary.
 
+        If view `request.env` setting is defined for view, env is imported
+        directly from this string, and `requester_file` is ignored.
+
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
+        http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
         """
+        env_string = self.view.settings().get('requester.env', None)
+        if env_string:
+            env = imp.new_module('requester.env')
+            exec(env_string, env.__dict__)
+            # return a new intance of this dict, or else its values will be reset to `None` after it's returned
+            return dict(env.__dict__)
+
         requester_file = requester_file or self.view.file_name()
         requester_dir = os.path.dirname(requester_file)
 

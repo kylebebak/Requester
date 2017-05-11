@@ -1,8 +1,6 @@
 import sublime, sublime_plugin
 
 import webbrowser
-from os.path import join, dirname
-from shutil import copyfile
 
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
@@ -35,14 +33,17 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
     Requester works.
     """
     def run(self):
-        tutorial_file = join(sublime.packages_path(), 'Requester', 'docs', '_tutorial.md')
-        tutorial_dir = dirname(tutorial_file)
-        tutorial_copy = join(tutorial_dir, 'tutorial.md')
+        tutorial_content = sublime.load_resource('Packages/Requester/docs/tutorial.md')
+        env_content = sublime.load_resource('Packages/Requester/docs/requester_env.py')
 
-        copyfile(tutorial_file, tutorial_copy)
-
-        view = self.window.open_file(tutorial_copy)
+        view = self.window.new_file()
+        view.run_command('requester_replace_view_text', {'text': tutorial_content, 'point': 0})
+        view.settings().set('requester.env', env_content)
         view.set_read_only(True)
+        view.set_scratch(True)
+        view.set_syntax_file('Packages/MarkdownEditing/Markdown.tmLanguage')
+        # this doesn't raise an exception if it fails
+        view.set_name('Requester Tutorial')
 
 
 class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):

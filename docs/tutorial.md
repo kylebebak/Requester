@@ -75,6 +75,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __requester_replay_request__
 - __requester_close_response_tabs__
 - __requester_show_tutorial__
+- __requester_show_syntax__
 
 
 ## Settings
