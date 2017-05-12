@@ -22,62 +22,75 @@ class RequestCommandMixin:
     def run(self, edit):
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
-        env = self.get_env(
-            self.view.settings().get('requester.requester_file', None)
-        )
+        self.set_env()
+        env = self.get_env()
         selections = self.get_selections()
         self.make_requests(selections, env)
 
-    def get_env(self, requester_file=None):
-        """Imports the user-specified `env_file` and returns an env dictionary.
-
-        If view `request.env` setting is defined for view, env is imported
-        directly from this string, and `requester_file` is ignored.
-
-        http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
-        http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
+    def set_env(self):
+        """Sets the `env_file` setting on the view, if appropriate. This method is
+        complex, to grant users a lot of flexibility in setting env file.
         """
-        env_string = self.view.settings().get('requester.env', None)
+        if self.view.settings().get('requester.response_view', False):
+            return
+
+        self.view.settings().set('requester.custom_env_file', False)
+        scope = {'env_file': self.config.get('env_file')} # default `env_file` read from settings
+        p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requests file
+        for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
+            m = p.match(line) # matches only at beginning of string
+            if m:
+                try:
+                    exec(line, scope) # add `env_file` to `scope` dict
+                except:
+                    pass
+                self.view.settings().set('requester.custom_env_file', True)
+                break # stop looking after first match
+
+        env_file = scope.get('env_file')
+        if env_file:
+            env_file = str(env_file)
+            if os.path.isabs(env_file):
+                self.view.settings().set('requester.env_file', env_file)
+            else:
+                file_path = self.view.file_name()
+                if file_path:
+                    self.view.settings().set('requester.env_file',
+                                             os.path.join(os.path.dirname(file_path), env_file))
+
+    def get_env(self):
+        """Computes an env from `requester.env_string` setting or
+        `requester.env_file` setting. Returns an env dictionary.
+
+        http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
+        http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
+        """
+        env_string = self.view.settings().get('requester.env_string', None) # this setting takes precedence
         if env_string:
             env = imp.new_module('requester.env')
             exec(env_string, env.__dict__)
             # return a new intance of this dict, or else its values will be reset to `None` after it's returned
             return dict(env.__dict__)
 
-        requester_file = requester_file or self.view.file_name()
-        requester_dir = os.path.dirname(requester_file)
+        env_file = self.view.settings().get('requester.env_file', None)
+        if not env_file:
+            return None
 
-        from_requests_file = False
-        scope = {'env_file': self.config.get('env_file')} # default `env_file` read from settings
-        p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requests file
-        with open(requester_file) as f:
-            for line in f:
-                m = p.match(line) # matches only at beginning of string
-                if m:
-                    try:
-                        exec(line, scope) # add `env_file` to `scope` dict
-                    except:
-                        pass
-                    from_requests_file = True
-                    break # stop looking after first match
-
-        env_file = scope.get('env_file')
-        if env_file:
-            env_file_path = os.path.join( requester_dir, str(env_file) )
-            try:
-                env = imp.load_source('requester.env', env_file_path)
-            except (FileNotFoundError, SyntaxError) as e:
-                if from_requests_file: # don't alert user unless user specified env file from within request file
-                    sublime.error_message('EnvFile Error:\n{}'.format(e))
-            except Exception as e:
-                sublime.error_message('Other EnvFile Error:\n{}'.format(e))
-            else:
-                return vars(env)
+        try:
+            env = imp.load_source('requester.env', env_file)
+        except (FileNotFoundError, SyntaxError) as e:
+            # don't alert user unless user specified env file from within requester file
+            if self.view.settings().get('requester.custom_env_file', False):
+                sublime.error_message('EnvFile Error:\n{}'.format(e))
+        except Exception as e:
+            sublime.error_message('Other EnvFile Error:\n{}'.format(e))
+        else:
+            return vars(env)
         return None
 
     def get_response_content(self, request, response):
         """Returns a response string that includes metadata, headers and content,
-        and the index of the string at which the response content begins.
+        and the index of the string at which response content begins.
         """
         r = response
         redirects = [res.url for res in r.history] # URLs traversed due to redirects
