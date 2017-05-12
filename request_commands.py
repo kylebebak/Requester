@@ -41,10 +41,18 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                     view.close()
 
     def open_response_view(self, request, response, num_selections):
-        """Create a response view and insert response content into it.
+        """Create a response view and insert response content into it. Ensure that
+        response tab comes after (to the right of) all other response tabs.
         """
         window = self.view.window()
-        sheet = window.active_sheet()
+        requester_sheet = window.active_sheet()
+
+        last_sheet = requester_sheet # find last sheet (tab) with a response view
+        for sheet in window.sheets():
+            view = sheet.view()
+            if view and view.settings().get('requester.response_view', True):
+                last_sheet = sheet
+        window.focus_sheet(last_sheet)
 
         view = window.new_file()
         view.set_scratch(True)
@@ -68,7 +76,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
         if num_selections > 1:
             # keep focus on requests view if multiple requests are being executed
-            window.focus_sheet(sheet)
+            window.focus_sheet(requester_sheet)
 
 
 class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):

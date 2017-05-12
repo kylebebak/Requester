@@ -152,22 +152,21 @@ class RequestCommandMixin:
             return
 
         self._count += 1
-        self.show_activity_indicator(self._count)
+        self.view.set_status('requester.activity',
+                             self.get_activity_indicator(self._count, prefix='Requester '))
         sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
-    def show_activity_indicator(self, count):
+    def get_activity_indicator(self, count, prefix='', spaces=7):
         """Displays an activity indicator in status bar if there are pending
         requests.
         """
-        spaces = 7
         cycle = count // spaces
         if cycle % 2 == 0:
             before = count % spaces
         else:
             before = spaces - (count % spaces)
         after = spaces - before
-        activity = 'Requests [{}={}]'.format(' ' * before, ' ' * after)
-        self.view.set_status('requester.activity', activity)
+        return '{}[{}={}]'.format(prefix, ' ' * before, ' ' * after)
 
     def set_syntax(self, view, response):
         """Try to set syntax for `view` based on `content-type` response header.
