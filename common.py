@@ -120,11 +120,18 @@ class RequestCommandMixin:
         alternate thread.
         """
         if not hasattr(self, '_pool'):
+            self.set_pending(selections, True)
             self._pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
             self._errors = []
             self._count = 0
+            self.view.set_status('requester.activity',
+                                 self.get_activity_indicator(self._count, prefix='Requester '))
             sublime.set_timeout_async(lambda: self._pool.run(), 0) # run on an alternate thread
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
+
+    def set_pending(self, selections, status):
+        for view in self.response_views_with_matching_selections(selections):
+            view.settings().set('requester.pending', status)
 
     def display_responses(self, selections):
         """Inspect thread pool at regular intervals to remove completed responses
@@ -139,8 +146,8 @@ class RequestCommandMixin:
             if r.error:
                 self._errors.append('{}\n{}'.format(r.selection, r.error))
             else:
-                self.open_response_view(r.selection, r.response,
-                                    num_selections=len(selections))
+                self.open_response_view(r.selection, r.response, num_selections=len(selections))
+            self.set_pending([r.selection], False)
 
         if is_done:
             del self._pool
@@ -154,7 +161,25 @@ class RequestCommandMixin:
         self._count += 1
         self.view.set_status('requester.activity',
                              self.get_activity_indicator(self._count, prefix='Requester '))
+        self.show_activity_for_pending_views(selections, self._count)
         sublime.set_timeout(lambda: self.display_responses(selections), 100)
+
+    def show_activity_for_pending_views(self, selections, count):
+        for view in self.response_views_with_matching_selections(selections):
+            view.set_name(self.get_activity_indicator(count))
+
+    def response_views_with_matching_selections(self, selections):
+        """Close any tab whose selection is in the current batch of selections, so
+        that these tabs aren't opened twice.
+        """
+        for sheet in self.view.window().sheets():
+            view = sheet.view()
+            if view and view.settings().get('requester.response_view', False):
+                selection = view.settings().get('requester.selection', None)
+                if not selection:
+                    continue
+                if selection in selections:
+                    yield view
 
     def get_activity_indicator(self, count, prefix='', spaces=7):
         """Displays an activity indicator in status bar if there are pending

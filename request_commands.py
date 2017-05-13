@@ -22,23 +22,9 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             else:
                 selection = view.substr(view.line(region))
                 if selection: # ignore empty strings, i.e. blank lines
-                    selections.append( selection )
+                    selections.append(selection)
         selections = [self.prepare_selection(s) for s in selections]
-        self.close_tabs_matching_selections(selections)
         return selections
-
-    def close_tabs_matching_selections(self, selections):
-        """Close any tab whose selection is in the current batch of selections, so
-        that these tabs aren't opened twice.
-        """
-        for sheet in self.view.window().sheets():
-            view = sheet.view()
-            if view and view.settings().get('requester.response_view', False):
-                selection = view.settings().get('requester.selection', None)
-                if not selection:
-                    continue
-                if selection in selections:
-                    view.close()
 
     def open_response_view(self, request, response, num_selections):
         """Create a response view and insert response content into it. Ensure that
