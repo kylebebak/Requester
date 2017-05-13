@@ -41,8 +41,12 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
         view.settings().set('requester.env_string', env_content)
         view.set_read_only(True)
         view.set_scratch(True)
-        view.set_syntax_file('Packages/MarkdownEditing/Markdown.tmLanguage')
-        # this doesn't raise an exception if it fails
+        try:
+            sublime.load_resource('Packages/MarkdownEditing/Markdown.tmLanguage')
+        except:
+            pass
+        else:
+            view.set_syntax_file('Packages/MarkdownEditing/Markdown.tmLanguage')
         view.set_name('Requester Tutorial')
 
 
