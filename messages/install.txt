@@ -3,8 +3,10 @@
 Requester is an HTTP client that gives you the functionality of Postman combined with the elegance of Requests, without having to leave your text editor.
 
 ## Getting Started
-From the command palette, type `Resquester: Show Tutorial`.
+From the command palette, type `Requester: Show Tutorial`.
 
 ## Issues
+If you're seeing errors every time you run a request, this probably means the __requests__ dependency wasn't installed successfully. To fix this, look for __Package Control: Satisfy Dependencies__ in the command palette, run it, and restart Sublime Text.
+
 If you find any bugs or if you think something should be added to Requester, please open an issue:
 https://github.com/kylebebak/Requester/issues

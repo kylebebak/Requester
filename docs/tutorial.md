@@ -9,11 +9,13 @@ post('https://jsonplaceholder.typicode.com/posts')
 
 Place your cursor on one of the lines and hit <kbd>ctrl+r</kbd>. Or, look for __Requester: Run Requests__ in the command palette and hit Enter. A response tab will appear, with a name like __GET: /albums__.
 
+>If this doesn't work, __and you're seeing errors__ every time you run a request, this probably means the __requests__ dependency wasn't installed successfully. To fix this, look for __Package Control: Satisfy Dependencies__ in the command palette, run it, and restart Sublime Text.
+
 Head to the response tab and check out the response. Hit <kbd>ctrl+r</kbd> or <kbd>cmd+r</kbd> to replay the request. You can edit the request, which is at the top of the file, before replaying it.
 
 Now, come back and use [multiple selection](https://www.sublimetext.com/docs/3/multiple_selection_with_the_keyboard.html) to select all 5 lines, and once again hit <kbd>ctrl+r</kbd>.
 
-Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, hit <kbd>ctrl+r</kbd> yet again. Duplicate response tabs will close before reopening, so that you don't have multiple tabs for each request.
+Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, hit <kbd>ctrl+r</kbd> yet again. You'll notice duplicate requests don't create a mess of new tabs, but simply overwrite the content in the matching response tabs.
 
 Prefixing your requests with __requests.__ is optional. If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
@@ -68,25 +70,5 @@ If you execute the last request, you'll notice the response tab shows the series
 If you don't know how to do something, just have a look at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
 
 
-## Commands
-Commands defined by this package, in case you want to change key bindings.
-
-- __requester__
-- __requester_replay_request__
-- __requester_close_response_tabs__
-- __requester_show_tutorial__
-- __requester_show_syntax__
-
-
-## Settings
-- __env_file__: relative path from requester files to env files
-  + this can be overridden by defining the `env_file` variable in an individual requester file
-- __timeout__: default timeout in seconds for all requests
-  + if you want to change this for a single request, __do so directly in the response tab__, not in your requester file
-- __highlighting__: toggle automatic syntax highlighting
-
-
-## Gotchas
-Requester automatically includes the `timeout` argument in requests executed from your requester file. If you include this arg in your requests, __Requester will raise a SyntaxError__.
-
-That's it.
+## More Info
+This tutorial is not meant to be complete, and if you have doubts about how Requester works [the README](https://github.com/kylebebak/Requester) is a better source of information. Check it out!
