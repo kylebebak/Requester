@@ -40,25 +40,31 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 last_sheet = sheet
         window.focus_sheet(last_sheet)
 
-        view = window.new_file()
-        view.set_scratch(True)
+        views = self.response_views_with_matching_selection(request)
+        if not len(views): # if there are no matching response tabs, create a new one
+            views = [window.new_file()]
+        else: # move focus to matching view after response is returned if match occurred
+            window.focus_view(views[0])
 
-        # this setting allows keymap to target response views separately
-        view.settings().set('requester.response_view', True)
-        view.settings().set('requester.env_string',
-                            self.view.settings().get('requester.env_string', None))
-        view.settings().set('requester.env_file',
-                            self.view.settings().get('requester.env_file', None))
-        view.settings().set('requester.selection', request)
+        for view in views:
+            view.set_scratch(True)
 
-        view.set_name('{}: {}'.format(
-            response.request.method, parse.urlparse(response.url).path
-        )) # short but descriptive, to facilitate navigation between response tabs using Goto Anything
+            # this setting allows keymap to target response views separately
+            view.settings().set('requester.response_view', True)
+            view.settings().set('requester.env_string',
+                                self.view.settings().get('requester.env_string', None))
+            view.settings().set('requester.env_file',
+                                self.view.settings().get('requester.env_file', None))
+            view.settings().set('requester.selection', request)
 
-        content = self.get_response_content(request, response)
-        view.run_command('requester_replace_view_text',
-                         {'text': content.content, 'point': content.point})
-        self.set_syntax(view, response)
+            view.set_name('{}: {}'.format(
+                response.request.method, parse.urlparse(response.url).path
+            )) # short but descriptive, to facilitate navigation between response tabs using Goto Anything
+
+            content = self.get_response_content(request, response)
+            view.run_command('requester_replace_view_text',
+                             {'text': content.content, 'point': content.point})
+            self.set_syntax(view, response)
 
         if num_selections > 1:
             # keep focus on requests view if multiple requests are being executed

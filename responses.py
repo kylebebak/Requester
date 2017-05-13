@@ -44,6 +44,7 @@ class ResponseThreadPool:
         self.is_done = False
         self.responses = []
         self.selections = selections
+        self.pending_selections = list(selections)
         self.env = env
 
     def run(self):
@@ -59,7 +60,11 @@ class ResponseThreadPool:
 
             for future in futures.as_completed(to_do):
                 result = future.result()
+                # `responses` and `pending_selections` are instance properties, which means
+                # client code can inspect instance to read responses as they are completed
+                try:
+                    self.pending_selections.remove(result.selection)
+                except ValueError:
+                    pass
                 self.responses.append(result)
-                # `responses` is an instance property, which means client code can
-                # inspect this instance to read responses as they are completed
         self.is_done = True

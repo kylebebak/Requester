@@ -37,7 +37,7 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
         env_content = sublime.load_resource('Packages/Requester/docs/requester_env.py')
 
         view = self.window.new_file()
-        view.run_command('requester_replace_view_text', {'text': tutorial_content, 'point': 0})
+        view.run_command('requester_replace_view_text', {'text': tutorial_content, 'point': 25})
         view.settings().set('requester.env_string', env_content)
         view.set_read_only(True)
         view.set_scratch(True)
