@@ -9,7 +9,6 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     """Execute requests concurrently from requests file and open multiple response
     views.
     """
-
     def get_selections(self):
         """Gets multiple selections. If nothing is highlighted, cursor's current
         line is taken as selection.
@@ -29,6 +28,8 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     def open_response_view(self, request, response, num_selections):
         """Create a response view and insert response content into it. Ensure that
         response tab comes after (to the right of) all other response tabs.
+
+        Don't create new response tab if a response tab matching request is open.
         """
         window = self.view.window()
         requester_sheet = window.active_sheet()
@@ -36,7 +37,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         last_sheet = requester_sheet # find last sheet (tab) with a response view
         for sheet in window.sheets():
             view = sheet.view()
-            if view and view.settings().get('requester.response_view', True):
+            if view and view.settings().get('requester.response_view', False):
                 last_sheet = sheet
         window.focus_sheet(last_sheet)
 
@@ -74,7 +75,6 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     """Replay a request from a response view.
     """
-
     def get_selections(self):
         """Returns only one selection, the one on the first line.
         """

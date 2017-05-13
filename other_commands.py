@@ -41,12 +41,8 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
         view.settings().set('requester.env_string', env_content)
         view.set_read_only(True)
         view.set_scratch(True)
-        try:
-            sublime.load_resource('Packages/MarkdownEditing/Markdown.tmLanguage')
-        except:
-            pass
-        else:
-            view.set_syntax_file('Packages/MarkdownEditing/Markdown.tmLanguage')
+        if not set_syntax(view, 'Packages/MarkdownEditing/Markdown.tmLanguage'):
+            set_syntax(view, 'Packages/Markdown/Markdown.sublime-syntax')
         view.set_name('Requester Tutorial')
 
 
@@ -56,3 +52,15 @@ class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
     """
     def run(self):
         webbrowser.open_new_tab('http://docs.python-requests.org/en/master/user/quickstart/')
+
+
+def set_syntax(view, syntax):
+    """Attempts to set syntax for view without showing error popup.
+    """
+    try:
+        sublime.load_resource(syntax)
+    except:
+        return False
+    else:
+        view.set_syntax_file(syntax)
+        return True

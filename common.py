@@ -160,6 +160,9 @@ class RequestCommandMixin:
         sublime.set_timeout(lambda: self.display_responses(selections), 200)
 
     def show_activity_for_pending_views(self, selection, count):
+        """If there is an already open response view waiting to display content
+        from a pending request, show activity indicator in view.
+        """
         for view in self.response_views_with_matching_selection(selection):
             view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
                 selection, self.get_activity_indicator(count)

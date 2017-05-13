@@ -1,4 +1,4 @@
-## Getting Started
+## Requester Tutorial
 ~~~py
 requests.get('https://jsonplaceholder.typicode.com/albums')
 requests.post('https://jsonplaceholder.typicode.com/albums')
