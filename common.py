@@ -4,6 +4,7 @@ import os
 import re
 import imp
 import json
+from urllib import parse
 from collections import namedtuple
 
 from .responses import ResponseThreadPool
@@ -145,6 +146,8 @@ class RequestCommandMixin:
                 self._errors.append('{}\n{}'.format(r.selection, r.error))
             else:
                 self.open_response_view(r.selection, r.response, num_selections=len(selections))
+            for view in self.response_views_with_matching_selection(r.selection):
+                self.set_response_view_name(view, r.response)
 
         if is_done:
             del self._pool
@@ -180,7 +183,19 @@ class RequestCommandMixin:
                 else:
                     spaces = min(9, len(name))
                     activity = self.get_activity_indicator(count, spaces)
-                    view.set_name(activity.ljust( len(name) + 3 ))
+                    extra_spaces = 4 # extra spaces because tab names don't use monospace font =/
+                    view.set_name(activity.ljust( len(name) + extra_spaces ))
+
+    def set_response_view_name(self, view, response):
+        """Set name for `view` with content from `response`.
+        """
+        try: # short but descriptive, to facilitate navigation between response tabs using Goto Anything
+            name = '{}: {}'.format(response.request.method, parse.urlparse(response.url).path)
+        except:
+            view.set_name( view.settings().get('requester.name') )
+        else:
+            view.set_name(name)
+            view.settings().set('requester.name', name)
 
     def response_views_with_matching_selection(self, selection):
         """Get all response views whose selection matches `selection`.

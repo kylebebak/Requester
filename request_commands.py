@@ -1,7 +1,5 @@
 import sublime_plugin
 
-from urllib import parse
-
 from .common import RequestCommandMixin
 
 
@@ -58,11 +56,6 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                                 self.view.settings().get('requester.env_file', None))
             view.settings().set('requester.selection', request)
 
-            # short but descriptive, to facilitate navigation between response tabs using Goto Anything
-            name = '{}: {}'.format(response.request.method, parse.urlparse(response.url).path)
-            view.set_name(name)
-            view.settings().set('requester.name', name)
-
             content = self.get_response_content(request, response)
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
@@ -86,8 +79,10 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
     def open_response_view(self, request, response, **kwargs):
         """Overwrites content in current view.
         """
+        view = self.view
         content = self.get_response_content(request, response)
-        self.view.run_command('requester_replace_view_text',
+        view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
-        self.set_syntax(self.view, response)
-        self.view.set_name( self.view.settings().get('requester.name') )
+        self.set_syntax(view, response)
+        self.set_response_view_name(view, response)
+        view.settings().set('requester.selection', request)
