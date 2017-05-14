@@ -1,7 +1,12 @@
 import sublime, sublime_plugin
 
 import webbrowser
+from sys import maxsize
+from collections import namedtuple
 
+from .common import RequestCommandMixin
+
+config = sublime.load_settings('Requester.sublime-settings')
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
     """`TextCommand` to replace all text in view, without highlighting text after.
@@ -52,6 +57,8 @@ class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
 
 
 def show_read_only_view(view, content, name, env_content='', point=1):
+    """Helper for creating read-only scratch view.
+    """
     view.run_command('requester_replace_view_text', {'text': content, 'point': point})
     view.settings().set('requester.env_string', env_content)
     view.set_read_only(True)
@@ -79,3 +86,51 @@ class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
     """
     def run(self):
         webbrowser.open_new_tab('http://docs.python-requests.org/en/master/user/quickstart/')
+
+
+class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
+    """Reads lines in current view one by one, then reorders response tabs to
+    match order of requests read from current view. Doesn't work for requests
+    defined over multiple lines.
+    """
+    def run(self, edit):
+        window = self.view.window()
+        # get all lines in current view, prepare them, and cache them
+        lines = []
+        for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
+            lines.append( RequestCommandMixin.prepare_selection(line, config.get('env_file')) )
+        lines = remove_duplicates(lines)
+
+        # cache all response views in current window
+        response_views = []
+        for sheet in window.sheets():
+            view = sheet.view()
+            if view and view.settings().get('requester.response_view', False):
+                response_views.append(view)
+
+        View = namedtuple('View', 'view, line')
+        views = []
+        # add `line` property to cached response views, indicating at which line they appear in current view
+        for view in response_views:
+            selection = view.settings().get('requester.selection', None)
+            if not selection:
+                views.append(View(view, maxsize))
+            try:
+                line = lines.index(selection)
+            except ValueError:
+                views.append(View(view, maxsize))
+            else:
+                views.append(View(view, line))
+
+        # sort response views by line property, and reorder response tabs
+        group, index = window.get_view_index(self.view)
+        for view in sorted(views, key=lambda view: view.line):
+            window.set_view_index(view, group, index)
+
+
+def remove_duplicates(seq):
+    """Removes duplicates from sequence. Preserves order of sequence.
+    """
+    seen = set()
+    seen_add = seen.add
+    return [x for x in seq if not (x in seen or seen_add(x))]

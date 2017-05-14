@@ -247,7 +247,8 @@ class RequestCommandMixin:
             return
         view.set_syntax_file(syntax)
 
-    def prepare_selection(self, s, add_timeout_arg=True):
+    @staticmethod
+    def prepare_selection(s, timeout=None):
         """Ensure selection is prefixed with "requests.", because this module is
         guaranteed to be in the scope under which the selection is evaluated.
 
@@ -258,7 +259,7 @@ class RequestCommandMixin:
         if not s.startswith('requests.'):
             s = 'requests.' + s
 
-        if add_timeout_arg:
-            timeout_string = ', timeout={})'.format(self.config.get('timeout', 30))
+        if timeout is not None:
+            timeout_string = ', timeout={})'.format(timeout)
             return s[:-1] + timeout_string
         return s

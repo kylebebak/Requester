@@ -20,7 +20,8 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 selection = view.substr(view.line(region))
                 if selection: # ignore empty strings, i.e. blank lines
                     selections.append(selection)
-        selections = [self.prepare_selection(s) for s in selections]
+        timeout = self.config.get('timeout', None)
+        selections = [self.prepare_selection(s, timeout) for s in selections]
         return selections
 
     def open_response_view(self, request, response, num_selections):
@@ -78,7 +79,7 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
         """Returns only one selection, the one on the first line.
         """
         return [self.prepare_selection(
-            self.view.substr( self.view.line(0) ), False
+            self.view.substr( self.view.line(0) ), None
         )]
 
     def open_response_view(self, request, response, **kwargs):

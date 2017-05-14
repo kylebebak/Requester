@@ -9,5 +9,7 @@
 
   { "caption": "Requester: Show Documentation", "command": "requester_show_documentation" },
 
-  { "caption": "Requester: Show Syntax", "command": "requester_show_syntax" }
+  { "caption": "Requester: Show Syntax", "command": "requester_show_syntax" },
+
+  { "caption": "Requester: Reorder Response Tabs", "command": "requester_reorder_response_tabs" }
 ]

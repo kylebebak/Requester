@@ -100,11 +100,13 @@ If you don't know how to do something, check out __Requester: Show Tutorial__ fr
 ## Commands
 Commands defined by this package, in case you want to change key bindings.
 
-- __requester__
-- __requester_replay_request__
-- __requester_close_response_tabs__
-- __requester_show_tutorial__
-- __requester_show_syntax__
+- **requester**
+- **requester_replay_request**
+- **requester_close_response_tabs**
+- **requester_show_tutorial**
+- **requester_show_documentation**
+- **requester_show_syntax**
+- **requester_reorder_response_tabs**: reorders response tabs to match order of requests in requester file (doesn't work for requests that are defined over multiple lines)
 
 
 ## Settings
