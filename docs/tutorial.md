@@ -58,9 +58,11 @@ get('http://httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
 get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
 
 get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
-get('http://httpbin.org/cookies', cookies=jar) # `jar` is defined in env vars file
+get('http://httpbin.org/cookies', cookies=jar)
+# `jar` is defined in env vars file
 
-get('http://httpbin.org/redirect-to?url=foo') # response tab shows redirects
+get('http://httpbin.org/redirect-to?url=foo')
+# response tab shows redirects
 ~~~
 
 Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`. If you want to pass cookies in this way, they must be instantiated in your env vars file.

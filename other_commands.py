@@ -33,25 +33,32 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
     Requester works.
     """
     def run(self):
-        tutorial_content = sublime.load_resource('Packages/Requester/docs/tutorial.md')
-        env_content = sublime.load_resource('Packages/Requester/docs/requester_env.py')
-
-        view = self.window.new_file()
-        view.run_command('requester_replace_view_text', {'text': tutorial_content, 'point': 25})
-        view.settings().set('requester.env_string', env_content)
-        view.set_read_only(True)
-        view.set_scratch(True)
-        if not set_syntax(view, 'Packages/MarkdownEditing/Markdown.tmLanguage'):
-            set_syntax(view, 'Packages/Markdown/Markdown.sublime-syntax')
-        view.set_name('Requester Tutorial')
+        show_read_only_view(self.window.new_file(),
+                            sublime.load_resource('Packages/Requester/docs/tutorial.md'),
+                            'Requester Tutorial',
+                            sublime.load_resource('Packages/Requester/docs/requester_env.py'),
+                            25)
 
 
-class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
+class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
     """Show a modified, read-only version of README that can be used to see how
     Requester works.
     """
     def run(self):
-        webbrowser.open_new_tab('http://docs.python-requests.org/en/master/user/quickstart/')
+        show_read_only_view(self.window.new_file(),
+                            sublime.load_resource('Packages/Requester/README.md'),
+                            'Requester Documentation',
+                            sublime.load_resource('Packages/Requester/docs/requester_env.py'))
+
+
+def show_read_only_view(view, content, name, env_content='', point=1):
+    view.run_command('requester_replace_view_text', {'text': content, 'point': point})
+    view.settings().set('requester.env_string', env_content)
+    view.set_read_only(True)
+    view.set_scratch(True)
+    if not set_syntax(view, 'Packages/MarkdownEditing/Markdown.tmLanguage'):
+        set_syntax(view, 'Packages/Markdown/Markdown.sublime-syntax')
+    view.set_name('Requester Tutorial')
 
 
 def set_syntax(view, syntax):
@@ -64,3 +71,11 @@ def set_syntax(view, syntax):
     else:
         view.set_syntax_file(syntax)
         return True
+
+
+class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
+    """Show a modified, read-only version of README that can be used to see how
+    Requester works.
+    """
+    def run(self):
+        webbrowser.open_new_tab('http://docs.python-requests.org/en/master/user/quickstart/')

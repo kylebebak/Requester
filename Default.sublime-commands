@@ -7,5 +7,7 @@
 
   { "caption": "Requester: Show Tutorial", "command": "requester_show_tutorial" },
 
+  { "caption": "Requester: Show Documentation", "command": "requester_show_documentation" },
+
   { "caption": "Requester: Show Syntax", "command": "requester_show_syntax" }
 ]
