@@ -6,7 +6,6 @@ from collections import namedtuple
 
 from .common import RequestCommandMixin
 
-config = sublime.load_settings('Requester.sublime-settings')
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
     """`TextCommand` to replace all text in view, without highlighting text after.
@@ -97,8 +96,9 @@ class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
         window = self.view.window()
         # get all lines in current view, prepare them, and cache them
         lines = []
+        timeout = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
         for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
-            lines.append( RequestCommandMixin.prepare_selection(line, config.get('env_file')) )
+            lines.append( RequestCommandMixin.prepare_selection(line, timeout) )
         lines = remove_duplicates(lines)
 
         # cache all response views in current window
@@ -122,10 +122,21 @@ class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
             else:
                 views.append(View(view, line))
 
+        if not len(views):
+            return
+
+        # get largest index among open tabs
+        group, index = 0, 0
+        for sheet in window.sheets():
+            view = sheet.view()
+            group, index = window.get_view_index(view)
+
         # sort response views by line property, and reorder response tabs
-        group, index = window.get_view_index(self.view)
-        for view in sorted(views, key=lambda view: view.line):
-            window.set_view_index(view, group, index)
+        views.sort(key=lambda view: view.line)
+        # requester tab, then response tabs are moved sequentially to largest index
+        window.set_view_index(self.view, group, index)
+        for v in views:
+            window.set_view_index(v.view, group, index)
 
 
 def remove_duplicates(seq):
