@@ -62,6 +62,10 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             self.set_syntax(view, response)
             view.settings().set('requester.selection', request)
 
+        # should response tabs be reordered after requests return?
+        if self.config.get('reorder_tabs_after_requests', False):
+            self.view.run_command('requester_reorder_response_tabs')
+
         # will focus change after request(s) return?
         if num_selections > 1:
             if not self.config.get('change_focus_after_requests', False):
@@ -70,6 +74,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         else:
             if not self.config.get('change_focus_after_request', True):
                 window.focus_sheet(requester_sheet)
+
 
 
 class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):

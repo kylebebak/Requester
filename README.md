@@ -117,12 +117,19 @@ Commands defined by this package, in case you want to change key bindings.
 - __highlighting__: toggle automatic syntax highlighting
 - __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
 - __change_focus_after_requests__: if multiple requests are executed, change focus to final response tab after requests return
+- __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
 
 
 ## Gotchas
 Requester automatically includes the `timeout` argument in requests executed from your requester file. If you include this arg in your requests, __Requester will raise a SyntaxError__.
 
-Also, don't include inline comments __on the same lines__ as the requests in your requester file. Doing so can lead to unexpected results.
+Also, __don't include inline comments on the same lines__ as the requests in your requester file. For example, don't do this:
+
+~~~py
+requests.get('http://mysite.com/api') # comment on same line as request
+~~~
+
+Doing so can lead to unexpected results.
 
 That's it.
 
