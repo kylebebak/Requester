@@ -6,5 +6,12 @@
   "timeout": 30,
 
   // toggle automatic syntax highlighting
-  "highlighting": true
+  "highlighting": true,
+
+  // if a single request is executed, change focus to response tab after request returns
+  "change_focus_after_request": true,
+
+  // if multiple requests are executed, change focus to final response tab after requests return
+  "change_focus_after_requests": false
+
 }

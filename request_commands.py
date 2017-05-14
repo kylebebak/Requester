@@ -54,16 +54,21 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                                 self.view.settings().get('requester.env_string', None))
             view.settings().set('requester.env_file',
                                 self.view.settings().get('requester.env_file', None))
-            view.settings().set('requester.selection', request)
 
             content = self.get_response_content(request, response)
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
             self.set_syntax(view, response)
+            view.settings().set('requester.selection', request)
 
+        # will focus change after request(s) return?
         if num_selections > 1:
-            # keep focus on requests view if multiple requests are being executed
-            window.focus_sheet(requester_sheet)
+            if not self.config.get('change_focus_after_requests', False):
+                # keep focus on requests view if multiple requests are being executed
+                window.focus_sheet(requester_sheet)
+        else:
+            if not self.config.get('change_focus_after_request', True):
+                window.focus_sheet(requester_sheet)
 
 
 class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -80,9 +85,11 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
         """Overwrites content in current view.
         """
         view = self.view
+
         content = self.get_response_content(request, response)
         view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
         self.set_syntax(view, response)
-        self.set_response_view_name(view, response)
         view.settings().set('requester.selection', request)
+
+        self.set_response_view_name(view, response)
