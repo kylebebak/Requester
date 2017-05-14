@@ -10,6 +10,7 @@ from .responses import ResponseThreadPool
 
 
 Content = namedtuple('Content', 'content, point')
+platform = sublime.platform()
 
 class RequestCommandMixin:
 
@@ -110,7 +111,10 @@ class RequestCommandMixin:
         else: # prettify json regardless of what raw response looks like
             content = json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
 
-        before_content_items = [' '.join(request.split()), header, '[cmd+r] replay request', headers]
+        replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
+        before_content_items = [
+            ' '.join(request.split()), header, '{} replay request'.format(replay_binding), headers
+        ]
         before_content = '\n\n'.join(before_content_items)
 
         return Content(before_content + '\n\n' + content, len(before_content) + 2)
@@ -123,8 +127,7 @@ class RequestCommandMixin:
             self._pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
             self._errors = []
             self._count = 0
-            self.view.set_status('requester.activity',
-                                 self.get_activity_indicator(self._count, prefix='Requester '))
+            self.show_activity_for_pending_requests(selections, self._count)
             sublime.set_timeout_async(lambda: self._pool.run(), 0) # run on an alternate thread
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
 
@@ -153,20 +156,31 @@ class RequestCommandMixin:
             return
 
         self._count += 1
-        self.view.set_status('requester.activity',
-                             self.get_activity_indicator(self._count, prefix='Requester '))
-        for selection in self._pool.pending_selections:
-            self.show_activity_for_pending_views(selection, self._count)
+        self.show_activity_for_pending_requests(self._pool.pending_selections, self._count)
         sublime.set_timeout(lambda: self.display_responses(selections), 200)
 
-    def show_activity_for_pending_views(self, selection, count):
-        """If there is an already open response view waiting to display content
-        from a pending request, show activity indicator in view.
+    def show_activity_for_pending_requests(self, selections, count):
+        """Show activity indicator in status bar. Also, if there are already open
+        response views waiting to display content from pending requests, show
+        activity indicators in views.
         """
-        for view in self.response_views_with_matching_selection(selection):
-            view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
-                selection, self.get_activity_indicator(count)
-            )})
+        activity = self.get_activity_indicator(count, 9)
+        self.view.set_status('requester.activity', '{} {}'.format(
+            'Requester', activity
+        ))
+
+        for selection in selections:
+            for view in self.response_views_with_matching_selection(selection):
+                view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
+                    selection, activity
+                )})
+                name = view.settings().get('requester.name')
+                if not name:
+                    view.set_name(activity)
+                else:
+                    spaces = min(9, len(name))
+                    activity = self.get_activity_indicator(count, spaces)
+                    view.set_name(activity.ljust( len(name) + 3 ))
 
     def response_views_with_matching_selection(self, selection):
         """Get all response views whose selection matches `selection`.
@@ -182,7 +196,7 @@ class RequestCommandMixin:
                     views.append(view)
         return views
 
-    def get_activity_indicator(self, count, prefix='', spaces=7):
+    def get_activity_indicator(self, count, spaces):
         """Displays an activity indicator in status bar if there are pending
         requests.
         """
@@ -192,7 +206,7 @@ class RequestCommandMixin:
         else:
             before = spaces - (count % spaces)
         after = spaces - before
-        return '{}[{}={}]'.format(prefix, ' ' * before, ' ' * after)
+        return '[{}={}]'.format(' ' * before, ' ' * after)
 
     def set_syntax(self, view, response):
         """Try to set syntax for `view` based on `content-type` response header.

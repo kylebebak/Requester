@@ -58,9 +58,10 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                                 self.view.settings().get('requester.env_file', None))
             view.settings().set('requester.selection', request)
 
-            view.set_name('{}: {}'.format(
-                response.request.method, parse.urlparse(response.url).path
-            )) # short but descriptive, to facilitate navigation between response tabs using Goto Anything
+            # short but descriptive, to facilitate navigation between response tabs using Goto Anything
+            name = '{}: {}'.format(response.request.method, parse.urlparse(response.url).path)
+            view.set_name(name)
+            view.settings().set('requester.name', name)
 
             content = self.get_response_content(request, response)
             view.run_command('requester_replace_view_text',
@@ -89,3 +90,4 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
         self.view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
         self.set_syntax(self.view, response)
+        self.view.set_name( self.view.settings().get('requester.name') )
