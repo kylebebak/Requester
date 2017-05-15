@@ -23,7 +23,7 @@ Requester is like Postman for your text editor. Get environment variables, concu
 
 
 ## Getting Started
->An interactive version of this tutorial that doesn't require you to create any files is also available. Look for __Requester: Show Tutorial__ in the command palette.
+>An interactive version of this tutorial is also available. Look for __Requester: Show Tutorial__ in the command palette.
 
 Open a file and insert the following:
 ~~~py
@@ -42,46 +42,13 @@ Now, go back to the requester file and use [multiple selection](https://www.subl
 
 Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, but simply overwrite the content in the matching response tabs.
 
+Want to see something nifty? Mix up the order of the 4 open response tabs, come back to your requester file, and run __Requester: Reorder Response Tabs__.
+
 Prefixing your requests with __requests.__ is optional. If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
 
 ### Environment Variables
-It's time to add environment variables to your requests. To do this, you first want to save your requester file. This way you can use a __relative path__ from your requester file to your env vars file, which is convenient. Save it with any name, like `requester.py`. Then modify it to use some environment variables.
-
-~~~py
-requests.get(base_url + '/albums')
-requests.post(base_url + '/albums')
-
-get(base_url + '/posts')
-post(base_url + '/posts')
-~~~
-
-Next, save a file with the name `requester_env.py` __in the same directory__ as `requester.py`, and add an env var to it. __NOTE__: if you'd rather define environment variables in the same requester file, instead of in a separate env file, scroll down to the next section to learn how.
-
-~~~py
-base_url = 'https://jsonplaceholder.typicode.com'
-~~~
-
-When you run your requests, __Requester__ looks for a requester env file with the name `requester_env.py` in the same directory as the requester file. It includes the variables defined in this file with your requests.
-
-If you want to change the name or location of the env file, simply define a new `env_file` in your requester file like so:
-
-~~~py
-env_file = 'relative/path/to/env.py'
-
-requests.get(base_url + '/albums')
-requests.post(base_url + '/albums')
-
-get(base_url + '/posts')
-post(base_url + '/posts')
-~~~
-
-Requester will now look for the env file at `relative/path/to/env.py`, which is relative to the location of the requester file. You can also use an __absolute path__ to the env vars file if you want. Using an absolute path is necessary if you want to execute requests from a view which has never been saved.
-
-#### Environment Variables In Requester File
-If you don't want your environment variables to live in a separate env file, you can define and environment from within your requester file.
-
-To do this, simply put your environment variables in a code block fenced by "###env" lines. These lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
+It's time to add environment variables to your requests. Requester lets you to do this directly in your requester file. Just put your environment variables in a code block fenced by "###env" lines.
 
 ~~~py
 ###env
@@ -91,6 +58,31 @@ base_url = 'https://jsonplaceholder.typicode.com'
 requests.get(base_url + '/albums')
 requests.post(base_url + '/albums')
 ~~~
+
+Try executing these requests. Nice, huh?
+
+The "###env" lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
+
+
+#### Separate Env File
+Requester also lets you save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env vars file, which is convenient. Save it with any name, like `requester.py`.
+
+Next, save a file with the name `requester_env.py` __in the same directory__ as `requester.py`, and add an env var to it.
+
+~~~py
+base_url = 'https://jsonplaceholder.typicode.com'
+~~~
+
+Finally, define the path of your `env_file` in your requester file like so:
+
+~~~py
+env_file = 'requester_env.py'
+
+requests.get(base_url + '/albums')
+requests.post(base_url + '/albums')
+~~~
+
+Requester will now look for the env file at the path `requester_env.py`, which is relative to the location of the requester file. You can change this path to any relative path you want, e.g. `relative/path/to/env.py`. You can also use an __absolute path__ to the env vars file if you want. Using an absolute path is necessary if you want to execute requests from a view which has never been saved.
 
 
 ### Request Body, Query Params, Custom Headers, Cookies
@@ -105,7 +97,7 @@ get('http://httpbin.org/redirect-to?url=foo')
 # response tab shows redirects
 ~~~
 
-Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`. If you want to pass cookies in this way, they must be instantiated in your env vars file.
+Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`. If you want to pass cookies in a jar instance, you need to instantiate it your env vars.
 
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
 
@@ -115,18 +107,16 @@ If you don't know how to do something, check out __Requester: Show Tutorial__ fr
 ## Commands
 Commands defined by this package, in case you want to change key bindings.
 
-- **requester**
-- **requester_replay_request**
-- **requester_close_response_tabs**
-- **requester_show_tutorial**
-- **requester_show_documentation**
-- **requester_show_syntax**
-- **requester_reorder_response_tabs**: reorders response tabs to match order of requests in requester file (doesn't work for requests that are defined over multiple lines)
+- __requester__
+- __requester_replay_request__
+- __requester_close_response_tabs__
+- __requester_show_tutorial__
+- __requester_show_documentation__
+- __requester_show_syntax__
+- __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file (doesn't work for requests that are defined over multiple lines)
 
 
 ## Settings
-- __env_file__: relative path from requester files to env files, or absolute path to env file
-  + this can be overridden by defining the `env_file` variable in an individual requester file
 - __timeout__: default timeout in seconds for all requests
   + if you want to change this for a single request, __do so directly in the response tab__, not in your requester file
 - __highlighting__: toggle automatic syntax highlighting

@@ -30,7 +30,7 @@ class ResponseThreadPool:
             error = 'Connection Error: check your connection'
         except SyntaxError as e:
             error = '{}: {}\n\n{}'.format('Syntax Error', e,
-                                          'Run "Requester: Show Documentation" to review properly formatted requests')
+                                          'Run "Requester: Show Syntax" to review properly formatted requests')
         except Exception as e:
             error = '{}: {}'.format('Other Error', e)
         else: # only check response type if no exceptions were raised

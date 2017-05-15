@@ -24,21 +24,42 @@ class RequestCommandMixin:
     def run(self, edit):
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
-        self.set_env()
+        self.set_env_from_string()
+        self.set_env_from_file()
         env = self.get_env()
         selections = self.get_selections()
         self.make_requests(selections, env)
 
-    def set_env(self):
-        """Sets the `env_file` setting on the view, if appropriate. This method is
-        complex, to grant users a lot of flexibility in setting env file.
+    def set_env_from_string(self):
+        """Sets the `requester.env_string` setting on the view, if appropriate.
         """
         if self.view.settings().get('requester.response_view', False):
             return
 
-        self.view.settings().set('requester.custom_env_file', False)
-        scope = {'env_file': self.config.get('env_file')} # default `env_file` read from settings
-        p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requests file
+        delimeter = '###env'
+        in_block = False
+        env_lines = []
+        for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
+            if in_block:
+                if line == delimeter:
+                    in_block = False
+                    break
+                env_lines.append(line)
+            else:
+                if line == delimeter:
+                    in_block = True
+        if not len(env_lines) or in_block: # env block must be closed
+            return
+        self.view.settings().set('requester.env_string', '\n'.join(env_lines))
+
+    def set_env_from_file(self):
+        """Sets the `requester.env_file` setting on the view, if appropriate.
+        """
+        if self.view.settings().get('requester.response_view', False):
+            return
+
+        scope = {}
+        p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requester file
         for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
             m = p.match(line) # matches only at beginning of string
             if m:
@@ -46,7 +67,6 @@ class RequestCommandMixin:
                     exec(line, scope) # add `env_file` to `scope` dict
                 except:
                     pass
-                self.view.settings().set('requester.custom_env_file', True)
                 break # stop looking after first match
 
         env_file = scope.get('env_file')
@@ -61,16 +81,14 @@ class RequestCommandMixin:
                                              os.path.join(os.path.dirname(file_path), env_file))
 
     def get_env(self):
-        """Computes an env from `requester.env_string` setting, from fenced env
-        block in requester view, or from `requester.env_file` setting. Returns an
-        env dictionary.
+        """Computes an env from `requester.env_string` setting, or from
+        `requester.env_file` setting. Returns an env dictionary.
 
         http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
-        env_string = self.view.settings().get('requester.env_string', None) or self.parse_env()
+        env_string = self.view.settings().get('requester.env_string', None)
         if env_string:
-            self.view.settings().set('requester.env_string', env_string)
             env = imp.new_module('requester.env')
             exec(env_string, env.__dict__)
             # return a new intance of this dict, or else its values will be reset to `None` after it's returned
@@ -83,61 +101,12 @@ class RequestCommandMixin:
         try:
             env = imp.load_source('requester.env', env_file)
         except (FileNotFoundError, SyntaxError) as e:
-            # don't alert user unless user specified env file from within requester file
-            if self.view.settings().get('requester.custom_env_file', False):
-                sublime.error_message('EnvFile Error:\n{}'.format(e))
+            sublime.error_message('EnvFile Error:\n{}'.format(e))
         except Exception as e:
             sublime.error_message('Other EnvFile Error:\n{}'.format(e))
         else:
             return vars(env)
         return None
-
-    def parse_env(self):
-        delimeter = '###env'
-        in_block = False
-        env_lines = []
-        for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
-            if in_block:
-                if line == delimeter:
-                    in_block = False
-                    break
-                env_lines.append(line)
-            else:
-                if line == delimeter:
-                    in_block = True
-        if not len(env_lines) or in_block: # env block must be closed
-            return None
-        return '\n'.join(env_lines)
-
-    def get_response_content(self, request, response):
-        """Returns a response string that includes metadata, headers and content,
-        and the index of the string at which response content begins.
-        """
-        r = response
-        redirects = [res.url for res in r.history] # URLs traversed due to redirects
-        redirects.append(r.url) # final URL
-
-        header = '{} {}\n{}s\n{}'.format(
-            r.status_code, r.reason, r.elapsed.total_seconds(),
-            ' -> '.join(redirects)
-        )
-        headers = '\n'.join(
-            [ '{}: {}'.format(k, v) for k, v in sorted(r.headers.items()) ]
-        )
-        try:
-            json_dict = r.json()
-        except:
-            content = r.text
-        else: # prettify json regardless of what raw response looks like
-            content = json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
-
-        replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
-        before_content_items = [
-            ' '.join(request.split()), header, '{} replay request'.format(replay_binding), headers
-        ]
-        before_content = '\n\n'.join(before_content_items)
-
-        return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
     def make_requests(self, selections, env=None):
         """Make requests concurrently using a `ThreadPool`, which runs on an
@@ -150,6 +119,42 @@ class RequestCommandMixin:
             self.show_activity_for_pending_requests(selections, self._count)
             sublime.set_timeout_async(lambda: self._pool.run(), 0) # run on an alternate thread
             sublime.set_timeout(lambda: self.display_responses(selections), 100)
+
+    def show_activity_for_pending_requests(self, selections, count):
+        """Show activity indicator in status bar. Also, if there are already open
+        response views waiting to display content from pending requests, show
+        activity indicators in views.
+        """
+        activity = self.get_activity_indicator(count, 9)
+        self.view.set_status('requester.activity', '{} {}'.format(
+            'Requester', activity
+        ))
+
+        for selection in selections:
+            for view in self.response_views_with_matching_selection(selection):
+                view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
+                    selection, activity
+                )})
+                name = view.settings().get('requester.name')
+                if not name:
+                    view.set_name(activity)
+                else:
+                    spaces = min(9, len(name))
+                    activity = self.get_activity_indicator(count, spaces)
+                    extra_spaces = 4 # extra spaces because tab names don't use monospace font =/
+                    view.set_name(activity.ljust( len(name) + extra_spaces ))
+
+    def get_activity_indicator(self, count, spaces):
+        """Displays an activity indicator in status bar if there are pending
+        requests.
+        """
+        cycle = count // spaces
+        if cycle % 2 == 0:
+            before = count % spaces
+        else:
+            before = spaces - (count % spaces)
+        after = spaces - before
+        return '[{}={}]'.format(' ' * before, ' ' * after)
 
     def display_responses(self, selections):
         """Inspect thread pool at regular intervals to remove completed responses
@@ -181,29 +186,35 @@ class RequestCommandMixin:
         self.show_activity_for_pending_requests(self._pool.pending_selections, self._count)
         sublime.set_timeout(lambda: self.display_responses(selections), 200)
 
-    def show_activity_for_pending_requests(self, selections, count):
-        """Show activity indicator in status bar. Also, if there are already open
-        response views waiting to display content from pending requests, show
-        activity indicators in views.
+    def get_response_content(self, request, response):
+        """Returns a response string that includes metadata, headers and content,
+        and the index of the string at which response content begins.
         """
-        activity = self.get_activity_indicator(count, 9)
-        self.view.set_status('requester.activity', '{} {}'.format(
-            'Requester', activity
-        ))
+        r = response
+        redirects = [res.url for res in r.history] # URLs traversed due to redirects
+        redirects.append(r.url) # final URL
 
-        for selection in selections:
-            for view in self.response_views_with_matching_selection(selection):
-                view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
-                    selection, activity
-                )})
-                name = view.settings().get('requester.name')
-                if not name:
-                    view.set_name(activity)
-                else:
-                    spaces = min(9, len(name))
-                    activity = self.get_activity_indicator(count, spaces)
-                    extra_spaces = 4 # extra spaces because tab names don't use monospace font =/
-                    view.set_name(activity.ljust( len(name) + extra_spaces ))
+        header = '{} {}\n{}s\n{}'.format(
+            r.status_code, r.reason, r.elapsed.total_seconds(),
+            ' -> '.join(redirects)
+        )
+        headers = '\n'.join(
+            [ '{}: {}'.format(k, v) for k, v in sorted(r.headers.items()) ]
+        )
+        try:
+            json_dict = r.json()
+        except:
+            content = r.text
+        else: # prettify json regardless of what raw response looks like
+            content = json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
+
+        replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
+        before_content_items = [
+            ' '.join(request.split()), header, '{} replay request'.format(replay_binding), headers
+        ]
+        before_content = '\n\n'.join(before_content_items)
+
+        return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
     def set_response_view_name(self, view, response):
         """Set name for `view` with content from `response`.
@@ -215,32 +226,6 @@ class RequestCommandMixin:
         else:
             view.set_name(name)
             view.settings().set('requester.name', name)
-
-    def response_views_with_matching_selection(self, selection):
-        """Get all response views whose selection matches `selection`.
-        """
-        views = []
-        for sheet in self.view.window().sheets():
-            view = sheet.view()
-            if view and view.settings().get('requester.response_view', False):
-                view_selection = view.settings().get('requester.selection', None)
-                if not view_selection:
-                    continue
-                if selection == view_selection:
-                    views.append(view)
-        return views
-
-    def get_activity_indicator(self, count, spaces):
-        """Displays an activity indicator in status bar if there are pending
-        requests.
-        """
-        cycle = count // spaces
-        if cycle % 2 == 0:
-            before = count % spaces
-        else:
-            before = spaces - (count % spaces)
-        after = spaces - before
-        return '[{}={}]'.format(' ' * before, ' ' * after)
 
     def set_syntax(self, view, response):
         """Try to set syntax for `view` based on `content-type` response header.
@@ -265,6 +250,20 @@ class RequestCommandMixin:
         if syntax is None:
             return
         view.set_syntax_file(syntax)
+
+    def response_views_with_matching_selection(self, selection):
+        """Get all response views whose selection matches `selection`.
+        """
+        views = []
+        for sheet in self.view.window().sheets():
+            view = sheet.view()
+            if view and view.settings().get('requester.response_view', False):
+                view_selection = view.settings().get('requester.selection', None)
+                if not view_selection:
+                    continue
+                if selection == view_selection:
+                    views.append(view)
+        return views
 
     @staticmethod
     def prepare_selection(s, timeout=None):

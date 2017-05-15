@@ -39,9 +39,7 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
     def run(self):
         show_read_only_view(self.window.new_file(),
                             sublime.load_resource('Packages/Requester/docs/tutorial.md'),
-                            'Requester Tutorial',
-                            sublime.load_resource('Packages/Requester/docs/requester_env.py'),
-                            25)
+                            'Requester Tutorial')
 
 
 class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
@@ -51,15 +49,13 @@ class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
     def run(self):
         show_read_only_view(self.window.new_file(),
                             sublime.load_resource('Packages/Requester/README.md'),
-                            'Requester Documentation',
-                            sublime.load_resource('Packages/Requester/docs/requester_env.py'))
+                            'Requester Documentation')
 
 
-def show_read_only_view(view, content, name, env_content='', point=1):
+def show_read_only_view(view, content, name, point=1):
     """Helper for creating read-only scratch view.
     """
     view.run_command('requester_replace_view_text', {'text': content, 'point': point})
-    view.settings().set('requester.env_string', env_content)
     view.set_read_only(True)
     view.set_scratch(True)
     if not set_syntax(view, 'Packages/MarkdownEditing/Markdown.tmLanguage'):

@@ -7,7 +7,7 @@ get('https://jsonplaceholder.typicode.com/posts')
 post('https://jsonplaceholder.typicode.com/posts')
 ~~~
 
-Place your cursor on one of the lines and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r</kbd> on OSX). Or, look for __Requester: Run Requests__ in the command palette and hit Enter. A response tab will appear, with a name like __GET: /albums__.
+Place your cursor on one of the lines in the code block above and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r</kbd> on OSX). Or, look for __Requester: Run Requests__ in the command palette and hit Enter. A response tab will appear, with a name like __GET: /albums__.
 
 >If this doesn't work, __and you're seeing errors__ every time you run a request, this probably means the __requests__ dependency wasn't installed successfully. To fix this, look for __Package Control: Satisfy Dependencies__ in the command palette, run it, and restart Sublime Text.
 
@@ -23,39 +23,7 @@ Prefixing your requests with __requests.__ is optional. If you want to close all
 
 
 ### Environment Variables
-In the same directory as this tutorial is a file called `requester_env.py`, which defines a few variables, including one called `base_url`.
-
-~~~py
-base_url = 'https://jsonplaceholder.typicode.com'
-
-import requests
-jar = requests.cookies.RequestsCookieJar()
-jar.set('tasty_cookie', 'yum', domain='httpbin.org', path='/cookies')
-~~~
-
-When you run your requests, __Requester__ looks for a requester env file with the name `requester_env.py` in the same directory as the requester file. It includes the variables defined in this file with your requests. __NOTE__: if you'd rather define environment variables in the same requester file, instead of in a separate env file, scroll down to the next section to learn how.
-
-Go ahead and run these requests.
-
-~~~py
-env_file = 'requester_env.py'
-# env_file = 'relative/path/to/env.py'
-
-requests.get(base_url + '/albums')
-requests.post(base_url + '/albums')
-
-get(base_url + '/posts')
-post(base_url + '/posts')
-~~~
-
-If you wanted to change the name or location of the env file, you could simply define a new `env_file` in your requester file, e.g. by commenting out the top line and uncommenting the one below.
-
-Requester would now look for the env file at `relative/path/to/env.py`, which is relative to the location of the requester file.
-
-#### Environment Variables In Requester File
-If you don't want your environment variables to live in a separate env file, you can define and environment from within your requester file.
-
-To do this, simply put your environment variables in a code block fenced by "###env" lines. These lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
+It's time to add environment variables to your requests. Requester lets you to do this directly in your requester file. Just put your environment variables in a code block fenced by "###env" lines.
 
 ~~~py
 ###env
@@ -66,7 +34,9 @@ requests.get(base_url + '/albums')
 requests.post(base_url + '/albums')
 ~~~
 
-Go ahead and run these requests. Nice, huh?
+Try executing these requests. Nice, huh?
+
+The "###env" lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
 
 
 ### Request Body, Query Params, Custom Headers, Cookies
@@ -76,14 +46,12 @@ get('http://httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
 get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
 
 get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
-get('http://httpbin.org/cookies', cookies=jar)
-# `jar` is defined in env vars file
 
 get('http://httpbin.org/redirect-to?url=foo')
 # response tab shows redirects
 ~~~
 
-Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`. If you want to pass cookies in this way, they must be instantiated in your env vars file.
+Body, Query Params, Headers and Cookies can be passed to __requests__ as dictionaries.
 
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
 
