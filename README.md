@@ -6,10 +6,11 @@ Requester is like Postman for your text editor. Get environment variables, concu
 
 ## Features
 - [Requests' syntax](http://docs.python-requests.org/en/master/user/quickstart/)
-  + easily set request body, query params, custom headers, cookies...
-- Environment variables
+  + Easily set request body, query params, custom headers, cookies...
+- Environment variables, defined in requester file or in a separate env file
 - Execute requests and display responses in parallel
 - Edit and replay requests from individual response tabs
+  + Automatically order response tabs
 - Automatic syntax highlighting and pretty printing
 - Clear error handling and error messages
 
@@ -55,7 +56,7 @@ get(base_url + '/posts')
 post(base_url + '/posts')
 ~~~
 
-Next, save a file with the name `requester_env.py` __in the same directory__ as `requester.py`, and add an env var to it.
+Next, save a file with the name `requester_env.py` __in the same directory__ as `requester.py`, and add an env var to it. __NOTE__: if you'd rather define environment variables in the same requester file, instead of in a separate env file, scroll down to the next section to learn how.
 
 ~~~py
 base_url = 'https://jsonplaceholder.typicode.com'
@@ -76,6 +77,20 @@ post(base_url + '/posts')
 ~~~
 
 Requester will now look for the env file at `relative/path/to/env.py`, which is relative to the location of the requester file. You can also use an __absolute path__ to the env vars file if you want. Using an absolute path is necessary if you want to execute requests from a view which has never been saved.
+
+#### Environment Variables In Requester File
+If you don't want your environment variables to live in a separate env file, you can define and environment from within your requester file.
+
+To do this, simply put your environment variables in a code block fenced by "###env" lines. These lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
+
+~~~py
+###env
+base_url = 'https://jsonplaceholder.typicode.com'
+###env
+
+requests.get(base_url + '/albums')
+requests.post(base_url + '/albums')
+~~~
 
 
 ### Request Body, Query Params, Custom Headers, Cookies

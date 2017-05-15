@@ -61,14 +61,16 @@ class RequestCommandMixin:
                                              os.path.join(os.path.dirname(file_path), env_file))
 
     def get_env(self):
-        """Computes an env from `requester.env_string` setting or
-        `requester.env_file` setting. Returns an env dictionary.
+        """Computes an env from `requester.env_string` setting, from fenced env
+        block in requester view, or from `requester.env_file` setting. Returns an
+        env dictionary.
 
         http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
-        env_string = self.view.settings().get('requester.env_string', None) # this setting takes precedence
+        env_string = self.view.settings().get('requester.env_string', None) or self.parse_env()
         if env_string:
+            self.view.settings().set('requester.env_string', env_string)
             env = imp.new_module('requester.env')
             exec(env_string, env.__dict__)
             # return a new intance of this dict, or else its values will be reset to `None` after it's returned
@@ -89,6 +91,23 @@ class RequestCommandMixin:
         else:
             return vars(env)
         return None
+
+    def parse_env(self):
+        delimeter = '###env'
+        in_block = False
+        env_lines = []
+        for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
+            if in_block:
+                if line == delimeter:
+                    in_block = False
+                    break
+                env_lines.append(line)
+            else:
+                if line == delimeter:
+                    in_block = True
+        if not len(env_lines) or in_block: # env block must be closed
+            return None
+        return '\n'.join(env_lines)
 
     def get_response_content(self, request, response):
         """Returns a response string that includes metadata, headers and content,
