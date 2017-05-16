@@ -48,7 +48,7 @@ Prefixing your requests with __requests.__ is optional. If you want to close all
 
 
 ### Environment Variables
-It's time to add environment variables to your requests. Requester lets you to do this directly in your requester file. Just put your environment variables in a code block fenced by "###env" lines.
+It's time to add environment variables to your requests. Requester lets you to do this directly in your requester file. Just put your environment variables in a code block fenced by __###env__ lines.
 
 ~~~py
 ###env
@@ -61,7 +61,7 @@ requests.post(base_url + '/albums')
 
 Try executing these requests. Nice, huh?
 
-The "###env" lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
+The __###env__ lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
 
 
 #### Separate Env File
