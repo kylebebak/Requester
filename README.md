@@ -139,6 +139,10 @@ Doing so can lead to unexpected results.
 That's it.
 
 
+## Contributing and Tests
+[See here](https://github.com/kylebebak/Requester/blob/master/docs/contributing.md).
+
+
 ## Recap
 There are several HTTP clients for Sublime Text, so why Requester? Because the others lack many of the following:
 
