@@ -61,8 +61,7 @@ class RequestCommandMixin:
         scope = {}
         p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requester file
         for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
-            m = p.match(line) # matches only at beginning of string
-            if m:
+            if p.match(line): # matches only at beginning of string
                 try:
                     exec(line, scope) # add `env_file` to `scope` dict
                 except:
@@ -90,7 +89,10 @@ class RequestCommandMixin:
         env_string = self.view.settings().get('requester.env_string', None)
         if env_string:
             env = imp.new_module('requester.env')
-            exec(env_string, env.__dict__)
+            try:
+                exec(env_string, env.__dict__)
+            except Exception as e:
+                sublime.error_message('EnvBlock Error:\n{}'.format(e))
             # return a new intance of this dict, or else its values will be reset to `None` after it's returned
             return dict(env.__dict__)
 
@@ -100,10 +102,8 @@ class RequestCommandMixin:
 
         try:
             env = imp.load_source('requester.env', env_file)
-        except (FileNotFoundError, SyntaxError) as e:
-            sublime.error_message('EnvFile Error:\n{}'.format(e))
         except Exception as e:
-            sublime.error_message('Other EnvFile Error:\n{}'.format(e))
+            sublime.error_message('EnvFile Error:\n{}'.format(e))
         else:
             return vars(env)
         return None
@@ -210,8 +210,12 @@ class RequestCommandMixin:
 
         replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
         before_content_items = [
-            ' '.join(request.split()), header, '{} replay request'.format(replay_binding), headers
+            ' '.join(request.split()), header, '{}: {}'.format('Request Headers', r.request.headers),
+            '{} replay request'.format(replay_binding), headers
         ]
+        cookies = r.cookies.get_dict()
+        if cookies:
+            before_content_items.append('{}: {}'.format('Response Cookies', cookies))
         before_content = '\n\n'.join(before_content_items)
 
         return Content(before_content + '\n\n' + content, len(before_content) + 2)
@@ -251,14 +255,15 @@ class RequestCommandMixin:
 
     @staticmethod
     def prepare_selection(s, timeout=None):
-        """Ensure selection is prefixed with "requests.", because this module is
-        guaranteed to be in the scope under which the selection is evaluated.
+        """If selection is not prefixed with "{var_name}.", prefix selection with
+        "requests.", because this module is guaranteed to be in the scope under
+        which the selection is evaluated.
 
         Also, ensure request can time out so it doesn't hang indefinitely.
         http://docs.python-requests.org/en/master/user/advanced/#timeouts
         """
         s = s.strip()
-        if not s.startswith('requests.'):
+        if not re.match('[\w_][\w\d_]*\.', s):
             s = 'requests.' + s
 
         if timeout is not None:
