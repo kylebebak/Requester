@@ -1,0 +1,108 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+scope: source.requester-response
+name: Requester Response
+hidden: true
+variables:
+  content_type_sep: (?=;|$)
+contexts:
+  main:
+    - match: ''
+      push:
+        - meta_content_scope: source.python
+        - include: scope:source.python
+        - match: $\n
+          set: http-status
+
+  http-status:
+    - match: (\[)\s*(=)\s*(\])
+      scope: meta.response-pending.requester-response
+      captures:
+        1: punctuation.section.brackets.begin.requester-response
+        2: constant.language.requester-response
+        3: punctuation.section.brackets.end.requester-response
+    - match: ^(\d+) (.*)$\n
+      captures:
+        1: constant.numeric.http-status-code.requester-response
+        2: constant.language.http-status.requester-response
+      set: time-taken
+
+  time-taken:
+    - include: scope:source.python#numbers
+    - match: s$\n
+      set: url
+
+  url:
+    - include: scope:text.html.markdown#autolink-inet
+    - match: $\n
+      set: replay-request
+
+  replay-request:
+    - match: \[
+      scope: punctuation.section.brackets.begin.requester-response
+      push:
+        - meta_scope: meta.physical-key-combination.requester-response
+        - match: ([^\]+]+)(\+)
+          captures:
+            1: support.function.modifier.key.requester-response
+            2: keyword.operator.modifier.connector.requester-response
+        - match: ([^\]+]+)
+          scope: constant.character.key.literal.requester-response
+        - match: \]
+          scope: punctuation.section.brackets.end.requester-response
+          pop: true
+    - match: 'replay request'
+      set:
+        - match: ^$\n
+          set: http-headers
+
+  content-type:
+    - meta_content_scope: meta.response-headers.requester-response string.unquoted.http-header.value.requester-response
+    - match: (application/json|text/json){{content_type_sep}}
+      set: [response-type-json, content-type-suffix]
+    - match: (application/xml|text/xml){{content_type_sep}}
+      set: [response-type-xml, content-type-suffix]
+    - match: (application/xhtml+xml|text/html){{content_type_sep}}
+      set: [response-type-html, content-type-suffix]
+
+  content-type-suffix:
+    - match: .*$
+      scope: string.unquoted.http-header.value.requester-response
+      pop: true
+
+  http-headers:
+    - meta_content_scope: meta.response-headers.requester-response
+    - match: (?i)^(Content-Type)(:)\s*
+      captures:
+        1: keyword.other.http-header.key.requester-response
+        2: punctuation.separator.key-value.requester-response
+      set: content-type
+    - match: ([^:]+)(:)\s*(.*$)
+      captures:
+        1: keyword.other.http-header.key.requester-response
+        2: punctuation.separator.key-value.requester-response
+        3: string.unquoted.http-header.value.requester-response
+    - match: ^$\n
+      set: scope:text.plain
+
+  response-type-json:
+    - meta_content_scope: meta.response-headers.requester-response
+    - match: ^$\n
+      set: [response-body, scope:source.json]
+    - include: http-headers
+
+  response-type-xml:
+    - meta_content_scope: meta.response-headers.requester-response
+    - match: ^$\n
+      set: [response-body, scope:text.xml]
+    - include: http-headers
+
+  response-type-html:
+    - meta_content_scope: meta.response-headers.requester-response
+    - match: ^$\n
+      set: [response-body, scope:text.html.basic]
+    - include: http-headers
+
+  response-body:
+    - meta_content_scope: meta.response-body.requester-response

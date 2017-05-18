@@ -233,23 +233,7 @@ class RequestCommandMixin:
         if not self.config.get('highlighting', False):
             return
 
-        content_type = response.headers.get('content-type', None)
-        if not content_type:
-            return
-        content_type = content_type.split(';')[0]
-
-        content_type_syntax = {
-            'application/json': 'Packages/JavaScript/JSON.sublime-syntax',
-            'text/json': 'Packages/JavaScript/JSON.sublime-syntax',
-            'application/xml': 'Packages/XML/XML.sublime-syntax',
-            'text/xml': 'Packages/XML/XML.sublime-syntax',
-            'application/xhtml+xml': 'Packages/HTML/HTML.sublime-syntax',
-            'text/html': 'Packages/HTML/HTML.sublime-syntax',
-        }
-        syntax = content_type_syntax.get(content_type, None)
-        if syntax is None:
-            return
-        view.set_syntax_file(syntax)
+        view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
 
     def response_views_with_matching_selection(self, selection):
         """Get all response views whose selection matches `selection`.
