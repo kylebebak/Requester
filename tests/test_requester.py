@@ -19,6 +19,11 @@ class TestFunctions(DeferrableTestCase):
         s_prepared = common.RequestCommandMixin.prepare_selection(s, 30)
         self.assertEqual(s_prepared, "requests.get('http://httpbin.org/get', timeout=30)")
 
+    def test_prepare_selection_with_prefix(self):
+        s = "_s.get('http://httpbin.org/get')"
+        s_prepared = common.RequestCommandMixin.prepare_selection(s, 30)
+        self.assertEqual(s_prepared, "_s.get('http://httpbin.org/get', timeout=30)")
+
 
 ####################
 # HELPER FUNCTIONS
@@ -49,7 +54,7 @@ class TestRequesterMixin:
         self.config = sublime.load_settings('Requester.sublime-settings')
 
         self.window = sublime.active_window()
-        self.view = self.get_scratch_view_from_resource('Packages/Requester/tests/requester.py')
+        self.view = self.get_scratch_view_from_resource(self.REQUESTER_FILE)
 
     def tearDown(self):
         if self.view:
@@ -77,15 +82,21 @@ class TestRequesterMixin:
     def _test_name_in_view(self, view, name):
         self.assertEqual(view.name(), name)
 
+    def _test_string_in_view(self, view, string):
+        content = view.substr( sublime.Region(0, view.size()) )
+        self.assertTrue(string in content)
+
 
 class TestRequester(TestRequesterMixin, DeferrableTestCase):
+
+    REQUESTER_FILE = 'Packages/Requester/tests/requester.py'
 
     def test_single_request(self):
         """Generic.
         """
         select_line_beginnings(self.view, 5)
         self.view.run_command('requester')
-        yield self.WAIT_MS
+        yield self.WAIT_MS # this use of yield CAN'T be moved into a helper, it needs to be part of a test method
         self._test_url_in_view(self.window.active_view(), 'https://jsonplaceholder.typicode.com/albums')
         self._test_name_in_view(self.window.active_view(), 'POST: /albums')
 
@@ -94,7 +105,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         """
         select_line_beginnings(self.view, 6)
         self.view.run_command('requester')
-        yield self.WAIT_MS # this use of yield CAN'T be moved into a helper, it needs to be part of a test method
+        yield self.WAIT_MS
         self._test_url_in_view(self.window.active_view(), 'https://jsonplaceholder.typicode.com/posts')
         self._test_name_in_view(self.window.active_view(), 'GET: /posts')
 
@@ -124,6 +135,8 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
 
 class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
 
+    REQUESTER_FILE = 'Packages/Requester/tests/requester.py'
+
     def test_multiple_requests(self):
         """Tests the following:
             - Blank lines are skipped in requester file
@@ -145,3 +158,21 @@ class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
             self.window.run_command('select_by_index', {'index': index + i + 1})
             yield 1000
             self._test_name_in_view(self.window.active_view(), name)
+
+
+class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
+
+    REQUESTER_FILE = 'Packages/Requester/tests/requester_session.py'
+    WAIT_MS = 3000
+
+    def test_session(self):
+        """Using session.
+        """
+        select_line_beginnings(self.view, 9)
+        self.view.run_command('requester')
+        yield self.WAIT_MS
+        self._test_url_in_view(self.window.active_view(), 'http://httpbin.org/cookies/set?k1=v1')
+        self._test_name_in_view(self.window.active_view(), 'GET: /cookies/set')
+        self._test_string_in_view(self.window.active_view(), "'X-Test': 'true'") # header added to session
+        self._test_string_in_view(self.window.active_view(), "'Cookie': 'k0=v0'") # cookies added to session
+        self._test_string_in_view(self.window.active_view(), "Response Cookies: {'k1': 'v1'}")

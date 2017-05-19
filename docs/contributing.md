@@ -1,7 +1,9 @@
 # Contributing
 Please do! Possible improvements:
 
-- Better test coverage, with a focus on integration tests rather than unit tests
+- Better test coverage, with a focus on integration tests
+  + Tests for error messages
+  + Tests for proper parsing of env block and env files
 - Create a testing framework that allows users to make assertions about response content for given requests, perform test runs and view results
 - Import from and export to common request formats (HTTP, cURL, etc)
   + Import collection from Postman?
