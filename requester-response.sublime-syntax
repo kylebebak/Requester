@@ -29,13 +29,22 @@ contexts:
       set: time-taken
 
   time-taken:
-    - include: scope:source.python#numbers
-    - match: s$\n
+    - match: ^([\d\.]*)(s)$\n
+      captures:
+        1: constant.numeric.response-seconds.requester-response
+        2: constant.language.seconds.requester-response
       set: url
 
   url:
-    - include: scope:text.html.markdown#autolink-inet
-    - match: $\n
+    - match: ^.*$\n
+      scope: storage.type.function.inline.python.url.requester-response # hack to make URL bold
+      set: request-headers
+
+  request-headers:
+    - match: ^(Request Headers:)(.*)$\n
+      captures:
+        1: constant.numeric.label.requester-response
+        2: constant.language.request-headers.requester-response
       set: replay-request
 
   replay-request:

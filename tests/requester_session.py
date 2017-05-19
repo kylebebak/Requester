@@ -2,7 +2,7 @@
 import requests
 
 s = requests.Session()
-s.get('http://httpbin.org/cookies/set?k0=v0')
+s.get('http://httpbin.org/cookies/set?k0=v0', timeout=5)
 s.headers.update({'X-Test': 'true'})
 ###env
 
