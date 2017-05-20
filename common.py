@@ -6,6 +6,7 @@ import imp
 import json
 from urllib import parse
 from collections import namedtuple
+from threading import Thread
 
 from .responses import ResponseThreadPool
 
@@ -15,7 +16,8 @@ platform = sublime.platform()
 
 class RequestCommandMixin:
 
-    REFRESH_MS = 200
+    REFRESH_MS = 200 # period of thread checks to for pending requests
+    ACTIVITY_SPACES = 9 # number of spaces in activity indicator
 
     def get_selections(self):
         raise NotImplementedError
@@ -28,9 +30,29 @@ class RequestCommandMixin:
         # `run` runs first, which means `self.config` is available to all methods
         self.set_env_from_string()
         self.set_env_from_file()
-        env = self.get_env()
-        selections = self.get_selections()
-        self.make_requests(selections, env)
+        thread = Thread(target=self._get_env)
+        thread.start()
+        self._run(thread)
+
+    def _run(self, thread, count=0):
+        """Inspect thread regular instances until it's finished setting the `_env`
+        instance property, at which point `make_requests` can be invoked.
+        """
+        REFRESH_MULTIPLIER = 4
+        activity = self.get_activity_indicator(count//REFRESH_MULTIPLIER, self.ACTIVITY_SPACES)
+        if count > 0:
+            self.view.set_status('requester.activity', '{} {}'.format( 'RequesterEnv', activity ))
+        if thread.is_alive():
+            timeout = self.config.get('timeout', None)
+            if timeout and count/REFRESH_MULTIPLIER * self.REFRESH_MS > timeout * 1000:
+                sublime.error_message('Timeout Error: environment took too long to parse')
+                self.view.set_status('requester.activity', '')
+                return
+            sublime.set_timeout(lambda: self._run(thread, count+1), self.REFRESH_MS/REFRESH_MULTIPLIER)
+        else:
+            selections = self.get_selections()
+            self.view.set_status('requester.activity', '')
+            self.make_requests(selections, self._env)
 
     def set_env_from_string(self):
         """Sets the `requester.env_string` setting on the view, if appropriate.
@@ -110,6 +132,11 @@ class RequestCommandMixin:
             return vars(env)
         return None
 
+    def _get_env(self):
+        """Wrapper calls `get_env` and assigns return value to instance property.
+        """
+        self._env = self.get_env()
+
     def make_requests(self, selections, env=None):
         """Make requests concurrently using a `ThreadPool`, which runs on an
         alternate thread.
@@ -124,10 +151,8 @@ class RequestCommandMixin:
         response views waiting to display content from pending requests, show
         activity indicators in views.
         """
-        activity = self.get_activity_indicator(count, 9)
-        self.view.set_status('requester.activity', '{} {}'.format(
-            'Requester', activity
-        ))
+        activity = self.get_activity_indicator(count, self.ACTIVITY_SPACES)
+        self.view.set_status('requester.activity', '{} {}'.format( 'Requester', activity ))
 
         for selection in selections:
             for view in self.response_views_with_matching_selection(selection):
@@ -138,7 +163,7 @@ class RequestCommandMixin:
                 if not name:
                     view.set_name(activity)
                 else:
-                    spaces = min(9, len(name))
+                    spaces = min(self.ACTIVITY_SPACES, len(name))
                     activity = self.get_activity_indicator(count, spaces)
                     extra_spaces = 4 # extra spaces because tab names don't use monospace font =/
                     view.set_name(activity.ljust( len(name) + extra_spaces ))
