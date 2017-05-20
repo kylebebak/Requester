@@ -15,6 +15,8 @@ platform = sublime.platform()
 
 class RequestCommandMixin:
 
+    REFRESH_MS = 200
+
     def get_selections(self):
         raise NotImplementedError
 
@@ -112,15 +114,12 @@ class RequestCommandMixin:
         """Make requests concurrently using a `ThreadPool`, which runs on an
         alternate thread.
         """
-        if not hasattr(self, '_pool'):
-            self._pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
-            self._errors = []
-            self._count = 0
-            self.show_activity_for_pending_requests(selections, self._count)
-            sublime.set_timeout_async(lambda: self._pool.run(), 0) # run on an alternate thread
-            sublime.set_timeout(lambda: self.display_responses(selections), 100)
+        pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
+        self.show_activity_for_pending_requests(selections)
+        sublime.set_timeout_async(lambda: pool.run(), 0) # run on an alternate thread
+        sublime.set_timeout(lambda: self.display_responses(pool), self.REFRESH_MS)
 
-    def show_activity_for_pending_requests(self, selections, count):
+    def show_activity_for_pending_requests(self, selections, count=0):
         """Show activity indicator in status bar. Also, if there are already open
         response views waiting to display content from pending requests, show
         activity indicators in views.
@@ -156,35 +155,34 @@ class RequestCommandMixin:
         after = spaces - before
         return '[{}={}]'.format(' ' * before, ' ' * after)
 
-    def display_responses(self, selections):
+    def display_responses(self, pool, count=0, errors=None):
         """Inspect thread pool at regular intervals to remove completed responses
         and display them, or display any errors for a given request.
         """
-        if not hasattr(self, '_pool'):
-            return
-        is_done = self._pool.is_done # cache `is_done` before removing responses from pool
+        is_done = pool.is_done # cache `is_done` before removing responses from pool
 
-        while len(self._pool.responses): # remove completed responses from thread pool and display them
-            r = self._pool.responses.pop(0)
+        if errors is None:
+            errors = []
+
+        while len(pool.responses): # remove completed responses from thread pool and display them
+            r = pool.responses.pop(0)
             if r.error:
-                self._errors.append('{}\n{}'.format(r.selection, r.error))
+                errors.append('{}\n{}'.format(r.selection, r.error))
             else:
-                self.open_response_view(r.selection, r.response, num_selections=len(selections))
+                self.open_response_view( r.selection, r.response, num_selections=pool.num_selections() )
             for view in self.response_views_with_matching_selection(r.selection):
                 self.set_response_view_name(view, r.response)
 
         if is_done:
-            del self._pool
-            if len(self._errors):
-                sublime.error_message('\n\n'.join(self._errors)) # display all errors together
-            del self._errors
+            if len(errors):
+                sublime.error_message('\n\n'.join(errors)) # display all errors together
 
             self.view.set_status('requester.activity', '') # remove activity indicator from status bar
             return
 
-        self._count += 1
-        self.show_activity_for_pending_requests(self._pool.pending_selections, self._count)
-        sublime.set_timeout(lambda: self.display_responses(selections), 200)
+        count += 1
+        self.show_activity_for_pending_requests(pool.pending_selections, count)
+        sublime.set_timeout(lambda: self.display_responses(pool, count, errors), self.REFRESH_MS)
 
     def get_response_content(self, request, response):
         """Returns a response string that includes metadata, headers and content,

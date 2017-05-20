@@ -47,6 +47,9 @@ class ResponseThreadPool:
         self.pending_selections = list(selections)
         self.env = env
 
+    def num_selections(self):
+        return len(self.selections)
+
     def run(self):
         """Concurrently invoke `get_response` for all of instance's `selections`.
         """

@@ -118,9 +118,9 @@ s.get('http://httpbin.org/cookies/set?session_id=12345', timeout=5)
 s.get('http://httpbin.org/get')
 ~~~
 
-Need to log in first so all your requests include a `session_id` cookie? [Session objects](http://docs.python-requests.org/en/master/user/advanced/#session-objects) make this a cinch. 
+Need to log in first so all your requests include a session cookie? [Session objects](http://docs.python-requests.org/en/master/user/advanced/#session-objects) make this a cinch. 
 
-Instantiate the session object in the env block and use it in all your requests. Copy this code to a new file and give it a try.
+Instantiate the session object in the env block and use it in your requests. Copy this code to a new file and give it a try.
 
 
 ## Commands
