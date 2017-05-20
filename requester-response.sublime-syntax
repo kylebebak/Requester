@@ -37,15 +37,11 @@ contexts:
 
   url:
     - match: ^.*$\n
-      scope: entity.name.tag.structure.any.html.url.requester-response # hack to make URL bold
+      scope: entity.name.tag.requester-response # hack to make URL bold
       set: headers-cookies
 
   headers-cookies:
-    - match: ^(Request Headers:)(.*)$\n
-      captures:
-        1: constant.numeric.label.requester-response
-        2: constant.language.headers-cookies.requester-response
-    - match: ^(Response Cookies:)(.*)$\n
+    - match: ^(Request Headers:|Response Cookies:)(.*)$\n
       captures:
         1: constant.numeric.label.requester-response
         2: constant.language.headers-cookies.requester-response
@@ -53,20 +49,8 @@ contexts:
       set: replay-request
 
   replay-request:
-    - match: \[
-      scope: punctuation.section.brackets.begin.requester-response
-      push:
-        - meta_scope: meta.physical-key-combination.requester-response
-        - match: ([^\]+]+)(\+)
-          captures:
-            1: support.function.modifier.key.requester-response
-            2: keyword.operator.modifier.connector.requester-response
-        - match: ([^\]+]+)
-          scope: constant.character.key.literal.requester-response
-        - match: \]
-          scope: punctuation.section.brackets.end.requester-response
-          pop: true
-    - match: 'replay request'
+    - match: '\[.*replay request$\n'
+      scope: storage.type.replay-request.requester-response
       set:
         - match: ^$\n
           set: http-headers

@@ -9,7 +9,7 @@ Requester is like Postman for your text editor. Get environment variables, concu
 
 ## Features
 - [Requests' syntax](http://docs.python-requests.org/en/master/user/quickstart/)
-  + Easily set request body, query params, custom headers, cookies...
+  + Easily set request body, query params, custom headers, cookies, use sessions...
 - Environment variables, defined in requester file or in a separate env file
 - Execute requests and display responses in parallel
 - Edit and replay requests from individual response tabs
@@ -105,6 +105,22 @@ Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cook
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
 
 If you don't know how to do something, check out __Requester: Show Tutorial__ from the command palette, or review syntax at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
+
+
+### Sessions
+~~~py
+###env
+import requests
+s = requests.Session()
+s.get('http://httpbin.org/cookies/set?session_id=12345', timeout=5)
+###env
+
+s.get('http://httpbin.org/get')
+~~~
+
+Need to log in first so all your requests include a `session_id` cookie? [Session objects](http://docs.python-requests.org/en/master/user/advanced/#session-objects) make this a cinch. 
+
+Instantiate the session object in the env block and use it in all your requests. Copy this code to a new file and give it a try.
 
 
 ## Commands
