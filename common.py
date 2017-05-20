@@ -210,12 +210,15 @@ class RequestCommandMixin:
 
         replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
         before_content_items = [
-            ' '.join(request.split()), header, '{}: {}'.format('Request Headers', r.request.headers),
-            '{} replay request'.format(replay_binding), headers
+            ' '.join(request.split()),
+            header,
+            '{}: {}'.format('Request Headers', r.request.headers),
+            '{} replay request'.format(replay_binding),
+            headers
         ]
         cookies = r.cookies.get_dict()
         if cookies:
-            before_content_items.append('{}: {}'.format('Response Cookies', cookies))
+            before_content_items.insert(3, '{}: {}'.format('Response Cookies', cookies))
         before_content = '\n\n'.join(before_content_items)
 
         return Content(before_content + '\n\n' + content, len(before_content) + 2)

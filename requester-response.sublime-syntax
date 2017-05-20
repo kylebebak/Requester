@@ -37,14 +37,19 @@ contexts:
 
   url:
     - match: ^.*$\n
-      scope: storage.type.function.inline.python.url.requester-response # hack to make URL bold
-      set: request-headers
+      scope: entity.name.tag.structure.any.html.url.requester-response # hack to make URL bold
+      set: headers-cookies
 
-  request-headers:
+  headers-cookies:
     - match: ^(Request Headers:)(.*)$\n
       captures:
         1: constant.numeric.label.requester-response
-        2: constant.language.request-headers.requester-response
+        2: constant.language.headers-cookies.requester-response
+    - match: ^(Response Cookies:)(.*)$\n
+      captures:
+        1: constant.numeric.label.requester-response
+        2: constant.language.headers-cookies.requester-response
+    - match: ^(?=\[) # use look-ahead to not include bracket in match
       set: replay-request
 
   replay-request:
