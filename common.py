@@ -156,9 +156,8 @@ class RequestCommandMixin:
 
         for selection in selections:
             for view in self.response_views_with_matching_selection(selection):
-                view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
-                    selection, activity
-                )})
+                # view names set BEFORE view content is set, otherwise
+                # activity indicator in view names seems to lag a little
                 name = view.settings().get('requester.name')
                 if not name:
                     view.set_name(activity)
@@ -167,6 +166,10 @@ class RequestCommandMixin:
                     activity = self.get_activity_indicator(count, spaces)
                     extra_spaces = 4 # extra spaces because tab names don't use monospace font =/
                     view.set_name(activity.ljust( len(name) + extra_spaces ))
+
+                view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
+                    selection, activity
+                )})
 
     def get_activity_indicator(self, count, spaces):
         """Displays an activity indicator in status bar if there are pending
