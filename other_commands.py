@@ -22,8 +22,7 @@ class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
 
 
 class RequesterCloseResponseTabsCommand(sublime_plugin.WindowCommand):
-    """`TextCommand` to replace all text in view, without highlighting text after.
-    Optionally leave cursor at `point`.
+    """Iterate over all open tabs and close response tabs.
     """
     def run(self):
         for sheet in self.window.sheets():
@@ -33,7 +32,7 @@ class RequesterCloseResponseTabsCommand(sublime_plugin.WindowCommand):
 
 
 class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
-    """Show a modified, read-only version of README that can be used to see how
+    """Show a smaller, read-only version of README that can be used to see how
     Requester works.
     """
     def run(self):
@@ -43,8 +42,7 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
 
 
 class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
-    """Show a modified, read-only version of README that can be used to see how
-    Requester works.
+    """Show read-only version of README.
     """
     def run(self):
         show_read_only_view(self.window.new_file(),

@@ -4,7 +4,7 @@ from .common import RequestCommandMixin
 
 
 class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
-    """Execute requests concurrently from requester file and open multiple
+    """Execute requests from requester file concurrently and open multiple
     response views.
     """
     def get_selections(self):

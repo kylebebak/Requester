@@ -16,7 +16,7 @@ platform = sublime.platform()
 
 class RequestCommandMixin:
 
-    REFRESH_MS = 200 # period of thread checks to for pending requests
+    REFRESH_MS = 200 # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9 # number of spaces in activity indicator
 
     def get_selections(self):
@@ -35,20 +35,23 @@ class RequestCommandMixin:
         self._run(thread)
 
     def _run(self, thread, count=0):
-        """Inspect thread regular instances until it's finished setting the `_env`
-        instance property, at which point `make_requests` can be invoked.
+        """Evaluate environment in a separate thread and show an activity
+        indicator. Inspect thread at regular intervals until it's finished, at
+        which point `make_requests` can be invoked. Return if thread times out.
         """
         REFRESH_MULTIPLIER = 4
         activity = self.get_activity_indicator(count//REFRESH_MULTIPLIER, self.ACTIVITY_SPACES)
-        if count > 0:
+        if count > 0: # don't distract user with RequesterEnv status if env can be evaluated quickly
             self.view.set_status('requester.activity', '{} {}'.format( 'RequesterEnv', activity ))
+
         if thread.is_alive():
             timeout = self.config.get('timeout', None)
-            if timeout and count/REFRESH_MULTIPLIER * self.REFRESH_MS > timeout * 1000:
+            if timeout and count * self.REFRESH_MS/REFRESH_MULTIPLIER > timeout * 1000:
                 sublime.error_message('Timeout Error: environment took too long to parse')
                 self.view.set_status('requester.activity', '')
                 return
             sublime.set_timeout(lambda: self._run(thread, count+1), self.REFRESH_MS/REFRESH_MULTIPLIER)
+
         else:
             selections = self.get_selections()
             self.view.set_status('requester.activity', '')
@@ -138,8 +141,8 @@ class RequestCommandMixin:
         self._env = self.get_env()
 
     def make_requests(self, selections, env=None):
-        """Make requests concurrently using a `ThreadPool`, which runs on an
-        alternate thread.
+        """Make requests concurrently using a `ThreadPool`, which itself runs on
+        an alternate thread so as not to block the UI.
         """
         pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
         self.show_activity_for_pending_requests(selections)
@@ -252,7 +255,7 @@ class RequestCommandMixin:
     def set_response_view_name(self, view, response):
         """Set name for `view` with content from `response`.
         """
-        try: # short but descriptive, to facilitate navigation between response tabs using Goto Anything
+        try: # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
             name = '{}: {}'.format(response.request.method, parse.urlparse(response.url).path)
         except:
             view.set_name( view.settings().get('requester.name') )

@@ -1,16 +1,19 @@
 # Contributing
 Please do! Possible improvements:
 
-- Better test coverage, with a focus on integration tests
+- Better test coverage
   + Tests for error messages
   + Tests for proper parsing of env block and env files
-- Create a testing framework that allows users to make assertions about response content for given requests, perform test runs and view results
+  + Tests for activity indicators
+- Create a testing framework that allows users to make assertions about responses for given requests
+  + Perform test runs
+  + View results
 - Import from and export to common request formats (HTTP, cURL, etc)
   + Import collection from Postman?
 
 
 ## Python Code Style
-Try to limit lines to 100 characters or less, unless doing so is very inconvenient. No lines with more than 120 characters.
+Try to limit lines to 100 characters or less, unless doing so is inconvenient. No lines with more than 120 characters.
 
 Two lines between classes or top-level methods. One line between class methods. Within methods, use vertical whitespace if it improves readability, but never more than one line.
 

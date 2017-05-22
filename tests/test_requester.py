@@ -132,6 +132,24 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         self._test_url_in_view(self.window.active_view(), 'http://httpbin.org/get')
         self._test_name_in_view(self.window.active_view(), 'GET: /get')
 
+    def test_single_request_focus_change(self):
+        """Test that re-executing request in requester file doesn't open response
+        tab, but rather reuses already open response tab.
+        """
+        select_line_beginnings(self.view, 5)
+        self.view.run_command('requester')
+        yield self.WAIT_MS
+        group, index = self.window.get_view_index(self.window.active_view())
+        self.window.focus_view(self.view)
+        yield 1000
+        select_line_beginnings(self.view, 5)
+        self.view.run_command('requester')
+        yield self.WAIT_MS
+        new_group, new_index = self.window.get_view_index(self.window.active_view())
+        self.assertEqual(group, new_group)
+        self.assertEqual(index, new_index)
+
+
 
 class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
 

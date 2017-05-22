@@ -4,5 +4,4 @@
 *.sublime-workspace
 package-metadata.json
 
-# sandbox
 sandbox/*
