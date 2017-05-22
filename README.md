@@ -87,6 +87,9 @@ requests.post(base_url + '/albums')
 
 Requester will now look for the env file at the path `requester_env.py`, which is relative to the location of the requester file. You can change this path to any relative path you want, e.g. `relative/path/to/env.py`. You can also use an __absolute path__ to the env vars file if you want. Using an absolute path is necessary if you want to execute requests from a view which has never been saved.
 
+#### Merging Vars from Env Block and Env File
+Is totally fine. If a var has the same name in the env block and the env file, the var from the env block takes precedence.
+
 
 ### Request Body, Query Params, Custom Headers, Cookies
 ~~~py

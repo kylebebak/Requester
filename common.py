@@ -28,8 +28,8 @@ class RequestCommandMixin:
     def run(self, edit):
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
-        self.set_env_from_string()
-        self.set_env_from_file()
+        self.reset_env_string()
+        self.reset_env_file()
         thread = Thread(target=self._get_env)
         thread.start()
         self._run(thread)
@@ -57,8 +57,8 @@ class RequestCommandMixin:
             self.view.set_status('requester.activity', '')
             self.make_requests(selections, self._env)
 
-    def set_env_from_string(self):
-        """Sets the `requester.env_string` setting on the view, if appropriate.
+    def reset_env_string(self):
+        """(Re)sets the `requester.env_string` setting on the view, if appropriate.
         """
         if self.view.settings().get('requester.response_view', False):
             return
@@ -76,11 +76,11 @@ class RequestCommandMixin:
                 if line == delimeter:
                     in_block = True
         if not len(env_lines) or in_block: # env block must be closed
-            return
+            self.view.settings().set('requester.env_string', None)
         self.view.settings().set('requester.env_string', '\n'.join(env_lines))
 
-    def set_env_from_file(self):
-        """Sets the `requester.env_file` setting on the view, if appropriate.
+    def reset_env_file(self):
+        """(Re)sets the `requester.env_file` setting on the view, if appropriate.
         """
         if self.view.settings().get('requester.response_view', False):
             return
@@ -105,14 +105,17 @@ class RequestCommandMixin:
                 if file_path:
                     self.view.settings().set('requester.env_file',
                                              os.path.join(os.path.dirname(file_path), env_file))
+        else:
+            self.view.settings().set('requester.env_file', None)
 
     def get_env(self):
-        """Computes an env from `requester.env_string` setting, or from
+        """Computes an env from `requester.env_string` setting, and/or from
         `requester.env_file` setting. Returns an env dictionary.
 
         http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
+        env_dict = {}
         env_string = self.view.settings().get('requester.env_string', None)
         if env_string:
             env = imp.new_module('requester.env')
@@ -120,20 +123,21 @@ class RequestCommandMixin:
                 exec(env_string, env.__dict__)
             except Exception as e:
                 sublime.error_message('EnvBlock Error:\n{}'.format(e))
-            # return a new intance of this dict, or else its values will be reset to `None` after it's returned
-            return dict(env.__dict__)
+            else:
+                # return a new intance of this dict, or else its values will be reset to `None` after it's returned
+                env_dict = dict(env.__dict__)
 
         env_file = self.view.settings().get('requester.env_file', None)
-        if not env_file:
-            return None
-
-        try:
-            env = imp.load_source('requester.env', env_file)
-        except Exception as e:
-            sublime.error_message('EnvFile Error:\n{}'.format(e))
-        else:
-            return vars(env)
-        return None
+        if env_file:
+            try:
+                env = imp.load_source('requester.env', env_file)
+            except Exception as e:
+                sublime.error_message('EnvFile Error:\n{}'.format(e))
+            else:
+                env_dict_ = vars(env)
+                env_dict_.update(env_dict) # env computed from `env_string` takes precedence
+                return env_dict_
+        return env_dict or None
 
     def _get_env(self):
         """Wrapper calls `get_env` and assigns return value to instance property.
