@@ -45,8 +45,8 @@ class RequestCommandMixin:
             self.view.set_status('requester.activity', '{} {}'.format( 'RequesterEnv', activity ))
 
         if thread.is_alive():
-            timeout = self.config.get('timeout', None)
-            if timeout and count * self.REFRESH_MS/REFRESH_MULTIPLIER > timeout * 1000:
+            timeout = self.config.get('timeout_env', None)
+            if timeout is not None and count * self.REFRESH_MS/REFRESH_MULTIPLIER > timeout * 1000:
                 sublime.error_message('Timeout Error: environment took too long to parse')
                 self.view.set_status('requester.activity', '')
                 return
@@ -243,7 +243,7 @@ class RequestCommandMixin:
 
         replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
         before_content_items = [
-            ' '.join(request.split()),
+            request,
             header,
             '{}: {}'.format('Request Headers', r.request.headers),
             '{} replay request'.format(replay_binding),
@@ -297,6 +297,8 @@ class RequestCommandMixin:
 
         Also, ensure request can time out so it doesn't hang indefinitely.
         http://docs.python-requests.org/en/master/user/advanced/#timeouts
+
+        Finally, ensure that selection occupies only one line.
         """
         s = s.strip()
         if not re.match('[\w_][\w\d_]*\.', s):
@@ -304,5 +306,45 @@ class RequestCommandMixin:
 
         if timeout is not None:
             timeout_string = ', timeout={})'.format(timeout)
-            return s[:-1] + timeout_string
-        return s
+            s = s[:-1] + timeout_string
+        return ' '.join(s.split()) # replace all multiple whitespace with single space
+
+    @staticmethod
+    def parse_requests(s):
+        """Parse string for all calls to `{name}.{verb}(`, or simply `{verb}(`. Chokes
+        on inline comments if they contain unbalanced parentheses. Clients are advised
+        to catch any exception raised by this method and treat it as a parsing error.
+
+        Returns a list of strings with calls to the `requests` library.
+        """
+        VERBS = '(get|options|head|post|put|patch|delete)\('
+        PREFIX_VERBS = '[\w_][\w\d_]*\.' + VERBS
+
+        start_indices = []
+
+        index = 0
+        for line in s.splitlines(True):
+            if re.match(PREFIX_VERBS, line) or re.match(VERBS, line):
+                start_indices.append(index)
+            index += len(line)
+
+        end_indices = []
+        for index in start_indices:
+            pc = 0 # paren count
+            while True:
+                if s[index] == '(':
+                    pc += 1
+                elif s[index] == ')':
+                    pc -= 1
+                    if pc == 0:
+                        end_indices.append(index)
+                        break
+                index += 1
+
+        # make sure there are no "unclosed" calls to requests
+        assert len(start_indices) == len(end_indices)
+
+        requests = []
+        for pair in zip(start_indices, end_indices):
+            requests.append(s[ pair[0]:pair[1]+1 ])
+        return requests

@@ -1,4 +1,4 @@
-import sublime_plugin
+import sublime, sublime_plugin
 
 from .common import RequestCommandMixin
 
@@ -15,7 +15,13 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         selections = []
         for region in view.sel():
             if not region.empty():
-                selections.append( view.substr(region) )
+                try:
+                    selections_ = self.parse_requests( view.substr(region) )
+                except:
+                    sublime.error_message('Parse Error: unbalanced parentheses in calls to requests')
+                else:
+                    for sel in selections_:
+                        selections.append(sel)
             else:
                 selection = view.substr(view.line(region))
                 if selection: # ignore empty strings, i.e. blank lines
@@ -74,7 +80,6 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         else:
             if not self.config.get('change_focus_after_request', True):
                 window.focus_sheet(requester_sheet)
-
 
 
 class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):

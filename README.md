@@ -141,6 +141,7 @@ Commands defined by this package, in case you want to change key bindings.
 ## Settings
 - __timeout__: default timeout in seconds for all requests
   + if you want to change this for a single request, __do so directly in the response tab__, not in your requester file
+- __timeout_env__: default timeout in seconds for executing env block/env file
 - __highlighting__: toggle automatic syntax highlighting
 - __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
 - __change_focus_after_requests__: if multiple requests are executed, change focus to final response tab after requests return
@@ -149,6 +150,8 @@ Commands defined by this package, in case you want to change key bindings.
 
 ## Gotchas
 Requester automatically includes the `timeout` argument in requests executed from your requester file. If you include this arg in your requests, __Requester will raise a SyntaxError__.
+
+Not recommended: if you really want to disable automatic `timeout` for requests, set it to `None` in your Requester settings.
 
 Also, __don't include inline comments on the same lines__ as the requests in your requester file. For example, don't do this:
 

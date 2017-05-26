@@ -2,6 +2,9 @@
   // display error if request doesn't return after this many seconds
   "timeout": 15,
 
+  // display error if env hasn't been executed after this many seconds
+  "timeout_env": 15,
+
   // toggle automatic syntax highlighting
   "highlighting": true,
 
