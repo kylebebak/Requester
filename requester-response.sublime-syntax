@@ -29,10 +29,12 @@ contexts:
       set: time-taken
 
   time-taken:
-    - match: ^([\d\.]*)(s)$\n
+    - match: ^([\d\.]*)(s), ([\d]*)(B)$\n
       captures:
         1: constant.numeric.response-seconds.requester-response
         2: constant.language.seconds.requester-response
+        3: constant.numeric.response-seconds.requester-response
+        4: constant.language.seconds.requester-response
       set: url
 
   url:

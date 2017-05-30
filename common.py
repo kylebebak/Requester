@@ -227,8 +227,8 @@ class RequestCommandMixin:
         redirects = [res.url for res in r.history] # URLs traversed due to redirects
         redirects.append(r.url) # final URL
 
-        header = '{} {}\n{}s\n{}'.format(
-            r.status_code, r.reason, r.elapsed.total_seconds(),
+        header = '{} {}\n{}s, {}B\n{}'.format(
+            r.status_code, r.reason, r.elapsed.total_seconds(), len(r.content),
             ' -> '.join(redirects)
         )
         headers = '\n'.join(

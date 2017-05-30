@@ -1,8 +1,8 @@
-# Requester
+# Requester: HTTP Client for Humans
 
 ![License](https://camo.githubusercontent.com/890acbdcb87868b382af9a4b1fac507b9659d9bf/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6c6963656e73652d4d49542d626c75652e737667)
 
-A simple and powerful HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive and easy to use.
+A powerful HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive and easy to use.
 
 Requester is like Postman for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
 
@@ -16,6 +16,7 @@ Requester is like Postman for your text editor. Get environment variables, concu
   + Automatically order response tabs
 - Automatic syntax highlighting and pretty printing
 - Clear error handling and error messages
+- Lightweight, integrated test runner
 
 
 ## Installation
@@ -135,7 +136,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __requester_show_tutorial__
 - __requester_show_documentation__
 - __requester_show_syntax__
-- __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file (doesn't work for requests that are defined over multiple lines)
+- __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file
 
 
 ## Settings
@@ -175,6 +176,7 @@ There are several HTTP clients for Sublime Text, so why Requester? Because the o
 - Environment variables
 - Multiple, editable response tabs
 - Automatic syntax highlighting
+- A test runner
 
 Postman addresses these concerns, which might be why it's so popular. But using an app like Postman has its own disadvantages:
 
