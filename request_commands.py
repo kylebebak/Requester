@@ -15,17 +15,16 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         selections = []
         for region in view.sel():
             if not region.empty():
-                try:
-                    selections_ = self.parse_requests( view.substr(region) )
-                except:
-                    sublime.error_message('Parse Error: unbalanced parentheses in calls to requests')
-                else:
-                    for sel in selections_:
-                        selections.append(sel)
+                selection = view.substr(region)
             else:
                 selection = view.substr(view.line(region))
-                if selection: # ignore empty strings, i.e. blank lines
-                    selections.append(selection)
+            try:
+                selections_ = self.parse_requests( selection )
+            except:
+                sublime.error_message('Parse Error: unbalanced parentheses in calls to requests')
+            else:
+                for sel in selections_:
+                    selections.append(sel)
         timeout = self.config.get('timeout', None)
         selections = [self.prepare_selection(s, timeout) for s in selections]
         return selections

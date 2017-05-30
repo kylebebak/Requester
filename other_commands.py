@@ -82,18 +82,18 @@ class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
 
 
 class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
-    """Reads lines in current view one by one, then reorders response tabs to
-    match order of requests read from current view. Doesn't work for requests
-    defined over multiple lines.
+    """Reorders open response tabs to match order of requests in current view.
     """
     def run(self, edit):
         window = self.view.window()
-        # get all lines in current view, prepare them, and cache them
-        lines = []
+        # parse all requests in current view, prepare them, and cache them
+        selections = []
         timeout = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
-        for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
-            lines.append( RequestCommandMixin.prepare_selection(line, timeout) )
-        lines = remove_duplicates(lines)
+        for selection in RequestCommandMixin.parse_requests(
+            self.view.substr( sublime.Region(0, self.view.size()) )
+        ):
+            selections.append( RequestCommandMixin.prepare_selection(selection, timeout) )
+        selections = remove_duplicates(selections)
 
         # cache all response views in current window
         response_views = []
@@ -110,7 +110,7 @@ class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
             if not selection:
                 views.append(View(view, maxsize))
             try:
-                line = lines.index(selection)
+                line = selections.index(selection)
             except ValueError:
                 views.append(View(view, maxsize))
             else:
