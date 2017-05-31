@@ -14,10 +14,12 @@ from .responses import ResponseThreadPool
 Content = namedtuple('Content', 'content, point')
 platform = sublime.platform()
 
+
 class RequestCommandMixin:
 
     REFRESH_MS = 200 # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9 # number of spaces in activity indicator
+    MAX_WORKERS = 10 # default request concurrency
 
     def get_selections(self):
         """This should be overridden to return a list of requests strings.
@@ -159,7 +161,7 @@ class RequestCommandMixin:
         """Make requests concurrently using a `ThreadPool`, which itself runs on
         an alternate thread so as not to block the UI.
         """
-        pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
+        pool = ResponseThreadPool(selections, env, self.MAX_WORKERS) # pass along env vars to thread pool
         self.show_activity_for_pending_requests(selections)
         sublime.set_timeout_async(lambda: pool.run(), 0) # run on an alternate thread
         sublime.set_timeout(lambda: self.gather_responses(pool), self.REFRESH_MS)

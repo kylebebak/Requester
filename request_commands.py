@@ -8,11 +8,16 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     """Execute requests from requester file concurrently and open multiple
     response views.
     """
+    def run(self, edit, concurrency=10):
+        """Allow user to specify concurrency.
+        """
+        self.MAX_WORKERS = max(1, concurrency)
+        super().run(edit)
+
     def get_selections(self):
         """Works for multiple selections. If nothing is highlighted, cursor's
         current line is taken as selection.
         """
-        pass
         view = self.view
         selections = []
         for region in view.sel():
@@ -112,6 +117,12 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
     Doesn't work for multiple selections.
     """
+    def run(self, edit, concurrency=10):
+        """Allow user to specify concurrency.
+        """
+        self.MAX_WORKERS = max(1, concurrency)
+        super().run(edit)
+
     def get_selections(self):
         """Returns only one first highlighted selection.
         """

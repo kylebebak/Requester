@@ -6,8 +6,9 @@ VERBS = '(get|options|head|post|put|patch|delete)\('
 PREFIX_VERBS = '[\w_][\w\d_]*\.' + VERBS
 ASSERTIONS = 'assert \{'
 
-Selection = namedtuple('Selection', 'selection, start_index, type')
+Selection = namedtuple('Selection', 'selection, ordering, type')
 RequestAssertion = namedtuple('RequestAssertion', 'request, assertion')
+
 
 def parse_requests(s):
     """Parse string for all calls to `{name}.{verb}(`, or simply `{verb}(`.
@@ -19,12 +20,12 @@ def parse_requests(s):
 
 
 def parse_tests(s):
-    """Parse string and return a list of (request, assertion) test pairs.
+    """Parse string and return an ordered list of (request, assertion) test pairs.
     """
     requests = parse(s, '(', ')', [PREFIX_VERBS, VERBS], 'request')
     assertions = parse(s, '{', '}', [ASSERTIONS], 'assertion')
     selections = requests + assertions
-    selections.sort(key=lambda s: s.start_index)
+    selections.sort(key=lambda s: s.ordering)
 
     tests = []
     for i in range(len(selections)):

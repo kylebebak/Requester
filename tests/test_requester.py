@@ -12,6 +12,7 @@ from unittesting import DeferrableTestCase
 
 common = sys.modules['Requester.common']
 
+
 class TestFunctions(DeferrableTestCase):
 
     def test_prepare_selection(self):

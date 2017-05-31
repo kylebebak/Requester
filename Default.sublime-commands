@@ -1,17 +1,53 @@
 [
-  { "caption": "Requester: Run Requests", "command": "requester" },
+  {
+    "caption": "Requester: Run Requests",
+    "command": "requester"
+  },
 
-  { "caption": "Requester: Run Tests", "command": "requester_tests" },
+  {
+    "caption": "Requester: Run Requests Serially",
+    "command": "requester",
+    "args": { "concurrency": 1 }
+  },
 
-  { "caption": "Requester: Replay Request", "command": "requester_replay_request" },
+  {
+    "caption": "Requester: Run Tests",
+    "command": "requester_tests"
+  },
 
-  { "caption": "Requester: Close All Response Tabs", "command": "requester_close_response_tabs" },
+  {
+    "caption": "Requester: Run Tests Serially",
+    "command": "requester_tests",
+    "args": { "concurrency": 1 }
+  },
 
-  { "caption": "Requester: Show Tutorial", "command": "requester_show_tutorial" },
+  {
+    "caption": "Requester: Replay Request",
+    "command": "requester_replay_request"
+  },
 
-  { "caption": "Requester: Show Documentation", "command": "requester_show_documentation" },
+  {
+    "caption": "Requester: Close All Response Tabs",
+    "command": "requester_close_response_tabs"
+  },
 
-  { "caption": "Requester: Show Syntax", "command": "requester_show_syntax" },
+  {
+    "caption": "Requester: Show Tutorial",
+    "command": "requester_show_tutorial"
+  },
 
-  { "caption": "Requester: Reorder Response Tabs", "command": "requester_reorder_response_tabs" }
+  {
+    "caption": "Requester: Show Documentation",
+    "command": "requester_show_documentation"
+  },
+
+  {
+    "caption": "Requester: Show Syntax",
+    "command": "requester_show_syntax"
+  },
+
+  {
+    "caption": "Requester: Reorder Response Tabs",
+    "command": "requester_reorder_response_tabs"
+  }
 ]

@@ -6,13 +6,11 @@ requests = __import__('requests')
 
 Response = namedtuple('Response', 'selection, response, error')
 
+
 class ResponseThreadPool:
     """Allows requests to be invoked concurrently, and allows client code to
     inspect instance's responses as they are returned.
     """
-
-    MAX_WORKERS = 10
-
     @staticmethod
     def get_response(selection, env=None):
         """Evaluate `selection` in context of `env`, which at the very least
@@ -40,12 +38,13 @@ class ResponseThreadPool:
 
         return Response(selection, response, error)
 
-    def __init__(self, selections, env):
+    def __init__(self, selections, env, max_workers):
         self.is_done = False
         self.responses = []
         self.selections = selections
         self.pending_selections = list(selections)
         self.env = env
+        self.max_workers = max_workers
 
     def num_selections(self):
         return len(self.selections)
@@ -54,7 +53,7 @@ class ResponseThreadPool:
         """Concurrently invoke `get_response` for all of instance's `selections`.
         """
         with futures.ThreadPoolExecutor(
-            max_workers=min(self.MAX_WORKERS, len(self.selections))
+            max_workers=min(self.max_workers, len(self.selections))
         ) as executor:
             to_do = []
             for selection in self.selections:
