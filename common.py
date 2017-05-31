@@ -9,7 +9,6 @@ from collections import namedtuple
 from threading import Thread
 
 from .responses import ResponseThreadPool
-from .parsers import parse_requests
 
 
 Content = namedtuple('Content', 'content, point')
@@ -20,30 +19,22 @@ class RequestCommandMixin:
     REFRESH_MS = 200 # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9 # number of spaces in activity indicator
 
-    def open_response_view(self, request, response, **kwargs):
-        raise NotImplementedError
-
     def get_selections(self):
-        """Gets multiple selections. If nothing is highlighted, cursor's current
-        line is taken as selection.
+        """This should be overridden to return a list of requests strings.
         """
-        view = self.view
-        selections = []
-        for region in view.sel():
-            if not region.empty():
-                selection = view.substr(region)
-            else:
-                selection = view.substr(view.line(region))
-            try:
-                selections_ = parse_requests( selection )
-            except:
-                sublime.error_message('Parse Error: unbalanced parentheses in calls to requests')
-            else:
-                for sel in selections_:
-                    selections.append(sel)
-        timeout = self.config.get('timeout', None)
-        selections = [self.prepare_selection(s, timeout) for s in selections]
-        return selections
+        return []
+
+    def handle_response(self, request, response, num_selections):
+        """Override this method to handle a response from a single request. This
+        method is called as each response is returned.
+        """
+        pass
+
+    def handle_responses(self, requests, responses):
+        """Override this method to handle responses from all requests executed.
+        This method is called after all responses have been returned.
+        """
+        pass
 
     def run(self, edit):
         self.config = sublime.load_settings('Requester.sublime-settings')
@@ -171,7 +162,7 @@ class RequestCommandMixin:
         pool = ResponseThreadPool(selections, env) # pass along env vars to thread pool
         self.show_activity_for_pending_requests(selections)
         sublime.set_timeout_async(lambda: pool.run(), 0) # run on an alternate thread
-        sublime.set_timeout(lambda: self.display_responses(pool), self.REFRESH_MS)
+        sublime.set_timeout(lambda: self.gather_responses(pool), self.REFRESH_MS)
 
     def show_activity_for_pending_requests(self, selections, count=0):
         """Show activity indicator in status bar. Also, if there are already open
@@ -210,21 +201,24 @@ class RequestCommandMixin:
         after = spaces - before
         return '[{}={}]'.format(' ' * before, ' ' * after)
 
-    def display_responses(self, pool, count=0, errors=None):
+    def gather_responses(self, pool, count=0, requests=None, responses=None, errors=None):
         """Inspect thread pool at regular intervals to remove completed responses
-        and display them, or display any errors for a given request.
+        and handle them, and/or display requests errors.
         """
         is_done = pool.is_done # cache `is_done` before removing responses from pool
 
-        if errors is None:
-            errors = []
+        if requests is None: requests = []
+        if responses is None: responses = []
+        if errors is None: errors = []
 
         while len(pool.responses): # remove completed responses from thread pool and display them
             r = pool.responses.pop(0)
             if r.error:
                 errors.append('{}\n{}'.format(r.selection, r.error))
             else:
-                self.open_response_view( r.selection, r.response, num_selections=pool.num_selections() )
+                requests.append(r.selection)
+                responses.append(r.response)
+                self.handle_response( r.selection, r.response, num_selections=pool.num_selections() )
             for view in self.response_views_with_matching_selection(r.selection):
                 self.set_response_view_name(view, r.response)
 
@@ -233,11 +227,12 @@ class RequestCommandMixin:
                 sublime.error_message('\n\n'.join(errors)) # display all errors together
 
             self.view.set_status('requester.activity', '') # remove activity indicator from status bar
+            self.handle_responses(requests, responses) # allow client to handle all requests and responses
             return
 
         count += 1
         self.show_activity_for_pending_requests(pool.pending_selections, count)
-        sublime.set_timeout(lambda: self.display_responses(pool, count, errors), self.REFRESH_MS)
+        sublime.set_timeout(lambda: self.gather_responses(pool, count, requests, responses, errors), self.REFRESH_MS)
 
     def get_response_content(self, request, response):
         """Returns a response string that includes metadata, headers and content,
