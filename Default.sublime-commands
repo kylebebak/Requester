@@ -1,6 +1,8 @@
 [
   { "caption": "Requester: Run Requests", "command": "requester" },
 
+  { "caption": "Requester: Run Tests", "command": "requester_tests" },
+
   { "caption": "Requester: Replay Request", "command": "requester_replay_request" },
 
   { "caption": "Requester: Close All Response Tabs", "command": "requester_close_response_tabs" },

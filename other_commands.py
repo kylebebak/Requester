@@ -5,6 +5,7 @@ from sys import maxsize
 from collections import namedtuple
 
 from .common import RequestCommandMixin
+from .parsers import parse_requests
 
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
@@ -89,7 +90,7 @@ class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
         # parse all requests in current view, prepare them, and cache them
         selections = []
         timeout = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
-        for selection in RequestCommandMixin.parse_requests(
+        for selection in parse_requests(
             self.view.substr( sublime.Region(0, self.view.size()) )
         ):
             selections.append( RequestCommandMixin.prepare_selection(selection, timeout) )

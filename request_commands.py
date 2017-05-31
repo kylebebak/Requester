@@ -1,34 +1,13 @@
 import sublime, sublime_plugin
 
 from .common import RequestCommandMixin
+from .parsers import parse_tests
 
 
 class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     """Execute requests from requester file concurrently and open multiple
     response views.
     """
-    def get_selections(self):
-        """Gets multiple selections. If nothing is highlighted, cursor's current
-        line is taken as selection.
-        """
-        view = self.view
-        selections = []
-        for region in view.sel():
-            if not region.empty():
-                selection = view.substr(region)
-            else:
-                selection = view.substr(view.line(region))
-            try:
-                selections_ = self.parse_requests( selection )
-            except:
-                sublime.error_message('Parse Error: unbalanced parentheses in calls to requests')
-            else:
-                for sel in selections_:
-                    selections.append(sel)
-        timeout = self.config.get('timeout', None)
-        selections = [self.prepare_selection(s, timeout) for s in selections]
-        return selections
-
     def open_response_view(self, request, response, num_selections):
         """Create a response view and insert response content into it. Ensure that
         response tab comes after (to the right of) all other response tabs.
@@ -87,9 +66,7 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
     def get_selections(self):
         """Returns only one selection, the one on the first line.
         """
-        return [self.prepare_selection(
-            self.view.substr( self.view.line(0) ), None
-        )]
+        return [self.view.substr( self.view.line(0) )]
 
     def open_response_view(self, request, response, **kwargs):
         """Overwrites content in current view.
@@ -103,3 +80,15 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
         view.settings().set('requester.selection', request)
 
         self.set_response_view_name(view, response)
+
+
+class RequesterTestsCommand(sublime_plugin.TextCommand):
+    """Execute requests from requester file concurrently. For each request with a
+    corresponding assertions dictionary, compare response with assertions and
+    display all results in one tab.
+
+    Doesn't work for multiple selections.
+    """
+    def run(self, edit):
+        contents = self.view.substr( sublime.Region(0, self.view.size()) )
+        print(parse_tests(contents))

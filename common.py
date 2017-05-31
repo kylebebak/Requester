@@ -9,6 +9,7 @@ from collections import namedtuple
 from threading import Thread
 
 from .responses import ResponseThreadPool
+from .parsers import parse_requests
 
 
 Content = namedtuple('Content', 'content, point')
@@ -19,11 +20,30 @@ class RequestCommandMixin:
     REFRESH_MS = 200 # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9 # number of spaces in activity indicator
 
-    def get_selections(self):
-        raise NotImplementedError
-
     def open_response_view(self, request, response, **kwargs):
         raise NotImplementedError
+
+    def get_selections(self):
+        """Gets multiple selections. If nothing is highlighted, cursor's current
+        line is taken as selection.
+        """
+        view = self.view
+        selections = []
+        for region in view.sel():
+            if not region.empty():
+                selection = view.substr(region)
+            else:
+                selection = view.substr(view.line(region))
+            try:
+                selections_ = parse_requests( selection )
+            except:
+                sublime.error_message('Parse Error: unbalanced parentheses in calls to requests')
+            else:
+                for sel in selections_:
+                    selections.append(sel)
+        timeout = self.config.get('timeout', None)
+        selections = [self.prepare_selection(s, timeout) for s in selections]
+        return selections
 
     def run(self, edit):
         self.config = sublime.load_settings('Requester.sublime-settings')
@@ -308,43 +328,3 @@ class RequestCommandMixin:
             timeout_string = ', timeout={})'.format(timeout)
             s = s[:-1] + timeout_string
         return ' '.join(s.split()) # replace all multiple whitespace with single space
-
-    @staticmethod
-    def parse_requests(s):
-        """Parse string for all calls to `{name}.{verb}(`, or simply `{verb}(`. Chokes
-        on inline comments if they contain unbalanced parentheses. Clients are advised
-        to catch any exception raised by this method and treat it as a parsing error.
-
-        Returns a list of strings with calls to the `requests` library.
-        """
-        VERBS = '(get|options|head|post|put|patch|delete)\('
-        PREFIX_VERBS = '[\w_][\w\d_]*\.' + VERBS
-
-        start_indices = []
-
-        index = 0
-        for line in s.splitlines(True):
-            if re.match(PREFIX_VERBS, line) or re.match(VERBS, line):
-                start_indices.append(index)
-            index += len(line)
-
-        end_indices = []
-        for index in start_indices:
-            pc = 0 # paren count
-            while True:
-                if s[index] == '(':
-                    pc += 1
-                elif s[index] == ')':
-                    pc -= 1
-                    if pc == 0:
-                        end_indices.append(index)
-                        break
-                index += 1
-
-        # make sure there are no "unclosed" calls to requests
-        assert len(start_indices) == len(end_indices)
-
-        requests = []
-        for pair in zip(start_indices, end_indices):
-            requests.append(s[ pair[0]:pair[1]+1 ])
-        return requests
