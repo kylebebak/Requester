@@ -22,21 +22,35 @@ class RequestCommandMixin:
     MAX_WORKERS = 10 # default request concurrency
 
     def get_selections(self):
-        """This should be overridden to return a list of requests strings.
+        """This should be overridden to return a list of request strings.
         """
         return []
 
-    def handle_response(self, request, response, num_selections):
+    def handle_response(self, response, num_selections):
         """Override this method to handle a response from a single request. This
         method is called as each response is returned.
         """
         pass
 
-    def handle_responses(self, requests, responses):
+    def handle_responses(self, responses):
         """Override this method to handle responses from all requests executed.
         This method is called after all responses have been returned.
         """
         pass
+
+    def handle_error(self, response, num_selections):
+        """Override this method to handle an error from a single request. This
+        method is called as each response is returned.
+        """
+        pass
+
+    def handle_errors(self, responses):
+        """Override this method to handle errors from all requests executed. This
+        method is called after all responses have been returned.
+        """
+        errors = ['{}\n{}'.format(r.selection, r.error) for r in responses if r.error]
+        if errors:
+            sublime.error_message('\n\n'.join(errors))
 
     def run(self, edit):
         self.config = sublime.load_settings('Requester.sublime-settings')
@@ -203,38 +217,38 @@ class RequestCommandMixin:
         after = spaces - before
         return '[{}={}]'.format(' ' * before, ' ' * after)
 
-    def gather_responses(self, pool, count=0, requests=None, responses=None, errors=None):
+    def gather_responses(self, pool, count=0, responses=None):
         """Inspect thread pool at regular intervals to remove completed responses
         and handle them, and/or display requests errors.
+
+        Clients can handle responses and errors one at a time as they are
+        completed, or as a group when they're all finished. Each response objects
+        contains `selection`, `response`, `error`, and `ordering` keys.
         """
         is_done = pool.is_done # cache `is_done` before removing responses from pool
 
-        if requests is None: requests = []
-        if responses is None: responses = []
-        if errors is None: errors = []
+        if responses is None:
+            responses = []
 
         while len(pool.responses): # remove completed responses from thread pool and display them
             r = pool.responses.pop(0)
-            if r.error:
-                errors.append('{}\n{}'.format(r.selection, r.error))
-            else:
-                requests.append(r.selection)
-                responses.append(r.response)
-                self.handle_response( r.selection, r.response, num_selections=pool.num_selections() )
+            responses.append(r)
+            self.handle_response(r, num_selections=pool.num_selections())
+            self.handle_error(r, num_selections=pool.num_selections())
+
             for view in self.response_views_with_matching_selection(r.selection):
                 self.set_response_view_name(view, r.response)
 
         if is_done:
-            if len(errors):
-                sublime.error_message('\n\n'.join(errors)) # display all errors together
-
+            responses.sort(key=lambda response: response.ordering) # parsing order is preserved
+            self.handle_responses(responses)
+            self.handle_errors(responses)
             self.view.set_status('requester.activity', '') # remove activity indicator from status bar
-            self.handle_responses(requests, responses) # allow client to handle all requests and responses
             return
 
         count += 1
         self.show_activity_for_pending_requests(pool.pending_selections, count)
-        sublime.set_timeout(lambda: self.gather_responses(pool, count, requests, responses, errors), self.REFRESH_MS)
+        sublime.set_timeout(lambda: self.gather_responses(pool, count, responses), self.REFRESH_MS)
 
     def get_response_content(self, request, response):
         """Returns a response string that includes metadata, headers and content,

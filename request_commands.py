@@ -36,13 +36,16 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         selections = [self.prepare_selection(s, timeout) for s in selections]
         return selections
 
-    def handle_response(self, request, response, num_selections):
+    def handle_response(self, response, num_selections):
         """Create a response view and insert response content into it. Ensure that
         response tab comes after (to the right of) all other response tabs.
 
         Don't create new response tab if a response tab matching request is open.
         """
-        window = self.view.window()
+        if response.error: # ignore responses with errors
+            return
+
+        window = self.view.window(); r = response
         requester_sheet = window.active_sheet()
 
         last_sheet = requester_sheet # find last sheet (tab) with a response view
@@ -52,7 +55,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 last_sheet = sheet
         window.focus_sheet(last_sheet)
 
-        views = self.response_views_with_matching_selection(request)
+        views = self.response_views_with_matching_selection(r.request)
         if not len(views): # if there are no matching response tabs, create a new one
             views = [window.new_file()]
         else: # move focus to matching view after response is returned if match occurred
@@ -68,11 +71,11 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             view.settings().set('requester.env_file',
                                 self.view.settings().get('requester.env_file', None))
 
-            content = self.get_response_content(request, response)
+            content = self.get_response_content(r.request, r.response)
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
-            self.set_syntax(view, response)
-            view.settings().set('requester.selection', request)
+            self.set_syntax(view, r.response)
+            view.settings().set('requester.selection', r.request)
 
         # should response tabs be reordered after requests return?
         if self.config.get('reorder_tabs_after_requests', False):
@@ -96,18 +99,21 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
         """
         return [self.view.substr( self.view.line(0) )]
 
-    def handle_response(self, request, response, **kwargs):
+    def handle_response(self, response, **kwargs):
         """Overwrites content in current view.
         """
-        view = self.view
+        if response.error: # ignore responses with errors
+            return
 
-        content = self.get_response_content(request, response)
+        view = self.view; r = response
+
+        content = self.get_response_content(r.request, r.response)
         view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
-        self.set_syntax(view, response)
-        view.settings().set('requester.selection', request)
+        self.set_syntax(view, r.response)
+        view.settings().set('requester.selection', r.request)
 
-        self.set_response_view_name(view, response)
+        self.set_response_view_name(view, r.response)
 
 
 class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -149,8 +155,8 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
         return selections
 
-    def handle_responses(self, requests, responses):
+    def handle_responses(self, responses):
         """Compares response objects with assertions dictionaries and displays a
         test run view that includes all discrepancies.
         """
-        print(requests, responses, self._tests)
+        print(responses, self._tests)

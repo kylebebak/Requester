@@ -4,7 +4,7 @@ from collections import namedtuple
 requests = __import__('requests')
 
 
-Response = namedtuple('Response', 'selection, response, error')
+Response = namedtuple('Response', 'selection, response, error, ordering')
 
 
 class ResponseThreadPool:
@@ -12,7 +12,7 @@ class ResponseThreadPool:
     inspect instance's responses as they are returned.
     """
     @staticmethod
-    def get_response(selection, env=None):
+    def get_response(selection, ordering, env=None):
         """Evaluate `selection` in context of `env`, which at the very least
         includes the `requests` module. Return `response`.
         """
@@ -36,7 +36,7 @@ class ResponseThreadPool:
                 error = '{}: {}'.format('Type Error',
                                         'request did not return an instance of requests.Response')
 
-        return Response(selection, response, error)
+        return Response(selection, response, error, ordering)
 
     def __init__(self, selections, env, max_workers):
         self.is_done = False
@@ -56,8 +56,8 @@ class ResponseThreadPool:
             max_workers=min(self.max_workers, len(self.selections))
         ) as executor:
             to_do = []
-            for selection in self.selections:
-                future = executor.submit(self.get_response, selection, self.env)
+            for index, selection in enumerate(self.selections):
+                future = executor.submit(self.get_response, selection, index, self.env)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):
