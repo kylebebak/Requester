@@ -15,27 +15,27 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         self.MAX_WORKERS = max(1, concurrency)
         super().run(edit)
 
-    def get_selections(self):
-        """Works for multiple selections. If nothing is highlighted, cursor's
-        current line is taken as selection.
+    def get_requests(self):
+        """Parses requests from multiple selections. If nothing is highlighted,
+        cursor's current line is taken as selection.
         """
         view = self.view
-        selections = []
+        requests = []
         for region in view.sel():
             if not region.empty():
                 selection = view.substr(region)
             else:
                 selection = view.substr(view.line(region))
             try:
-                selections_ = parse_requests(selection)
+                requests_ = parse_requests(selection)
             except:
                 sublime.error_message('Parse Error: unbalanced parentheses in calls to requests')
             else:
-                for sel in selections_:
-                    selections.append(sel)
+                for r in requests_:
+                    requests.append(r)
         timeout = self.config.get('timeout', None)
-        selections = [prepare_request(s, timeout) for s in selections]
-        return selections
+        requests = [prepare_request(r, timeout) for r in requests]
+        return requests
 
     def handle_response(self, response, num_requests):
         """Create a response view and insert response content into it. Ensure that
@@ -56,7 +56,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 last_sheet = sheet
         window.focus_sheet(last_sheet)
 
-        views = self.response_views_with_matching_selection(r.request)
+        views = self.response_views_with_matching_request(r.request)
         if not len(views): # if there are no matching response tabs, create a new one
             views = [window.new_file()]
         else: # move focus to matching view after response is returned if match occurred
@@ -76,7 +76,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
             set_response_view_syntax(self.config, view)
-            view.settings().set('requester.selection', r.request)
+            view.settings().set('requester.request', r.request)
 
         # should response tabs be reordered after requests return?
         if self.config.get('reorder_tabs_after_requests', False):
@@ -95,8 +95,8 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     """Replay a request from a response view.
     """
-    def get_selections(self):
-        """Returns only one selection, the one on the first line.
+    def get_requests(self):
+        """Parses requests from first line only.
         """
         return [self.view.substr( self.view.line(0) )]
 
@@ -112,7 +112,7 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
         view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
         set_response_view_syntax(self.config, view)
-        view.settings().set('requester.selection', r.request)
+        view.settings().set('requester.request', r.request)
 
         self.set_response_view_name(view, r.response)
 
@@ -130,8 +130,8 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         self.MAX_WORKERS = max(1, concurrency)
         super().run(edit)
 
-    def get_selections(self):
-        """Returns only one first highlighted selection.
+    def get_requests(self):
+        """Parses only first highlighted selection.
         """
         view = self.view
         tests = []
@@ -147,14 +147,14 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
         timeout = self.config.get('timeout', None)
         self._tests = {}
-        selections = []
+        requests = []
 
         for test in tests:
-            s = prepare_request(test.request, timeout)
-            selections.append(s)
-            self._tests[s] = test.assertion
+            r = prepare_request(test.request, timeout)
+            requests.append(r)
+            self._tests[r] = test.assertion
 
-        return selections
+        return requests
 
     def handle_responses(self, responses):
         """Compares response objects with assertions dictionaries and displays a

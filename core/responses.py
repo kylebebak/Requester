@@ -38,11 +38,12 @@ class ResponseThreadPool:
 
         return Response(request, response, error, ordering)
 
-    def __init__(self, requests, env, max_workers):
+    def __init__(self, requests_, env, max_workers):
         self.is_done = False
         self.responses = []
-        self.requests = requests
-        self.pending_requests = list(requests)
+
+        self.requests = requests_
+        self.pending_requests = list(requests_)
         self.env = env
         self.max_workers = max_workers
 

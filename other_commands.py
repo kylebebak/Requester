@@ -87,13 +87,13 @@ class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
     def run(self, edit):
         window = self.view.window()
         # parse all requests in current view, prepare them, and cache them
-        selections = []
+        requests = []
         timeout = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
-        for selection in parse_requests(
+        for request in parse_requests(
             self.view.substr( sublime.Region(0, self.view.size()) )
         ):
-            selections.append(prepare_request(selection, timeout))
-        selections = remove_duplicates(selections)
+            requests.append(prepare_request(request, timeout))
+        requests = remove_duplicates(requests)
 
         # cache all response views in current window
         response_views = []
@@ -106,11 +106,11 @@ class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
         views = []
         # add `line` property to cached response views, indicating at which line they appear in current view
         for view in response_views:
-            selection = view.settings().get('requester.selection', None)
-            if not selection:
+            request = view.settings().get('requester.request', None)
+            if not request:
                 views.append(View(view, maxsize))
             try:
-                line = selections.index(selection)
+                line = requests.index(request)
             except ValueError:
                 views.append(View(view, maxsize))
             else:

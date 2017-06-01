@@ -10,12 +10,16 @@ from .responses import ResponseThreadPool
 
 
 class RequestCommandMixin:
-
+    """This mixin is the motor responsible for parsing an env, executing requests
+    in parallel in the context of this env, generating activity indicators, and
+    invoking methods on responses. These methods can be overridden so that any
+    command class can use this motor as it sees fit.
+    """
     REFRESH_MS = 200 # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9 # number of spaces in activity indicator
     MAX_WORKERS = 10 # default request concurrency
 
-    def get_selections(self):
+    def get_requests(self):
         """This should be overridden to return a list of request strings.
         """
         return []
@@ -74,9 +78,9 @@ class RequestCommandMixin:
             sublime.set_timeout(lambda: self._run(thread, count+1), self.REFRESH_MS/REFRESH_MULTIPLIER)
 
         else:
-            selections = self.get_selections()
+            requests = self.get_requests()
             self.view.set_status('requester.activity', '')
-            self.make_requests(selections, self._env)
+            self.make_requests(requests, self._env)
 
     def reset_env_string(self):
         """(Re)sets the `requester.env_string` setting on the view, if appropriate.
@@ -165,16 +169,16 @@ class RequestCommandMixin:
         """
         self._env = self.get_env()
 
-    def make_requests(self, selections, env=None):
+    def make_requests(self, requests, env=None):
         """Make requests concurrently using a `ThreadPool`, which itself runs on
         an alternate thread so as not to block the UI.
         """
-        pool = ResponseThreadPool(selections, env, self.MAX_WORKERS) # pass along env vars to thread pool
-        self.show_activity_for_pending_requests(selections)
+        pool = ResponseThreadPool(requests, env, self.MAX_WORKERS) # pass along env vars to thread pool
+        self.show_activity_for_pending_requests(requests)
         sublime.set_timeout_async(lambda: pool.run(), 0) # run on an alternate thread
         sublime.set_timeout(lambda: self.gather_responses(pool), self.REFRESH_MS)
 
-    def show_activity_for_pending_requests(self, selections, count=0):
+    def show_activity_for_pending_requests(self, requests, count=0):
         """Show activity indicator in status bar. Also, if there are already open
         response views waiting to display content from pending requests, show
         activity indicators in views.
@@ -182,8 +186,8 @@ class RequestCommandMixin:
         activity = self.get_activity_indicator(count, self.ACTIVITY_SPACES)
         self.view.set_status('requester.activity', '{} {}'.format( 'Requester', activity ))
 
-        for selection in selections: # REFACTOR: probably not base functionality
-            for view in self.response_views_with_matching_selection(selection):
+        for request in requests: # REFACTOR: probably not base functionality
+            for view in self.response_views_with_matching_request(request):
                 # view names set BEFORE view content is set, otherwise
                 # activity indicator in view names seems to lag a little
                 name = view.settings().get('requester.name')
@@ -196,7 +200,7 @@ class RequestCommandMixin:
                     view.set_name(activity.ljust( len(name) + extra_spaces ))
 
                 view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
-                    selection, activity
+                    request, activity
                 )})
 
     def get_activity_indicator(self, count, spaces):
@@ -217,7 +221,7 @@ class RequestCommandMixin:
 
         Clients can handle responses and errors one at a time as they are
         completed, or as a group when they're all finished. Each response objects
-        contains `selection`, `response`, `error`, and `ordering` keys.
+        contains `request`, `response`, `error`, and `ordering` keys.
         """
         is_done = pool.is_done # cache `is_done` before removing responses from pool
 
@@ -230,7 +234,7 @@ class RequestCommandMixin:
             self.handle_response(r, num_requests=pool.num_requests())
             self.handle_error(r, num_requests=pool.num_requests())
 
-            for view in self.response_views_with_matching_selection(r.request):
+            for view in self.response_views_with_matching_request(r.request):
                 self.set_response_view_name(view, r.response)
 
         if is_done:
@@ -257,8 +261,8 @@ class RequestCommandMixin:
             view.set_name(name)
             view.settings().set('requester.name', name)
 
-    def response_views_with_matching_selection(self, selection):
-        """Get all response views whose selection matches `selection`.
+    def response_views_with_matching_request(self, request):
+        """Get all response views whose request matches `request`.
 
         REFACTOR: probably not base functionality.
         """
@@ -266,9 +270,9 @@ class RequestCommandMixin:
         for sheet in self.view.window().sheets():
             view = sheet.view()
             if view and view.settings().get('requester.response_view', False):
-                view_selection = view.settings().get('requester.selection', None)
-                if not view_selection:
+                view_request = view.settings().get('requester.request', None)
+                if not view_request:
                     continue
-                if selection == view_selection:
+                if request == view_request:
                     views.append(view)
         return views
