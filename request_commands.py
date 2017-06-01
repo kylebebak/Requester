@@ -134,25 +134,23 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         """Parses only first highlighted selection.
         """
         view = self.view
-        tests = []
+        self._tests = []
 
         for region in view.sel():
             if not region.empty():
                 selection = view.substr(region)
             try:
-                tests = parse_tests(selection)
+                self._tests = parse_tests(selection)
             except:
                 sublime.error_message('Parse Error: unbalanced brackets in tests')
-            break
+            break # only parse first selection
 
         timeout = self.config.get('timeout', None)
-        self._tests = {}
         requests = []
 
-        for test in tests:
+        for test in self._tests:
             r = prepare_request(test.request, timeout)
             requests.append(r)
-            self._tests[r] = test.assertion
 
         return requests
 
@@ -160,4 +158,36 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         """Compares response objects with assertions dictionaries and displays a
         test run view that includes all discrepancies.
         """
-        print(responses, self._tests)
+        assert len(self._tests) == len(responses)
+        errors = []
+        test_results = []
+        for i, response in enumerate(responses):
+            try:
+                assertion = self.eval_assertion(self._tests[i].assertion)
+            except Exception as e:
+                errors.append( '{}: {}'.format('Assertion Error', e) )
+            else:
+                test_results.append(self.get_single_test_results(response, assertion))
+
+        if errors:
+            sublime.error_message('\n\n'.join(errors))
+        print('\n\n'.join(test_results))
+
+    def eval_assertion(self, s):
+        """Includes `env` that was parsed by `RequestCommandMixin`. Raises an
+        exception that should be caught by client code if there is assertion can't
+        be eval'ed or there's anything wrong with assertion.
+        """
+        dict_string = s.split('assert', 1)[1]
+        try:
+            assertion = eval(dict_string, self._env)
+        except Exception as e:
+            raise Exception('{}, {}'.format(dict_string.strip(), e))
+
+        if not isinstance(assertion, dict):
+            raise TypeError('assertion {} is not a dictionary'.format(assertion))
+        return assertion
+
+    def get_single_test_results(self, response, assertion):
+        print(response, assertion)
+        return 'hello'

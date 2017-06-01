@@ -57,8 +57,8 @@ class ResponseThreadPool:
             max_workers=min(self.max_workers, len(self.requests))
         ) as executor:
             to_do = []
-            for index, request in enumerate(self.requests):
-                future = executor.submit(self.get_response, request, index, self.env)
+            for i, request in enumerate(self.requests):
+                future = executor.submit(self.get_response, request, i, self.env)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):
