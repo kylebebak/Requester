@@ -1,6 +1,7 @@
 import sublime, sublime_plugin
 
-from .common import RequestCommandMixin
+from .core import RequestCommandMixin
+from .common import set_response_view_syntax, get_response_view_content, prepare_request
 from .parsers import parse_requests, parse_tests
 
 
@@ -33,10 +34,10 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 for sel in selections_:
                     selections.append(sel)
         timeout = self.config.get('timeout', None)
-        selections = [self.prepare_selection(s, timeout) for s in selections]
+        selections = [prepare_request(s, timeout) for s in selections]
         return selections
 
-    def handle_response(self, response, num_selections):
+    def handle_response(self, response, num_requests):
         """Create a response view and insert response content into it. Ensure that
         response tab comes after (to the right of) all other response tabs.
 
@@ -71,10 +72,10 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             view.settings().set('requester.env_file',
                                 self.view.settings().get('requester.env_file', None))
 
-            content = self.get_response_content(r.request, r.response)
+            content = get_response_view_content(r.request, r.response)
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
-            self.set_syntax(view, r.response)
+            set_response_view_syntax(self.config, view)
             view.settings().set('requester.selection', r.request)
 
         # should response tabs be reordered after requests return?
@@ -82,7 +83,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             self.view.run_command('requester_reorder_response_tabs')
 
         # will focus change after request(s) return?
-        if num_selections > 1:
+        if num_requests > 1:
             if not self.config.get('change_focus_after_requests', False):
                 # keep focus on requests view if multiple requests are being executed
                 window.focus_sheet(requester_sheet)
@@ -107,10 +108,10 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
 
         view = self.view; r = response
 
-        content = self.get_response_content(r.request, r.response)
+        content = get_response_view_content(r.request, r.response)
         view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
-        self.set_syntax(view, r.response)
+        set_response_view_syntax(self.config, view)
         view.settings().set('requester.selection', r.request)
 
         self.set_response_view_name(view, r.response)
@@ -149,7 +150,7 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         selections = []
 
         for test in tests:
-            s = self.prepare_selection(test.request, timeout)
+            s = prepare_request(test.request, timeout)
             selections.append(s)
             self._tests[s] = test.assertion
 

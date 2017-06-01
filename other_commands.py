@@ -4,7 +4,7 @@ import webbrowser
 from sys import maxsize
 from collections import namedtuple
 
-from .common import RequestCommandMixin
+from .common import prepare_request
 from .parsers import parse_requests
 
 
@@ -75,8 +75,7 @@ def set_syntax(view, syntax):
 
 
 class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
-    """Show a modified, read-only version of README that can be used to see how
-    Requester works.
+    """Open requests quickstart in web browser.
     """
     def run(self):
         webbrowser.open_new_tab('http://docs.python-requests.org/en/master/user/quickstart/')
@@ -93,7 +92,7 @@ class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
         for selection in parse_requests(
             self.view.substr( sublime.Region(0, self.view.size()) )
         ):
-            selections.append( RequestCommandMixin.prepare_selection(selection, timeout) )
+            selections.append(prepare_request(selection, timeout))
         selections = remove_duplicates(selections)
 
         # cache all response views in current window

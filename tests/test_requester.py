@@ -15,15 +15,15 @@ common = sys.modules['Requester.common']
 
 class TestFunctions(DeferrableTestCase):
 
-    def test_prepare_selection(self):
+    def test_prepare_request(self):
         s = "get('http://httpbin.org/get')"
-        s_prepared = common.RequestCommandMixin.prepare_selection(s, 30)
-        self.assertEqual(s_prepared, "requests.get('http://httpbin.org/get', timeout=30)")
+        s_prepared = common.prepare_request(s, 15)
+        self.assertEqual(s_prepared, "requests.get('http://httpbin.org/get', timeout=15)")
 
-    def test_prepare_selection_with_prefix(self):
+    def test_prepare_request_with_prefix(self):
         s = "_s.get('http://httpbin.org/get')"
-        s_prepared = common.RequestCommandMixin.prepare_selection(s, 30)
-        self.assertEqual(s_prepared, "_s.get('http://httpbin.org/get', timeout=30)")
+        s_prepared = common.prepare_request(s, 15)
+        self.assertEqual(s_prepared, "_s.get('http://httpbin.org/get', timeout=15)")
 
 
 ####################

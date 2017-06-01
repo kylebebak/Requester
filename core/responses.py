@@ -4,7 +4,7 @@ from collections import namedtuple
 requests = __import__('requests')
 
 
-Response = namedtuple('Response', 'selection, response, error, ordering')
+Response = namedtuple('Response', 'request, response, error, ordering')
 
 
 class ResponseThreadPool:
@@ -12,8 +12,8 @@ class ResponseThreadPool:
     inspect instance's responses as they are returned.
     """
     @staticmethod
-    def get_response(selection, ordering, env=None):
-        """Evaluate `selection` in context of `env`, which at the very least
+    def get_response(request, ordering, env=None):
+        """Evaluate `request` in context of `env`, which at the very least
         includes the `requests` module. Return `response`.
         """
         env = env or {}
@@ -21,7 +21,7 @@ class ResponseThreadPool:
 
         response, error = None, ''
         try:
-            response = eval(selection, env)
+            response = eval(request, env)
         except requests.Timeout:
             error = 'Timeout Error: the request timed out'
         except requests.ConnectionError:
@@ -36,36 +36,36 @@ class ResponseThreadPool:
                 error = '{}: {}'.format('Type Error',
                                         'request did not return an instance of requests.Response')
 
-        return Response(selection, response, error, ordering)
+        return Response(request, response, error, ordering)
 
-    def __init__(self, selections, env, max_workers):
+    def __init__(self, requests, env, max_workers):
         self.is_done = False
         self.responses = []
-        self.selections = selections
-        self.pending_selections = list(selections)
+        self.requests = requests
+        self.pending_requests = list(requests)
         self.env = env
         self.max_workers = max_workers
 
-    def num_selections(self):
-        return len(self.selections)
+    def num_requests(self):
+        return len(self.requests)
 
     def run(self):
-        """Concurrently invoke `get_response` for all of instance's `selections`.
+        """Concurrently invoke `get_response` for all of instance's `requests`.
         """
         with futures.ThreadPoolExecutor(
-            max_workers=min(self.max_workers, len(self.selections))
+            max_workers=min(self.max_workers, len(self.requests))
         ) as executor:
             to_do = []
-            for index, selection in enumerate(self.selections):
-                future = executor.submit(self.get_response, selection, index, self.env)
+            for index, request in enumerate(self.requests):
+                future = executor.submit(self.get_response, request, index, self.env)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):
                 result = future.result()
-                # `responses` and `pending_selections` are instance properties, which means
+                # `responses` and `pending_requests` are instance properties, which means
                 # client code can inspect instance to read responses as they are completed
                 try:
-                    self.pending_selections.remove(result.selection)
+                    self.pending_requests.remove(result.request)
                 except ValueError:
                     pass
                 self.responses.append(result)
