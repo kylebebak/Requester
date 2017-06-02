@@ -3,8 +3,8 @@ import sublime, sublime_plugin
 import json
 from collections import namedtuple
 
-from .core import RequestCommandMixin, prepare_request
-from .parsers import parse_requests
+from .core import RequestCommandMixin
+from .core.parsers import parse_requests, prepare_request
 
 
 Content = namedtuple('Content', 'content, point')

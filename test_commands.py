@@ -2,12 +2,11 @@ import sublime, sublime_plugin
 
 from collections import namedtuple
 
-from .core import RequestCommandMixin, prepare_request
-from .parsers import parse_tests
+from .core import RequestCommandMixin
+from .core.parsers import parse_tests, prepare_request
 
 
-Error = namedtuple('Error', 'prop, real, expected, error')
-Error.__new__.__defaults__ = (None,) * len(Error._fields)
+Error = namedtuple('Error', 'prop, expected, real, error')
 
 
 class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -103,12 +102,17 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         assertion dict that don't correspond to a valid property or method of
         response.
         """
+        results = '{}\n{}\n'.format(response.request, assertion)
         r = response.response
         errors = []
+        count = 0
+
+        assertion = {str(k): v for k, v in assertion.items()} # make sure keys can be ordered
         for prop, expected in sorted(assertion.items()):
             prop = str(prop) # so lookup with hasattr doesn't explode
 
-            if prop in ('cookies_schema', 'json_schema', 'headers_schema'):
+            if prop in ('cookies_schema', 'json_schema', 'headers_schema'): # jsonschema validation
+                count += 1
                 from jsonschema import validate, ValidationError
 
                 if prop == 'cookies_schema':
@@ -121,35 +125,41 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 try:
                     validate(real, expected)
                 except ValidationError as e:
-                    errors.append(Error(prop, real, expected, e))
+                    errors.append(Error(prop, expected, real, e))
                 except Exception as e:
                     sublime.error_message('Schema Error: {}'.format(e))
                     continue
 
-            elif prop in ('cookies', 'json'):
+            elif prop in ('cookies', 'json'): # method equality validtion
+                count += 1
                 if prop == 'cookies':
                     real = r.cookies.get_dict()
                 if prop == 'json':
                     real = r.json()
                 if real != expected:
-                    errors.append(Error(prop, real, expected))
+                    errors.append(Error(prop, expected, real, 'not equal'))
 
-            else:
+            else: # prop equality validation
                 if not hasattr(r, prop):
                     continue
+                count += 1
                 real = getattr(r, prop)
                 if real != expected:
-                    errors.append(Error(prop, real, expected))
+                    errors.append(Error(prop, expected, real, 'not equal'))
 
-        results = '{}\n{}\n'.format(response.request, assertion)
+        results = results + '{} prop(s), {} error(s)\n'.format(count, len(errors))
         for error in errors:
-
-            error_details = []
-            for attr in ['prop', 'expected', 'error']:
-                val = getattr(error, attr)
-                if val:
-                    error_details.append('{}: {}'.format(attr, val))
-
-            if error_details:
-                results = results + '\n' + ', '.join(error_details) + '\n'
+            results = results + self.get_error_string(error) + '\n'
         return results
+
+    def get_error_string(self, error, max_len=150):
+        """Return a one-line string representation of validation error. Attributes
+        exceeding `max_len` are truncated.
+        """
+        error_details = []
+        for attr in ['prop', 'expected', 'real', 'error']:
+            val = str(getattr(error, attr))
+            if len(val) > max_len:
+                val = '...'
+            error_details.append('{}: {}'.format(attr, val))
+        return ', '.join(error_details)

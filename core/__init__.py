@@ -286,23 +286,3 @@ class RequestCommandMixin:
                 if request == view_request:
                     views.append(view)
         return views
-
-
-def prepare_request(r, timeout=None):
-    """If request is not prefixed with "{var_name}.", prefix request with
-    "requests.", because this module is guaranteed to be in the scope under
-    which the request is evaluated.
-
-    Also, ensure request can time out so it doesn't hang indefinitely.
-    http://docs.python-requests.org/en/master/user/advanced/#timeouts
-
-    Finally, ensure that request occupies only one line.
-    """
-    r = r.strip()
-    if not re.match('[\w_][\w\d_]*\.', r):
-        r = 'requests.' + r
-
-    if timeout is not None:
-        timeout_string = ', timeout={})'.format(timeout)
-        r = r[:-1] + timeout_string
-    return ' '.join(r.split()) # replace all multiple whitespace with single space

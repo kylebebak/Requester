@@ -4,8 +4,7 @@ import webbrowser
 from sys import maxsize
 from collections import namedtuple
 
-from .core import prepare_request
-from .parsers import parse_requests
+from .core.parsers import parse_requests, prepare_request
 
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
