@@ -12,12 +12,12 @@
 
   {
     "caption": "Requester: Run Tests",
-    "command": "requester_tests"
+    "command": "requester_run_tests"
   },
 
   {
     "caption": "Requester: Run Tests Serially",
-    "command": "requester_tests",
+    "command": "requester_run_tests",
     "args": { "concurrency": 1 }
   },
 

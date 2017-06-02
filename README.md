@@ -42,11 +42,22 @@ Place your cursor on one of the lines and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r
 
 Head to the response tab and check out the response. Hit <kbd>ctrl+alt+r</kbd> or <kbd>ctrl+r</kbd> (<kbd>ctrl+r</kbd> or <kbd>cmd+r</kbd> on OSX) to replay the request. You can edit the request, which is at the top of the file, before replaying it.
 
-Now, go back to the requester file and use [multiple selection](https://www.sublimetext.com/docs/3/multiple_selection_with_the_keyboard.html) to select all 5 lines, and once again execute the requests.
+Now, go back to the requester file and highlight all 5 lines, and once again execute the requests.
 
 Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, but simply overwrite the content in the matching response tabs.
 
 Want to see something nifty? Mix up the order of the 4 open response tabs, come back to your requester file, and run __Requester: Reorder Response Tabs__.
+
+If you want to define requests over multiple lines, just make sure you fully highlight the requests before executing them. Try it.
+
+~~~py
+get(
+  'https://jsonplaceholder.typicode.com/posts'
+)
+post(
+  'https://jsonplaceholder.typicode.com/posts'
+)
+~~~
 
 Prefixing your requests with __requests.__ is optional. If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
@@ -112,6 +123,10 @@ If you don't know how to do something, check out __Requester: Show Tutorial__ fr
 
 
 ### Sessions
+Need to log in first so all your requests include a session cookie? [Session objects](http://docs.python-requests.org/en/master/user/advanced/#session-objects) make this a cinch. 
+
+Instantiate the session object in the env block and use it in your requests. Copy this code to a new file and give it a try.
+
 ~~~py
 ###env
 import requests
@@ -122,9 +137,77 @@ s.get('http://httpbin.org/cookies/set?session_id=12345', timeout=5)
 s.get('http://httpbin.org/get')
 ~~~
 
-Need to log in first so all your requests include a session cookie? [Session objects](http://docs.python-requests.org/en/master/user/advanced/#session-objects) make this a cinch. 
 
-Instantiate the session object in the env block and use it in your requests. Copy this code to a new file and give it a try.
+### Test Runner
+Requester has a built-in test runner! Copy and paste this into an empty file.
+
+~~~py
+###env
+base_url = 'https://jsonplaceholder.typicode.com'
+prop = 'status_code'
+###env
+
+# first request
+requests.get(
+  base_url + '/posts'
+)
+assert {prop: 200, 'encoding': 'utf-8'}
+
+# second request, with no assertion
+requests.get(base_url + '/profile')
+
+# third request
+requests.get(base_url + '/comments')
+
+assert {
+  'status_code': 500
+}
+~~~
+
+Highlight all the requests, look for __Requester: Run Tests__ in the command palette, and run it. You'll notice that test results are displayed for the first and third requests.
+
+What's going on here? Every `key, value` pair in an assertion dict is compared with the response returned by the request above it. If `key` is a valid property of the `Response` object, `value` is compared with the property. If they're not equal discrepancies are displayed.
+
+Some valid properties: `apparent_encoding`, `cookies`, `encoding`, `headers`, `history`, `is_permanent_redirect`, `is_redirect`, `json`, `links`, `reason`, `status_code`, `text`, `content`.
+
+`cookies`, `headers` and `json` point to Python dicts or lists, which means comparing for equality isn't very useful. Much more useful are the following special assertion keys for these properties: `cookies_schema` `headers_schema` `json_schema`. __Note: these don't work yet. They will as soon as we can add jsonschema as a Sublime Text dependency__.
+
+Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). If you have a JSON API, [JSON Schema](http://json-schema.org/) is the one true way to describe your API's data format. Use it.
+
+~~~py
+requests.get('https://jsonplaceholder.typicode.com/posts')
+assert {
+    'json_schema': {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "properties": {
+                "body": {"type": "string"},
+                "id": {"type": "number"},
+                "title": {"type": "string"},
+                "userId": {"type": "number"}
+            }
+        }
+    }
+}
+~~~
+
+The test runner was built for convenience:
+
+- requests and assertions can be defined over multiple lines
+- requests and assertions can use env vars
+- requests without corresponding assertions are ignored
+- the order of requests is preserved in the results tab
+
+Assertions can be inserted seamlessly into a requester file; if you're not doing a test run they're simply ignored.
+
+
+### Chaining Requests
+If you need to run requests or tests one after another, in the order in which they're defined in your requester file, look for __Requester: Run Requests Serially__ or __Requester: Run Tests Serially__ in the command palette.
+
+Behind the scenes, this just passes the `concurrency=1` arg to `requester` or `requester_run_tests`, and voilà, requests are no longer run in parallel.
+
+Note: code inside your __env block/env file__ is always run serially, which includes any requests you put in there.
 
 
 ## Commands
@@ -132,6 +215,7 @@ Commands defined by this package, in case you want to change key bindings.
 
 - __requester__
 - __requester_replay_request__
+- __requester_run_tests__
 - __requester_close_response_tabs__
 - __requester_show_tutorial__
 - __requester_show_documentation__
@@ -171,16 +255,18 @@ That's it.
 ## Recap
 There are several HTTP clients for Sublime Text, so why Requester? Because the others lack many of the following:
 
-- Well-documented, intuitive syntax
+- Well-documented, beautiful syntax
 - Environment variables
 - Multiple, editable response tabs
+- Sessions and chainable requests
 - Automatic syntax highlighting
-- A test runner
+- A test runner of any kind
 
-Postman addresses these concerns, which might be why it's so popular. But using an app like Postman has its own disadvantages:
+Postman, Paw, and Insomnia address these concerns, but using one of these apps has its own disadvantages:
 
 - Constantly switching contexts between HTTP client and code.
-- Manipulating requests requires lots of point and click: __keyboard wizardry is worthless__.
-- Requests are stored in a proprietary format: difficult to share, difficult to add to version control.
+- Manipulating requests requires lots of point and click: keyboard wizardry is nearly worthless.
+- Requests are stored in a proprietary format: difficult to share (usually a paid feature), difficult to add to version control.
+- Requests aren't defined in a syntax literally famed for its beauty.
 
-Requester is built from the ground up to give you the best of both worlds. Try it, see for yourself =)
+Requester is built from the ground up to give you the best of both worlds. It's cross-platform. It's free. Try it, see for yourself =)

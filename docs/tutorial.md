@@ -13,11 +13,22 @@ Place your cursor on one of the lines in the code block above and hit <kbd>ctrl+
 
 Head to the response tab and check out the response. Hit <kbd>ctrl+alt+r</kbd> or <kbd>ctrl+r</kbd> (<kbd>ctrl+r</kbd> or <kbd>cmd+r</kbd> on OSX) to replay the request. You can edit the request, which is at the top of the file, before replaying it.
 
-Now, come back and use [multiple selection](https://www.sublimetext.com/docs/3/multiple_selection_with_the_keyboard.html) to select all 5 lines, and once again execute the requests.
+Now, go back to the requester file and highlight all 5 lines, and once again execute the requests.
 
 Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, but simply overwrite the content in the matching response tabs.
 
 Want to see something nifty? Mix up the order of the 4 open response tabs, come back to the tutorial tab, and run __Requester: Reorder Response Tabs__.
+
+If you want to define requests over multiple lines, just make sure you fully highlight the requests before executing them. Try it.
+
+~~~py
+get(
+  'https://jsonplaceholder.typicode.com/posts'
+)
+post(
+  'https://jsonplaceholder.typicode.com/posts'
+)
+~~~
 
 Prefixing your requests with __requests.__ is optional. If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 

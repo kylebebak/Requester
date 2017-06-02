@@ -9,12 +9,13 @@ from .core.parsers import parse_tests, prepare_request
 Error = namedtuple('Error', 'prop, expected, real, error')
 
 
-class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
+class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
     """Execute requests from requester file concurrently. For each request with a
     corresponding assertions dictionary, compare response with assertions and
-    display all results in one tab.
+    display all results in new tab.
 
-    Doesn't work for multiple selections.
+    Doesn't work for multiple selections, because absolute order of (request,
+    assertion) test pairs is preserved in results tab.
     """
     def run(self, edit, concurrency=10):
         """Allow user to specify concurrency.
