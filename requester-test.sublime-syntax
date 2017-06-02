@@ -4,105 +4,28 @@
 scope: source.requester-test
 name: Requester Test
 hidden: true
-variables:
-  content_type_sep: (?=;|$)
 contexts:
   main:
-    - match: ''
-      push:
-        - meta_content_scope: source.python
-        - include: scope:source.python
-        - match: $\n
-          set: http-status
-
-  http-status:
-    - match: (\[)\s*(=)\s*(\])
-      scope: meta.response-pending.requester-test
+    - match: '^[\w_][\w\d_]*\.(get|options|head|post|put|patch|delete)\(.*'
+      scope: storage.type.replay-request.requester-test
+    - match: '^(assert) (\{.*)'
       captures:
-        1: punctuation.section.brackets.begin.requester-test
-        2: constant.language.requester-test
-        3: punctuation.section.brackets.end.requester-test
-    - match: ^(\d+) (.*)$\n
-      captures:
-        1: constant.numeric.http-status-code.requester-test
-        2: constant.language.http-status.requester-test
-      set: time-taken
-
-  time-taken:
-    - match: ^([\d\.]*)(s), ([\d]*)(B)$\n
-      captures:
-        1: constant.numeric.response-seconds.requester-test
-        2: constant.language.seconds.requester-test
-        3: constant.numeric.response-seconds.requester-test
-        4: constant.language.seconds.requester-test
-      set: url
-
-  url:
-    - match: ^.*$\n
-      scope: entity.name.tag.requester-test # hack to make URL bold
-      set: headers-cookies
-
-  headers-cookies:
-    - match: ^(Request Headers:|Response Cookies:)(.*)$\n
+        1: keyword.other.assertion.requester-test
+        2: entity.name.tag.requester-test
+      scope:
+    - match: '^([\d]+) (props?), ([\d]+) (errors?)'
       captures:
         1: constant.numeric.label.requester-test
-        2: constant.language.headers-cookies.requester-test
-    - match: ^(?=\[) # use look-ahead to not include bracket in match
-      set: replay-request
-
-  replay-request:
-    - match: '\[.*replay request$\n'
-      scope: storage.type.replay-request.requester-test
-      set:
-        - match: ^$\n
-          set: http-headers
-
-  content-type:
-    - meta_content_scope: meta.response-headers.requester-test string.unquoted.http-header.value.requester-test
-    - match: (application/json|text/json){{content_type_sep}}
-      set: [response-type-json, content-type-suffix]
-    - match: (application/xml|text/xml){{content_type_sep}}
-      set: [response-type-xml, content-type-suffix]
-    - match: (application/xhtml+xml|text/html){{content_type_sep}}
-      set: [response-type-html, content-type-suffix]
-
-  content-type-suffix:
-    - match: .*$
-      scope: string.unquoted.http-header.value.requester-test
-      pop: true
-
-  http-headers:
-    - meta_content_scope: meta.response-headers.requester-test
-    - match: (?i)^(Content-Type)(:)\s*
+        2: constant.language.props.requester-test
+        3: constant.numeric.label.requester-test
+        4: constant.language.errors.requester-test
+    - match: '^(prop):(.*?); (expected):(.*?); (real):(.*?); (error):(.*)'
       captures:
-        1: keyword.other.http-header.key.requester-test
-        2: punctuation.separator.key-value.requester-test
-      set: content-type
-    - match: ([^:]+)(:)\s*(.*$)
-      captures:
-        1: keyword.other.http-header.key.requester-test
-        2: punctuation.separator.key-value.requester-test
-        3: string.unquoted.http-header.value.requester-test
-    - match: ^$\n
-      set: scope:text.plain
-
-  response-type-json:
-    - meta_content_scope: meta.response-headers.requester-test
-    - match: ^$\n
-      set: [response-body, scope:source.json]
-    - include: http-headers
-
-  response-type-xml:
-    - meta_content_scope: meta.response-headers.requester-test
-    - match: ^$\n
-      set: [response-body, scope:text.xml]
-    - include: http-headers
-
-  response-type-html:
-    - meta_content_scope: meta.response-headers.requester-test
-    - match: ^$\n
-      set: [response-body, scope:text.html.basic]
-    - include: http-headers
-
-  response-body:
-    - meta_content_scope: meta.response-body.requester-test
+        1: constant.language.variable.requester-test
+        2: constant.numeric.value.requester-test
+        3: constant.language.variable.requester-test
+        4: constant.numeric.value.requester-test
+        5: constant.language.variable.requester-test
+        6: constant.numeric.value.requester-test
+        7: constant.language.variable.requester-test
+        8: constant.numeric.value.requester-test

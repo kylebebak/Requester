@@ -102,7 +102,7 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         assertion dict that don't correspond to a valid property or method of
         response.
         """
-        results = '{}\n{}\n'.format(response.request, assertion)
+        results = '{}\nassert {}\n'.format(response.request, assertion)
         r = response.response
         errors = []
         count = 0
@@ -147,7 +147,8 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 if real != expected:
                     errors.append(Error(prop, expected, real, 'not equal'))
 
-        results = results + '{} prop(s), {} error(s)\n'.format(count, len(errors))
+        results = results + '{} prop{plural}, {} error{plural}\n'.format(
+            count, len(errors), plural='' if count == 1 else 's')
         for error in errors:
             results = results + self.get_error_string(error) + '\n'
         return results
@@ -162,4 +163,4 @@ class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             if len(val) > max_len:
                 val = '...'
             error_details.append('{}: {}'.format(attr, val))
-        return ', '.join(error_details)
+        return '; '.join(error_details)
