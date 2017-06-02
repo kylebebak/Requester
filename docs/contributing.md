@@ -5,11 +5,14 @@ Please do! Possible improvements:
   + Tests for error messages
   + Tests for proper parsing of env block and env files
   + Tests for activity indicators
-- Create a testing framework that allows users to make assertions about responses for given requests
-  + Perform test runs
-  + View results
+  + Tests for syntax files
+- Improve test runner
+  + Run tests in a requester file from command line, so that they can be integrated into test suite
+  + Alternatively, create command to export requests and assertions in requester file to a runnable Python test script
+- Create a clone of [ab](http://httpd.apache.org/docs/current/programs/ab.html)
+  + Allow user to specify `number_of_requests` and `concurrency`
+  + Display results
 - Import from and export to common request formats (HTTP, cURL, etc)
-  + Import collection from Postman?
 
 
 ## Python Code Style

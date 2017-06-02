@@ -35,6 +35,7 @@ class ResponseThreadPool:
             if not isinstance(response, requests.Response):
                 error = '{}: {}'.format('Type Error',
                                         'request did not return an instance of requests.Response')
+                response = None # reset response to `None` if it's not a `Response`
 
         return Response(request, response, error, ordering)
 

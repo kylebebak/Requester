@@ -82,10 +82,20 @@ class RequestCommandMixin:
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
 
+    def is_requester_view(self):
+        """Was this view opened by a Requester command? This is useful, e.g., to
+        avoid resetting `env_file` and `env_string` on these views.
+        """
+        if self.view.settings().get('requester.response_view', False):
+            return True
+        if self.view.settings().get('requester.test_view', False):
+            return True
+        return False
+
     def reset_env_string(self):
         """(Re)sets the `requester.env_string` setting on the view, if appropriate.
         """
-        if self.view.settings().get('requester.response_view', False):
+        if self.is_requester_view():
             return
 
         delimeter = '###env'
@@ -107,7 +117,7 @@ class RequestCommandMixin:
     def reset_env_file(self):
         """(Re)sets the `requester.env_file` setting on the view, if appropriate.
         """
-        if self.view.settings().get('requester.response_view', False):
+        if self.is_requester_view():
             return
 
         scope = {}
@@ -276,3 +286,23 @@ class RequestCommandMixin:
                 if request == view_request:
                     views.append(view)
         return views
+
+
+def prepare_request(r, timeout=None):
+    """If request is not prefixed with "{var_name}.", prefix request with
+    "requests.", because this module is guaranteed to be in the scope under
+    which the request is evaluated.
+
+    Also, ensure request can time out so it doesn't hang indefinitely.
+    http://docs.python-requests.org/en/master/user/advanced/#timeouts
+
+    Finally, ensure that request occupies only one line.
+    """
+    r = r.strip()
+    if not re.match('[\w_][\w\d_]*\.', r):
+        r = 'requests.' + r
+
+    if timeout is not None:
+        timeout_string = ', timeout={})'.format(timeout)
+        r = r[:-1] + timeout_string
+    return ' '.join(r.split()) # replace all multiple whitespace with single space

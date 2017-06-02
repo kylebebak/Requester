@@ -1,8 +1,52 @@
 import sublime, sublime_plugin
 
-from .core import RequestCommandMixin
-from .common import set_response_view_syntax, get_response_view_content, prepare_request
-from .parsers import parse_requests, parse_tests
+import json
+from collections import namedtuple
+
+from .core import RequestCommandMixin, prepare_request
+from .parsers import parse_requests
+
+
+Content = namedtuple('Content', 'content, point')
+platform = sublime.platform()
+
+
+def get_response_view_content(request, response):
+    """Returns a response string that includes metadata, headers and content,
+    and the index of the string at which response content begins.
+    """
+    r = response
+    redirects = [res.url for res in r.history] # URLs traversed due to redirects
+    redirects.append(r.url) # final URL
+
+    header = '{} {}\n{}s, {}B\n{}'.format(
+        r.status_code, r.reason, r.elapsed.total_seconds(), len(r.content),
+        ' -> '.join(redirects)
+    )
+    headers = '\n'.join(
+        [ '{}: {}'.format(k, v) for k, v in sorted(r.headers.items()) ]
+    )
+    try:
+        json_dict = r.json()
+    except:
+        content = r.text
+    else: # prettify json regardless of what raw response looks like
+        content = json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
+
+    replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
+    before_content_items = [
+        request,
+        header,
+        '{}: {}'.format('Request Headers', r.request.headers),
+        '{} replay request'.format(replay_binding),
+        headers
+    ]
+    cookies = r.cookies.get_dict()
+    if cookies:
+        before_content_items.insert(3, '{}: {}'.format('Response Cookies', cookies))
+    before_content = '\n\n'.join(before_content_items)
+
+    return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
 
 class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -33,8 +77,10 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             else:
                 for r in requests_:
                     requests.append(r)
-        timeout = self.config.get('timeout', None)
-        requests = [prepare_request(r, timeout) for r in requests]
+
+        if not view.settings().get('requester.test_view', False): # don't prep requests in test view
+            timeout = self.config.get('timeout', None)
+            requests = [prepare_request(r, timeout) for r in requests]
         return requests
 
     def handle_response(self, response, num_requests):
@@ -75,7 +121,7 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             content = get_response_view_content(r.request, r.response)
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
-            set_response_view_syntax(self.config, view)
+            view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
             view.settings().set('requester.request', r.request)
 
         # should response tabs be reordered after requests return?
@@ -111,83 +157,7 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
         content = get_response_view_content(r.request, r.response)
         view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
-        set_response_view_syntax(self.config, view)
+        view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
         view.settings().set('requester.request', r.request)
 
         self.set_response_view_name(view, r.response)
-
-
-class RequesterTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
-    """Execute requests from requester file concurrently. For each request with a
-    corresponding assertions dictionary, compare response with assertions and
-    display all results in one tab.
-
-    Doesn't work for multiple selections.
-    """
-    def run(self, edit, concurrency=10):
-        """Allow user to specify concurrency.
-        """
-        self.MAX_WORKERS = max(1, concurrency)
-        super().run(edit)
-
-    def get_requests(self):
-        """Parses only first highlighted selection.
-        """
-        view = self.view
-        self._tests = []
-
-        for region in view.sel():
-            if not region.empty():
-                selection = view.substr(region)
-            try:
-                self._tests = parse_tests(selection)
-            except:
-                sublime.error_message('Parse Error: unbalanced brackets in tests')
-            break # only parse first selection
-
-        timeout = self.config.get('timeout', None)
-        requests = []
-
-        for test in self._tests:
-            r = prepare_request(test.request, timeout)
-            requests.append(r)
-
-        return requests
-
-    def handle_responses(self, responses):
-        """Compares response objects with assertions dictionaries and displays a
-        test run view that includes all discrepancies.
-        """
-        assert len(self._tests) == len(responses)
-        errors = []
-        test_results = []
-        for i, response in enumerate(responses):
-            try:
-                assertion = self.eval_assertion(self._tests[i].assertion)
-            except Exception as e:
-                errors.append( '{}: {}'.format('Assertion Error', e) )
-            else:
-                test_results.append(self.get_single_test_results(response, assertion))
-
-        if errors:
-            sublime.error_message('\n\n'.join(errors))
-        print('\n\n'.join(test_results))
-
-    def eval_assertion(self, s):
-        """Includes `env` that was parsed by `RequestCommandMixin`. Raises an
-        exception that should be caught by client code if there is assertion can't
-        be eval'ed or there's anything wrong with assertion.
-        """
-        dict_string = s.split('assert', 1)[1]
-        try:
-            assertion = eval(dict_string, self._env)
-        except Exception as e:
-            raise Exception('{}, {}'.format(dict_string.strip(), e))
-
-        if not isinstance(assertion, dict):
-            raise TypeError('assertion {} is not a dictionary'.format(assertion))
-        return assertion
-
-    def get_single_test_results(self, response, assertion):
-        print(response, assertion)
-        return 'hello'

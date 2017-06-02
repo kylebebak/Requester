@@ -5,9 +5,6 @@
   // display error if env hasn't been executed after this many seconds
   "timeout_env": 15,
 
-  // toggle automatic syntax highlighting
-  "highlighting": true,
-
   // if a single request is executed, change focus to response tab after request returns
   "change_focus_after_request": true,
 

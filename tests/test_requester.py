@@ -10,19 +10,19 @@ from unittesting import DeferrableTestCase
 # TESTS FOR FUNCTIONS
 ####################
 
-common = sys.modules['Requester.common']
+core = sys.modules['Requester.core']
 
 
 class TestFunctions(DeferrableTestCase):
 
     def test_prepare_request(self):
         s = "get('http://httpbin.org/get')"
-        s_prepared = common.prepare_request(s, 15)
+        s_prepared = core.prepare_request(s, 15)
         self.assertEqual(s_prepared, "requests.get('http://httpbin.org/get', timeout=15)")
 
     def test_prepare_request_with_prefix(self):
         s = "_s.get('http://httpbin.org/get')"
-        s_prepared = common.prepare_request(s, 15)
+        s_prepared = core.prepare_request(s, 15)
         self.assertEqual(s_prepared, "_s.get('http://httpbin.org/get', timeout=15)")
 
 

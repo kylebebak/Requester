@@ -143,7 +143,6 @@ Commands defined by this package, in case you want to change key bindings.
 - __timeout__: default timeout in seconds for all requests
   + if you want to change this for a single request, __do so directly in the response tab__, not in your requester file
 - __timeout_env__: default timeout in seconds for executing env block/env file
-- __highlighting__: toggle automatic syntax highlighting
 - __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
 - __change_focus_after_requests__: if multiple requests are executed, change focus to final response tab after requests return
 - __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
