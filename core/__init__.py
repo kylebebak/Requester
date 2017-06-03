@@ -4,7 +4,6 @@ import os
 import sys
 import imp
 import re
-from urllib import parse
 from threading import Thread
 
 from .responses import ResponseThreadPool
@@ -12,9 +11,12 @@ from .responses import ResponseThreadPool
 
 class RequestCommandMixin:
     """This mixin is the motor responsible for parsing an env, executing requests
-    in parallel in the context of this env, generating activity indicators, and
-    invoking methods on responses. These methods can be overridden so that any
-    command class can use this motor as it sees fit.
+    in parallel in the context of this env, invoking activity indicator methods,
+    and invoking response handling methods. These methods can be overridden to
+    control the behavior of classes that inherit from this mixin.
+
+    It must be mixed in to classes that also inherit from
+    `sublime_plugin.TextCommand`.
     """
     REFRESH_MS = 200 # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9 # number of spaces in activity indicator
@@ -24,6 +26,11 @@ class RequestCommandMixin:
         """This should be overridden to return a list of request strings.
         """
         return []
+
+    def show_activity_for_pending_requests(self, requests, count, activity):
+        """Override this method to customize user feedback for pending requests.
+        """
+        pass
 
     def handle_response(self, response, num_requests):
         """Override this method to handle a response from a single request. This
@@ -152,7 +159,7 @@ class RequestCommandMixin:
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
         try:
-            del sys.modules['requester.env']
+            del sys.modules['requester.env'] # this avoids a subtle bug, DON'T REMOVE
         except KeyError:
             pass
 
@@ -189,46 +196,15 @@ class RequestCommandMixin:
         an alternate thread so as not to block the UI.
         """
         pool = ResponseThreadPool(requests, env, self.MAX_WORKERS) # pass along env vars to thread pool
-        self.show_activity_for_pending_requests(requests)
         sublime.set_timeout_async(lambda: pool.run(), 0) # run on an alternate thread
-        sublime.set_timeout(lambda: self.gather_responses(pool), self.REFRESH_MS)
+        sublime.set_timeout(lambda: self.gather_responses(pool), 0)
 
-    def show_activity_for_pending_requests(self, requests, count=0):
-        """Show activity indicator in status bar. Also, if there are already open
-        response views waiting to display content from pending requests, show
-        activity indicators in views.
+    def _show_activity_for_pending_requests(self, requests, count):
+        """Show activity indicator in status bar.
         """
         activity = self.get_activity_indicator(count, self.ACTIVITY_SPACES)
         self.view.set_status('requester.activity', '{} {}'.format( 'Requester', activity ))
-
-        for request in requests: # REFACTOR: probably not base functionality
-            for view in self.response_views_with_matching_request(request):
-                # view names set BEFORE view content is set, otherwise
-                # activity indicator in view names seems to lag a little
-                name = view.settings().get('requester.name')
-                if not name:
-                    view.set_name(activity)
-                else:
-                    spaces = min(self.ACTIVITY_SPACES, len(name))
-                    activity = self.get_activity_indicator(count, spaces)
-                    extra_spaces = 4 # extra spaces because tab names don't use monospace font =/
-                    view.set_name(activity.ljust( len(name) + extra_spaces ))
-
-                view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
-                    request, activity
-                )})
-
-    def get_activity_indicator(self, count, spaces):
-        """Displays an activity indicator in status bar if there are pending
-        requests.
-        """
-        cycle = count // spaces
-        if cycle % 2 == 0:
-            before = count % spaces
-        else:
-            before = spaces - (count % spaces)
-        after = spaces - before
-        return '[{}={}]'.format(' ' * before, ' ' * after)
+        self.show_activity_for_pending_requests(requests, count, activity)
 
     def gather_responses(self, pool, count=0, responses=None):
         """Inspect thread pool at regular intervals to remove completed responses
@@ -238,6 +214,7 @@ class RequestCommandMixin:
         completed, or as a group when they're all finished. Each response objects
         contains `request`, `response`, `error`, and `ordering` keys.
         """
+        self._show_activity_for_pending_requests(pool.pending_requests, count)
         is_done = pool.is_done # cache `is_done` before removing responses from pool
 
         if responses is None:
@@ -249,9 +226,6 @@ class RequestCommandMixin:
             self.handle_response(r, num_requests=pool.num_requests())
             self.handle_error(r, num_requests=pool.num_requests())
 
-            for view in self.response_views_with_matching_request(r.request):
-                self.set_response_view_name(view, r.response)
-
         if is_done:
             responses.sort(key=lambda response: response.ordering) # parsing order is preserved
             self.handle_responses(responses)
@@ -259,35 +233,16 @@ class RequestCommandMixin:
             self.view.set_status('requester.activity', '') # remove activity indicator from status bar
             return
 
-        count += 1
-        self.show_activity_for_pending_requests(pool.pending_requests, count)
-        sublime.set_timeout(lambda: self.gather_responses(pool, count, responses), self.REFRESH_MS)
+        sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
 
-    def set_response_view_name(self, view, response):
-        """Set name for `view` with content from `response`.
-
-        REFACTOR: probably not base functionality.
+    @staticmethod
+    def get_activity_indicator(count, spaces):
+        """Return activity indicator string.
         """
-        try: # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
-            name = '{}: {}'.format(response.request.method, parse.urlparse(response.url).path)
-        except:
-            view.set_name( view.settings().get('requester.name') )
+        cycle = count // spaces
+        if cycle % 2 == 0:
+            before = count % spaces
         else:
-            view.set_name(name)
-            view.settings().set('requester.name', name)
-
-    def response_views_with_matching_request(self, request):
-        """Get all response views whose request matches `request`.
-
-        REFACTOR: probably not base functionality.
-        """
-        views = []
-        for sheet in self.view.window().sheets():
-            view = sheet.view()
-            if view and view.settings().get('requester.response_view', False):
-                view_request = view.settings().get('requester.request', None)
-                if not view_request:
-                    continue
-                if request == view_request:
-                    views.append(view)
-        return views
+            before = spaces - (count % spaces)
+        after = spaces - before
+        return '[{}={}]'.format(' ' * before, ' ' * after)

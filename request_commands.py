@@ -1,6 +1,7 @@
 import sublime, sublime_plugin
 
 import json
+from urllib import parse
 from collections import namedtuple
 
 from .core import RequestCommandMixin
@@ -49,7 +50,56 @@ def get_response_view_content(request, response):
     return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
 
-class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
+def set_response_view_name(view, response):
+    """Set name for `view` with content from `response`.
+    """
+    try: # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
+        name = '{}: {}'.format(response.request.method, parse.urlparse(response.url).path)
+    except:
+        view.set_name( view.settings().get('requester.name') )
+    else:
+        view.set_name(name)
+        view.settings().set('requester.name', name)
+
+
+class RequestsMixin:
+    def show_activity_for_pending_requests(self, requests, count, activity):
+        """If there are already open response views waiting to display content from
+        pending requests, show activity indicators in views.
+        """
+        for request in requests:
+            for view in self.response_views_with_matching_request(request):
+                # view names set BEFORE view content is set, otherwise
+                # activity indicator in view names seems to lag a little
+                name = view.settings().get('requester.name')
+                if not name:
+                    view.set_name(activity)
+                else:
+                    spaces = min(self.ACTIVITY_SPACES, len(name))
+                    activity = self.get_activity_indicator(count, spaces)
+                    extra_spaces = 4 # extra spaces because tab names don't use monospace font =/
+                    view.set_name(activity.ljust( len(name) + extra_spaces ))
+
+                view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
+                    request, activity
+                )})
+
+    def response_views_with_matching_request(self, request):
+        """Get all response views whose request matches `request`.
+        """
+        views = []
+        for sheet in self.view.window().sheets():
+            view = sheet.view()
+            if view and view.settings().get('requester.response_view', False):
+                view_request = view.settings().get('requester.request', None)
+                if not view_request:
+                    continue
+                if request == view_request:
+                    views.append(view)
+        return views
+
+
+class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Execute requests from requester file concurrently and open multiple
     response views.
     """
@@ -89,10 +139,13 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
         Don't create new response tab if a response tab matching request is open.
         """
-        if response.error: # ignore responses with errors
+        window = self.view.window(); r = response
+
+        if r.error: # ignore responses with errors
+            for view in self.response_views_with_matching_request(r.request):
+                set_response_view_name(view, r.response)
             return
 
-        window = self.view.window(); r = response
         requester_sheet = window.active_sheet()
 
         last_sheet = requester_sheet # find last sheet (tab) with a response view
@@ -137,8 +190,11 @@ class RequesterCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             if not self.config.get('change_focus_after_request', True):
                 window.focus_sheet(requester_sheet)
 
+        for view in views:
+            set_response_view_name(view, r.response)
 
-class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextCommand):
+
+class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Replay a request from a response view.
     """
     def get_requests(self):
@@ -149,10 +205,10 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
     def handle_response(self, response, **kwargs):
         """Overwrites content in current view.
         """
-        if response.error: # ignore responses with errors
-            return
-
         view = self.view; r = response
+
+        if r.error: # ignore responses with errors
+            return
 
         content = get_response_view_content(r.request, r.response)
         view.run_command('requester_replace_view_text',
@@ -160,4 +216,4 @@ class RequesterReplayRequestCommand(RequestCommandMixin, sublime_plugin.TextComm
         view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
         view.settings().set('requester.request', r.request)
 
-        self.set_response_view_name(view, r.response)
+        set_response_view_name(view, r.response)

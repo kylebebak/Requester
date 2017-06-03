@@ -3,7 +3,8 @@ from collections import namedtuple
 
 
 VERBS = '(get|options|head|post|put|patch|delete)\('
-PREFIX_VERBS = '[\w_][\w\d_]*\.' + VERBS
+PREFIX = '[\w_][\w\d_]*\.'
+PREFIX_VERBS = PREFIX + VERBS
 ASSERTIONS = 'assert \{'
 
 Selection = namedtuple('Selection', 'selection, ordering, type')
@@ -93,7 +94,7 @@ def prepare_request(r, timeout=None):
     Finally, ensure that request occupies only one line.
     """
     r = r.strip()
-    if not re.match('[\w_][\w\d_]*\.', r):
+    if not re.match(PREFIX, r):
         r = 'requests.' + r
 
     if timeout is not None:
