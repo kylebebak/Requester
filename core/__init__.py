@@ -1,8 +1,9 @@
 import sublime
 
-import re
 import os
+import sys
 import imp
+import re
 from urllib import parse
 from threading import Thread
 
@@ -150,6 +151,11 @@ class RequestCommandMixin:
         http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
+        try:
+            del sys.modules['requester.env']
+        except KeyError:
+            pass
+
         env_dict = {}
         env_string = self.view.settings().get('requester.env_string', None)
         if env_string:
@@ -170,8 +176,7 @@ class RequestCommandMixin:
                 sublime.error_message('EnvFile Error:\n{}'.format(e))
             else:
                 env_dict_ = vars(env)
-                env_dict_.update(env_dict) # env computed from `env_string` takes precedence
-                return env_dict_
+                env_dict.update(env_dict_) # env computed from `env_file` takes precedence
         return env_dict or None
 
     def _get_env(self):

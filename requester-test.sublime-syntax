@@ -19,7 +19,7 @@ contexts:
         2: constant.language.props.requester-test
         3: constant.numeric.label.requester-test
         4: constant.language.errors.requester-test
-    - match: '^(prop):(.*?); (expected):(.*?); (real):(.*?); (error):(.*)'
+    - match: '^(prop):(.*?); (expected):(.*?); (got):(.*?); (error):(.*)'
       captures:
         1: constant.language.variable.requester-test
         2: constant.numeric.value.requester-test

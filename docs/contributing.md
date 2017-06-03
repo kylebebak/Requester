@@ -2,14 +2,13 @@
 Please do! Possible improvements:
 
 - Improve test runner
-  + Add [jsonschema](https://github.com/Julian/jsonschema) [dependency](https://github.com/wbond/package_control_channel/blob/master/repository/dependencies.json)
-    * This will make it easy to make highly specific assertions about cookies, headers, and most importantly, json response content
   + Run tests in a requester file from command line, so that they can be integrated into an arbitrary test suite
   + Alternatively, create command to export requests and assertions in requester file to a runnable Python test script
 - Create a clone of [ab](http://httpd.apache.org/docs/current/programs/ab.html)
   + Allow user to specify `number_of_requests` and `concurrency` when invoking command
   + Display results
 - Import from and export to common request formats (HTTP, cURL, etc)
+- Generate API documentation from JSON Schema
 - Creating tutorial videos showing Requester in action
 - Better test coverage
   + Tests for error messages

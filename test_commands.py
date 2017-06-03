@@ -6,7 +6,7 @@ from .core import RequestCommandMixin
 from .core.parsers import parse_tests, prepare_request
 
 
-Error = namedtuple('Error', 'prop, expected, real, error')
+Error = namedtuple('Error', 'prop, expected, got, error')
 
 
 class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -117,16 +117,16 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 from jsonschema import validate, ValidationError
 
                 if prop == 'cookies_schema':
-                    real = r.cookies.get_dict()
+                    got = r.cookies.get_dict()
                 if prop == 'json_schema':
-                    real = r.json()
+                    got = r.json()
                 if prop == 'headers_schema':
-                    real = r.headers
+                    got = r.headers
 
                 try:
-                    validate(real, expected)
+                    validate(got, expected)
                 except ValidationError as e:
-                    errors.append(Error(prop, expected, real, e))
+                    errors.append(Error(prop, expected, got, e))
                 except Exception as e:
                     sublime.error_message('Schema Error: {}'.format(e))
                     continue
@@ -134,19 +134,19 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             elif prop in ('cookies', 'json'): # method equality validtion
                 count += 1
                 if prop == 'cookies':
-                    real = r.cookies.get_dict()
+                    got = r.cookies.get_dict()
                 if prop == 'json':
-                    real = r.json()
-                if real != expected:
-                    errors.append(Error(prop, expected, real, 'not equal'))
+                    got = r.json()
+                if got != expected:
+                    errors.append(Error(prop, expected, got, 'not equal'))
 
             else: # prop equality validation
                 if not hasattr(r, prop):
                     continue
                 count += 1
-                real = getattr(r, prop)
-                if real != expected:
-                    errors.append(Error(prop, expected, real, 'not equal'))
+                got = getattr(r, prop)
+                if got != expected:
+                    errors.append(Error(prop, expected, got, 'not equal'))
 
         results = results + '{} prop{plural}, {} error{plural}\n'.format(
             count, len(errors), plural='' if count == 1 else 's')
@@ -159,7 +159,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         exceeding `max_len` are truncated.
         """
         error_details = []
-        for attr in ['prop', 'expected', 'real', 'error']:
+        for attr in ['prop', 'expected', 'got', 'error']:
             val = str(getattr(error, attr))
             if len(val) > max_len:
                 val = '...'

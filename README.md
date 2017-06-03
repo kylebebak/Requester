@@ -97,10 +97,15 @@ requests.get(base_url + '/albums')
 requests.post(base_url + '/albums')
 ~~~
 
-Requester will now look for the env file at the path `requester_env.py`, which is relative to the location of the requester file. You can change this path to any relative path you want, e.g. `relative/path/to/env.py`. You can also use an __absolute path__ to the env vars file if you want. Using an absolute path is necessary if you want to execute requests from a view which has never been saved.
+Requester will now look for the env file at the path `requester_env.py`, which is relative to the location of the requester file. You can change this path to any relative path you want, e.g. `relative/path/to/env.py`. You can also use an __absolute path__ to the env vars file if you want.
+
 
 #### Merging Vars from Env Block and Env File
-Is totally fine. If a var has the same name in the env block and the env file, the var from the env block takes precedence.
+Is totally fine. If a var has the same name in the env block and the env file, the var from the env file takes precedence.
+
+Why? If you're working on a team, your requester file should probably be in version control. Static env vars and default values for dynamic env vars can be defined in the env block of your requester file.
+
+Dynamic env vars, like a `base_url` that might point to staging one minute and production the next, can be (re)defined in an env file. Put the env file in your `.gitignore`. This way devs can tweak their envs without making useless commits or stepping on each other's toes.
 
 
 ### Request Body, Query Params, Custom Headers, Cookies
@@ -115,7 +120,7 @@ get('http://httpbin.org/redirect-to?url=foo')
 # response tab shows redirects
 ~~~
 
-Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`. If you want to pass cookies in a jar instance, you need to instantiate it your env vars.
+Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`.
 
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
 
@@ -166,13 +171,13 @@ assert {
 
 Highlight all the requests, look for __Requester: Run Tests__ in the command palette, and run it. You'll notice that test results are displayed for the first and third requests.
 
-What's going on here? Every `key, value` pair in an assertion dict is compared with the response returned by the request above it. If `key` is a valid property of the `Response` object, `value` is compared with the property. If they're not equal discrepancies are displayed.
+What's going on here? If a request has an assertion below it, the `key, value` pair in the assertion is compared with the returned `Response` object. If `key` is a valid property of the `Response` object, `value` is compared with the property. If they're not equal discrepancies are displayed.
 
 Some valid properties: `apparent_encoding`, `cookies`, `encoding`, `headers`, `history`, `is_permanent_redirect`, `is_redirect`, `json`, `links`, `reason`, `status_code`, `text`, `content`.
 
-`cookies`, `headers` and `json` point to Python dicts or lists, which means comparing for equality isn't very useful. Much more useful are the following special assertion keys for these properties: `cookies_schema` `headers_schema` `json_schema`. __Note: these don't work yet. They will as soon as we can add jsonschema as a Sublime Text dependency__.
+`cookies`, `headers` and `json` point to Python dicts or lists, which means comparing for equality isn't very useful. Much more useful are the following special assertion keys for these properties: `cookies_schema` `headers_schema` `json_schema`. __Note: these don't work yet. They will as soon as jsonschema is added as a Sublime Text dependency__.
 
-Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). If you have a JSON API, [JSON Schema](http://json-schema.org/) is the one true way to describe your API's data format. Use it.
+Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). If you have a JSON API, [JSON Schema](http://json-schema.org/) is an excellent way to describe your API's data format. Use it.
 
 ~~~py
 requests.get('https://jsonplaceholder.typicode.com/posts')
@@ -205,7 +210,7 @@ Assertions can be inserted seamlessly into a requester file; if you're not doing
 ### Chaining Requests
 If you need to run requests or tests one after another, in the order in which they're defined in your requester file, look for __Requester: Run Requests Serially__ or __Requester: Run Tests Serially__ in the command palette.
 
-Behind the scenes, this just passes the `concurrency=1` arg to `requester` or `requester_run_tests`, and voilà, requests are no longer run in parallel.
+Behind the scenes, this just passes the `concurrency=1` arg to `requester` or `requester_run_tests`, and voilà, you've chained your requests.
 
 Note: code inside your __env block/env file__ is always run serially, which includes any requests you put in there.
 
