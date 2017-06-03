@@ -7,6 +7,7 @@ from .core.parsers import parse_tests, prepare_request
 
 
 Error = namedtuple('Error', 'prop, expected, got, error')
+Result = namedtuple('Result', 'result, assertions, errors')
 
 
 class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
@@ -55,15 +56,18 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             sublime.error_message('Parse Error: something went wrong')
             return
 
-        errors = []
-        results = []
+        results = []; errors = []
+        count_assertions = 0; count_errors = 0
         for i, response in enumerate(responses):
             try:
                 assertion = self.eval_assertion(self._tests[i].assertion)
             except Exception as e:
                 errors.append( '{}: {}'.format('Assertion Error', e) )
             else:
-                results.append(self.get_results(response, assertion))
+                r = self.get_result(response, assertion)
+                count_assertions += r.assertions
+                count_errors += r.errors
+                results.append(r.result)
 
         if errors:
             sublime.error_message('\n\n'.join(errors))
@@ -78,8 +82,12 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         view.settings().set('requester.env_file',
                             self.view.settings().get('requester.env_file', None))
 
+        header = '-- {} assertion{}, {} error{} --\n'.format(
+            count_assertions, '' if count_assertions == 1 else 's',
+            count_errors, '' if count_errors == 1 else 's',
+        )
         view.run_command('requester_replace_view_text',
-                         {'text': '\n\n'.join(results), 'point': 0})
+                         {'text': header + '\n\n' + '\n\n'.join(results), 'point': 0})
         view.set_name('Requester Test Run')
         view.set_syntax_file('Packages/Requester/requester-test.sublime-syntax')
 
@@ -98,12 +106,12 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             raise TypeError('assertion {} is not a dictionary'.format(assertion))
         return assertion
 
-    def get_results(self, response, assertion):
-        """Get results of comparing response with assertion dict. Ignores keys in
+    def get_result(self, response, assertion):
+        """Get result of comparing response with assertion dict. Ignores keys in
         assertion dict that don't correspond to a valid property or method of
         response.
         """
-        results = '{}\nassert {}\n'.format(response.request, assertion)
+        result = '{}\nassert {}\n'.format(response.request, assertion)
         r = response.response
         errors = []
         count = 0
@@ -148,11 +156,13 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 if got != expected:
                     errors.append(Error(prop, expected, got, 'not equal'))
 
-        results = results + '{} prop{plural}, {} error{plural}\n'.format(
-            count, len(errors), plural='' if count == 1 else 's')
+        result = result + '{} assertion{}, {} error{}\n'.format(
+            count, '' if count == 1 else 's',
+            len(errors), '' if len(errors) == 1 else 's',
+        )
         for error in errors:
-            results = results + self.get_error_string(error) + '\n'
-        return results
+            result = result + self.get_error_string(error) + '\n'
+        return Result(result, count, len(errors))
 
     def get_error_string(self, error, max_len=150):
         """Return a one-line string representation of validation error. Attributes

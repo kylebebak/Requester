@@ -6,19 +6,28 @@ name: Requester Test
 hidden: true
 contexts:
   main:
-    - match: '^[\w_][\w\d_]*\.(get|options|head|post|put|patch|delete)\(.*'
-      scope: storage.type.replay-request.requester-test
-    - match: '^(assert) (\{.*)'
-      captures:
-        1: keyword.other.assertion.requester-test
-        2: entity.name.tag.requester-test
-      scope:
-    - match: '^([\d]+) (props?), ([\d]+) (errors?)'
+    - match: '^-- ([\d]+) (assertions?), ([\d]+) (errors?) --'
       captures:
         1: constant.numeric.label.requester-test
         2: constant.language.props.requester-test
         3: constant.numeric.label.requester-test
         4: constant.language.errors.requester-test
+
+    - match: '^[\w_][\w\d_]*\.(get|options|head|post|put|patch|delete)\(.*'
+      scope: storage.type.replay-request.requester-test
+
+    - match: '^(assert) (\{.*)'
+      captures:
+        1: keyword.other.assertion.requester-test
+        2: entity.name.tag.requester-test
+
+    - match: '^([\d]+) (assertions?), ([\d]+) (errors?)'
+      captures:
+        1: constant.numeric.label.requester-test
+        2: constant.language.props.requester-test
+        3: constant.numeric.label.requester-test
+        4: constant.language.errors.requester-test
+
     - match: '^(prop):(.*?); (expected):(.*?); (got):(.*?); (error):(.*)'
       captures:
         1: constant.language.variable.requester-test

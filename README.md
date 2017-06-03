@@ -11,7 +11,7 @@ Requester is like Postman for your text editor. Get environment variables, concu
 - [Requests' syntax](http://docs.python-requests.org/en/master/user/quickstart/)
   + Easily set request body, query params, custom headers, cookies, use sessions...
 - Environment variables, defined in requester file or in a separate env file
-- Execute requests and display responses in parallel
+- Execute requests and display responses in parallel, or chain multiple requests
 - Edit and replay requests from individual response tabs
   + Automatically order response tabs
 - Automatic syntax highlighting and pretty printing
@@ -82,7 +82,7 @@ The __###env__ lines must have no leading or trailing spaces. Only the first env
 #### Separate Env File
 Requester also lets you save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env vars file, which is convenient. Save it with any name, like `requester.py`.
 
-Next, save a file with the name `requester_env.py` __in the same directory__ as `requester.py`, and add an env var to it.
+Next, save a file with the name `requester_env.py` in the same directory as `requester.py`, and add an env var to it.
 
 ~~~py
 base_url = 'https://jsonplaceholder.typicode.com'
