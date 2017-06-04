@@ -3,8 +3,7 @@ from collections import namedtuple
 
 
 VERBS = '(get|options|head|post|put|patch|delete)\('
-PREFIX = '[\w_][\w\d_]*\.'
-PREFIX_VERBS = PREFIX + VERBS
+PREFIX_VERBS = '[\w_][\w\d_]*\.' + VERBS
 ASSERTIONS = 'assert \{'
 
 Selection = namedtuple('Selection', 'selection, ordering, type')
@@ -81,23 +80,3 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_=''):
             s[ pair[0]:pair[1]+1 ], pair[0], type_
         ))
     return selections
-
-
-def prepare_request(r, timeout=None):
-    """If request is not prefixed with "{var_name}.", prefix request with
-    "requests.", because this module is guaranteed to be in the scope under
-    which the request is evaluated.
-
-    Also, ensure request can time out so it doesn't hang indefinitely.
-    http://docs.python-requests.org/en/master/user/advanced/#timeouts
-
-    Finally, ensure that request occupies only one line.
-    """
-    r = r.strip()
-    if not re.match(PREFIX, r):
-        r = 'requests.' + r
-
-    if timeout is not None:
-        timeout_string = ', timeout={})'.format(timeout)
-        r = r[:-1] + timeout_string
-    return ' '.join(r.split()) # replace all multiple whitespace with single space

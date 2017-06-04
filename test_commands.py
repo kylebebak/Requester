@@ -3,7 +3,7 @@ import sublime, sublime_plugin
 from collections import namedtuple
 
 from .core import RequestCommandMixin
-from .core.parsers import parse_tests, prepare_request
+from .core.parsers import parse_tests
 
 
 Error = namedtuple('Error', 'prop, expected, got, error')
@@ -39,14 +39,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 sublime.error_message('Parse Error: unbalanced brackets in tests')
             break # only parse first selection
 
-        timeout = self.config.get('timeout', None)
-        requests = []
-
-        for test in self._tests:
-            r = prepare_request(test.request, timeout)
-            requests.append(r)
-
-        return requests
+        return [test.request for test in self._tests]
 
     def handle_responses(self, responses):
         """Compares response objects with assertions dictionaries and displays a

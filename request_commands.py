@@ -5,7 +5,7 @@ from urllib import parse
 from collections import namedtuple
 
 from .core import RequestCommandMixin
-from .core.parsers import parse_requests, prepare_request
+from .core.parsers import parse_requests
 
 
 Content = namedtuple('Content', 'content, point')
@@ -127,10 +127,6 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             else:
                 for r in requests_:
                     requests.append(r)
-
-        if not view.settings().get('requester.test_view', False): # don't prep requests in test view
-            timeout = self.config.get('timeout', None)
-            requests = [prepare_request(r, timeout) for r in requests]
         return requests
 
     def handle_response(self, response, num_requests):

@@ -85,6 +85,11 @@ class RequestCommandMixin:
 
         else:
             requests = self.get_requests()
+            settings = self.view.settings()
+            if not settings.get('requester.test_view', False) and not settings.get('requester.response_view', False):
+                requests = [self.prepare_request(
+                    r, timeout = self.config.get('timeout', None)
+                ) for r in requests]
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
 
@@ -231,6 +236,27 @@ class RequestCommandMixin:
             return
 
         sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
+
+    @staticmethod
+    def prepare_request(r, timeout):
+        """If request is not prefixed with "{var_name}.", prefix request with
+        "requests.", because this module is guaranteed to be in the scope under
+        which the request is evaluated.
+
+        Also, ensure request can time out so it doesn't hang indefinitely.
+        http://docs.python-requests.org/en/master/user/advanced/#timeouts
+
+        Finally, ensure that request occupies only one line.
+        """
+        PREFIX = '[\w_][\w\d_]*\.'
+        r = r.strip()
+        if not re.match(PREFIX, r):
+            r = 'requests.' + r
+
+        if timeout is not None:
+            timeout_string = ', timeout={})'.format(timeout)
+            r = r[:-1] + timeout_string
+        return ' '.join(r.split()) # replace all multiple whitespace with single space
 
     @staticmethod
     def get_activity_indicator(count, spaces):
