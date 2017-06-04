@@ -11,12 +11,15 @@ class ResponseThreadPool:
     """Allows requests to be invoked concurrently, and allows client code to
     inspect instance's responses as they are returned.
     """
-    @staticmethod
-    def get_response(request, ordering, env=None):
+    def get_response(self, request, ordering):
         """Evaluate `request` in context of `env`, which at the very least
         includes the `requests` module. Return `response`.
+
+        Also sets "Response" key in env to `Response` object, to provide true
+        "chaining" of requests. If two requests are run serially, the second
+        request can reference the response returned by the previous request.
         """
-        env = env or {}
+        env = self.env or {}
         env['requests'] = requests
 
         response, error = None, ''
@@ -37,6 +40,9 @@ class ResponseThreadPool:
                                         'request did not return an instance of requests.Response')
                 response = None # reset response to `None` if it's not a `Response`
 
+        if not self.env:
+            self.env = {}
+        self.env['Response'] = response # to allow "chaining" of serially executed requests
         return Response(request, response, error, ordering)
 
     def __init__(self, requests_, env, max_workers):
@@ -59,7 +65,7 @@ class ResponseThreadPool:
         ) as executor:
             to_do = []
             for i, request in enumerate(self.requests):
-                future = executor.submit(self.get_response, request, i, self.env)
+                future = executor.submit(self.get_response, request, i)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):

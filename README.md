@@ -11,7 +11,8 @@ Requester is like Postman for your text editor. Get environment variables, concu
 - [Requests' syntax](http://docs.python-requests.org/en/master/user/quickstart/)
   + Easily set request body, query params, custom headers, cookies, use sessions...
 - Environment variables, defined in requester file or in a separate env file
-- Execute requests and display responses in parallel, or chain multiple requests
+- Execute requests and display responses in parallel, or execute them serially
+- Chain multiple requests
 - Edit and replay requests from individual response tabs
   + Automatically order response tabs
 - Automatic syntax highlighting and pretty printing
@@ -213,6 +214,18 @@ If you need to run requests or tests one after another, in the order in which th
 Behind the scenes, this just passes the `concurrency=1` arg to `requester` or `requester_run_tests`, and voilà, you've chained your requests.
 
 Note: code inside your __env block/env file__ is always run serially, which includes any requests you put in there.
+
+
+#### Chaining By Reference
+If you need __true__ request chaining, such that a request can reference the `Response` object returned by the previous request, that's easy too. Requester lets you reference the most recently returned response using the `Response` variable. Copy the following code to a new view, highlight it, and run __Requester: Run Requests Serially__.
+
+~~~py
+get('http://httpbin.org/get')
+
+get('http://httpbin.org/get', params={'url': Response.json()['url']})
+~~~
+
+If you don't run requests serially, this probably won't work, because requests are executed in parallel. All the requests may have already been executed before any of the responses return, which means none of them will be able to reference the `Response` object.
 
 
 ## Commands

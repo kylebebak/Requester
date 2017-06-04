@@ -22,7 +22,8 @@ Please do! Possible improvements:
 
 
 ## Architecture
-The core API is 
+The core API is defined in modules under the `core` directory. The main class is `RequestCommandMixin`.
+
 
 
 ## Python Code Style
