@@ -54,9 +54,6 @@ class ResponseThreadPool:
         self.env = env
         self.max_workers = max_workers
 
-    def num_requests(self):
-        return len(self.requests)
-
     def run(self):
         """Concurrently invoke `get_response` for all of instance's `requests`.
         """
