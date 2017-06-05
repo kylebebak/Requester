@@ -17,12 +17,12 @@ class TestFunctions(DeferrableTestCase):
 
     def test_prepare_request(self):
         s = "get('http://httpbin.org/get')"
-        s_prepared = core.RequestCommandMixin.prepare_request(s, 15)
+        s_prepared = core.parsers.prepare_request(s, 15)
         self.assertEqual(s_prepared, "requests.get('http://httpbin.org/get', timeout=15)")
 
     def test_prepare_request_with_prefix(self):
         s = "_s.get('http://httpbin.org/get')"
-        s_prepared = core.RequestCommandMixin.prepare_request(s, 15)
+        s_prepared = core.parsers.prepare_request(s, 15)
         self.assertEqual(s_prepared, "_s.get('http://httpbin.org/get', timeout=15)")
 
 

@@ -4,8 +4,7 @@ import webbrowser
 from sys import maxsize
 from collections import namedtuple
 
-from .core import RequestCommandMixin
-from .core.parsers import parse_requests
+from .core.parsers import parse_requests, prepare_request
 
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
@@ -92,7 +91,7 @@ class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
         for request in parse_requests(
             self.view.substr( sublime.Region(0, self.view.size()) )
         ):
-            requests.append(RequestCommandMixin.prepare_request(request, timeout))
+            requests.append(prepare_request(request, timeout))
         requests = remove_duplicates(requests)
 
         # cache all response views in current window

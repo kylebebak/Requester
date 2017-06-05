@@ -26,7 +26,7 @@ The core API is defined in modules under the `core` directory. The main class is
 
 This mixin is the motor for parsing an env, executing requests in parallel in the context of this env, invoking activity indicator methods, and invoking response handling methods. These methods can be overridden to control the behavior of classes that inherit from this mixin. It must be mixed in to classes that also inherit from `sublime_plugin.TextCommand`.
 
-The mixin uses the `ResponseThreadPool` class, which wraps a thread pool to execute requests in parallel. Default concurrency is determined by the mixin's `MAX_WORKERS` class property. The thread pool is inspected at regular intervals to remove completed responses and handle them, show activity for pending requests, and handle request errors.
+The mixin uses the `ResponseThreadPool` class, which wraps a thread pool to execute requests in parallel. Default concurrency is determined by the mixin's `MAX_WORKERS` class property. The thread pool is inspected at regular intervals to remove completed responses and handle them, and show activity for pending requests.
 
 Command classes that use this mixin should override `handle_response` and/or `handle_responses`. This way they can handle responses one at a time as they are completed, or as a group when they're all finished. Each response object contains the parsed `request` string, the `response` (a __requests.Response__ object), an `error` string, and an `ordering`. Responses are sorted by request parsing order before they are passed to `handle_responses`.
 

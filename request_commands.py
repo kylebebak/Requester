@@ -87,6 +87,9 @@ class RequestsMixin:
     def response_views_with_matching_request(self, request):
         """Get all response views whose request matches `request`.
         """
+        if self.view.settings().get('requester.response_view', False):
+            return [self.view] # don't update other views when replaying a request
+
         views = []
         for sheet in self.view.window().sheets():
             view = sheet.view()
@@ -208,7 +211,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
 
         content = get_response_view_content(r.request, r.response)
         view.run_command('requester_replace_view_text',
-                             {'text': content.content, 'point': content.point})
+                         {'text': content.content, 'point': content.point})
         view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
         view.settings().set('requester.request', r.request)
 
