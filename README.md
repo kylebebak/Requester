@@ -12,7 +12,7 @@ Requester is like Postman for your text editor. Get environment variables, concu
   + Easily set request body, query params, custom headers, cookies, use sessions...
 - Environment variables, defined in requester file or in a separate env file
 - Execute requests and display responses in parallel, or execute them serially
-- Chain multiple requests
+- Chain requests
 - Edit and replay requests from individual response tabs
   + Automatically order response tabs
 - Automatic syntax highlighting and pretty printing
@@ -176,7 +176,7 @@ What's going on here? If a request has an assertion below it, the `key, value` p
 
 Some valid properties: `apparent_encoding`, `cookies`, `encoding`, `headers`, `history`, `is_permanent_redirect`, `is_redirect`, `json`, `links`, `reason`, `status_code`, `text`, `content`.
 
-`cookies`, `headers` and `json` point to Python dicts or lists, which means comparing for equality isn't very useful. Much more useful are the following special assertion keys for these properties: `cookies_schema` `headers_schema` `json_schema`. __Note: these don't work yet. They will as soon as jsonschema is added as a Sublime Text dependency__.
+`cookies`, `headers` and `json` point to Python dicts or lists, which means comparing for equality isn't very useful. Much more useful are the following special assertion keys for these properties: `cookies_schema` `headers_schema` `json_schema`.
 
 Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). If you have a JSON API, [JSON Schema](http://json-schema.org/) is an excellent way to describe your API's data format. Use it.
 
@@ -191,7 +191,7 @@ assert {
                 "body": {"type": "string"},
                 "id": {"type": "number"},
                 "title": {"type": "string"},
-                "userId": {"type": "number"}
+                "userId": {"type": "string"}
             }
         }
     }

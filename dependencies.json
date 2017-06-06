@@ -1,7 +1,8 @@
 {
   "*": {
     ">=3000": [
-      "requests"
+      "requests",
+      "jsonschema"
     ]
   }
 }

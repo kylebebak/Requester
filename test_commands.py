@@ -164,7 +164,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         error_details = []
         for attr in ['prop', 'expected', 'got', 'error']:
             val = str(getattr(error, attr))
-            if len(val) > max_len:
+            if len(val) > max_len and not attr == 'error':
                 val = '...'
             error_details.append('{}: {}'.format(attr, val))
         return '; '.join(error_details)
