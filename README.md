@@ -17,7 +17,7 @@ Requester is like Postman for your text editor. Get environment variables, concu
   + Automatically order response tabs
 - Automatic syntax highlighting and pretty printing
 - Clear error handling and error messages
-- Lightweight, integrated test runner
+- Lightweight, integrated test runner, with support for JSON Schema
 
 
 ## Installation
@@ -272,7 +272,7 @@ That's it.
 [See here](https://github.com/kylebebak/Requester/blob/master/docs/contributing.md).
 
 
-## Recap
+## Comparison
 There are several HTTP clients for Sublime Text, so why Requester? Because the others lack many of the following:
 
 - Well-documented, beautiful syntax
