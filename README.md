@@ -4,20 +4,21 @@
 
 A powerful HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive and easy to use.
 
-Requester is like Postman for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
+Requester is like Postman+HTTPie for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
 
 
 ## Features
-- [Requests' syntax](http://docs.python-requests.org/en/master/user/quickstart/)
-  + Easily set request body, query params, custom headers, cookies, use sessions...
+- [Built on Requests](http://docs.python-requests.org/en/master/user/quickstart/)
+  + Easily set request body, query params, custom headers, cookies
+  + Persistent sessions, forms and file uploads, Wget-like downloads
 - Environment variables, defined in requester file or in a separate env file
 - Execute requests and display responses in parallel, or execute them serially
 - Chain requests
 - Edit and replay requests from individual response tabs
-  + Automatically order response tabs
-- Automatic syntax highlighting and pretty printing
+- Formatted, colorized output
+  + Automatic syntax highlighting and pretty printing
 - Clear error handling and error messages
-- Lightweight, integrated test runner, with support for JSON Schema
+- Lightweight, integrated test runner with support for JSON Schema
 
 
 ## Installation
@@ -279,6 +280,7 @@ There are several HTTP clients for Sublime Text, so why Requester? Because the o
 - Environment variables
 - Multiple, editable response tabs
 - Sessions and chainable requests
+- File uploads and downloads
 - Automatic syntax highlighting
 - A test runner of any kind
 

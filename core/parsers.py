@@ -17,7 +17,7 @@ def parse_requests(s):
     Returns a list of strings with calls to the `requests` library.
     """
     selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS])
-    return [s.selection for s in selections]
+    return [sel.selection for sel in selections]
 
 
 def parse_tests(s):
@@ -100,4 +100,11 @@ def prepare_request(r, timeout):
     if timeout is not None:
         timeout_string = ', timeout={})'.format(timeout)
         r = r[:-1] + timeout_string
+
+    r = r.replace('\r', '')
+    r = re.sub('^\s+', '', r, flags=re.MULTILINE)
+    r = re.sub('\s+$', '', r, flags=re.MULTILINE)
+    r = r.replace(',\n', ', ')
+    r = r.replace('\n', '')
+
     return ' '.join(r.split()) # replace all multiple whitespace with single space
