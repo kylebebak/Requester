@@ -93,6 +93,7 @@ class RequestCommandMixin:
                 ) for r in requests]
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
+            self.persist_requests(requests, self._env)
 
     def is_requester_view(self):
         """Was this view opened by a Requester command? This is useful, e.g., to
@@ -104,16 +105,12 @@ class RequestCommandMixin:
             return True
         return False
 
-    def reset_env_string(self):
-        """(Re)sets the `requester.env_string` setting on the view, if appropriate.
-        """
-        if self.is_requester_view():
-            return
-
+    @staticmethod
+    def parse_env_block(text):
         delimeter = '###env'
         in_block = False
         env_lines = []
-        for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
+        for line in text.splitlines():
             if in_block:
                 if line == delimeter:
                     in_block = False
@@ -123,8 +120,16 @@ class RequestCommandMixin:
                 if line == delimeter:
                     in_block = True
         if not len(env_lines) or in_block: # env block must be closed
-            self.view.settings().set('requester.env_string', None)
-        self.view.settings().set('requester.env_string', '\n'.join(env_lines))
+            return None
+        return '\n'.join(env_lines)
+
+    def reset_env_string(self):
+        """(Re)sets the `requester.env_string` setting on the view, if appropriate.
+        """
+        if self.is_requester_view():
+            return
+        env_string = self.parse_env_block(self.view.substr( sublime.Region(0, self.view.size()) ))
+        self.view.settings().set('requester.env_string', env_string)
 
     def reset_env_file(self):
         """(Re)sets the `requester.env_file` setting on the view, if appropriate.
@@ -176,7 +181,7 @@ class RequestCommandMixin:
             except Exception as e:
                 sublime.error_message('EnvBlock Error:\n{}'.format(e))
             else:
-                # return a new intance of this dict, or else its values will be reset to `None` after it's returned
+                # return a new instance of this dict, or else its values will be reset to `None` after it's returned
                 env_dict = dict(env.__dict__)
 
         env_file = self.view.settings().get('requester.env_file', None)
@@ -237,6 +242,9 @@ class RequestCommandMixin:
             return
 
         sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
+
+    def persist_requests(self, requests, env):
+        pass
 
     @staticmethod
     def get_activity_indicator(count, spaces):
