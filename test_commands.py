@@ -70,10 +70,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         view = self.view.window().new_file()
         view.set_scratch(True)
         view.settings().set('requester.test_view', True)
-        view.settings().set('requester.env_string',
-                            self.view.settings().get('requester.env_string', None))
-        view.settings().set('requester.env_file',
-                            self.view.settings().get('requester.env_file', None))
+        self.set_env_settings_on_view(view)
 
         header = '-- {} assertion{}, {} error{} --\n'.format(
             count_assertions, '' if count_assertions == 1 else 's',

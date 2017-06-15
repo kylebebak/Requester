@@ -61,6 +61,7 @@ class RequestCommandMixin:
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
         self.reset_env_string()
+        self.reset_file()
         self.reset_env_file()
         thread = Thread(target=self._get_env)
         thread.start()
@@ -107,6 +108,9 @@ class RequestCommandMixin:
 
     @staticmethod
     def parse_env_block(text):
+        """Parses `text` for first env block, and returns text within this env
+        block.
+        """
         delimeter = '###env'
         in_block = False
         env_lines = []
@@ -130,6 +134,13 @@ class RequestCommandMixin:
             return
         env_string = self.parse_env_block(self.view.substr( sublime.Region(0, self.view.size()) ))
         self.view.settings().set('requester.env_string', env_string)
+
+    def reset_file(self):
+        """(Re)sets the `requester.file` setting on the view, if appropriate.
+        """
+        if self.is_requester_view():
+            return
+        self.view.settings().set('requester.file', self.view.file_name())
 
     def reset_env_file(self):
         """(Re)sets the `requester.env_file` setting on the view, if appropriate.
@@ -160,29 +171,50 @@ class RequestCommandMixin:
         else:
             self.view.settings().set('requester.env_file', None)
 
-    def get_env(self):
-        """Computes an env from `requester.env_string` setting, and/or from
-        `requester.env_file` setting. Returns an env dictionary.
+    @staticmethod
+    def get_env_dict_from_string(s):
+        """What it sounds like.
 
         http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
-        http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
         try:
             del sys.modules['requester.env'] # this avoids a subtle bug, DON'T REMOVE
         except KeyError:
             pass
 
-        env_dict = {}
+        if not s:
+            return {}
+
+        env = imp.new_module('requester.env')
+        try:
+            exec(s, env.__dict__)
+        except Exception as e:
+            sublime.error_message('EnvBlock Error:\n{}'.format(e))
+            return {}
+        else:
+            return dict(env.__dict__)
+
+    def get_env(self):
+        """Computes an env from various settings: `requester.env_string`,
+        `requester.file`, `requester.env_file`, settings. Returns an env
+        dictionary.
+
+        http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
+        """
         env_string = self.view.settings().get('requester.env_string', None)
-        if env_string:
-            env = imp.new_module('requester.env')
+        env_dict = self.get_env_dict_from_string(env_string)
+
+        file = self.view.settings().get('requester.file', None)
+        if file:
             try:
-                exec(env_string, env.__dict__)
+                with open(file, 'r') as f:
+                    text = f.read()
             except Exception as e:
-                sublime.error_message('EnvBlock Error:\n{}'.format(e))
+                sublime.error_message('File Error:\n{}'.format(e))
             else:
-                # return a new instance of this dict, or else its values will be reset to `None` after it's returned
-                env_dict = dict(env.__dict__)
+                env_block = self.parse_env_block(text)
+                # env computed from `file` takes precedence over `env_string`
+                env_dict.update(self.get_env_dict_from_string(env_block))
 
         env_file = self.view.settings().get('requester.env_file', None)
         if env_file:
@@ -199,6 +231,12 @@ class RequestCommandMixin:
         """Wrapper calls `get_env` and assigns return value to instance property.
         """
         self._env = self.get_env()
+
+    def set_env_settings_on_view(self, view):
+        """Convenience method that copies env settings from this view to `view`.
+        """
+        for setting in ['requester.file', 'requester.env_string', 'requester.env_file']:
+            view.settings().set(setting, self.view.settings().get(setting, None))
 
     def make_requests(self, requests, env=None):
         """Make requests concurrently using a `ThreadPool`, which itself runs on

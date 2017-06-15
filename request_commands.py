@@ -165,10 +165,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
 
             # this setting allows keymap to target response views separately
             view.settings().set('requester.response_view', True)
-            view.settings().set('requester.env_string',
-                                self.view.settings().get('requester.env_string', None))
-            view.settings().set('requester.env_file',
-                                self.view.settings().get('requester.env_file', None))
+            self.set_env_settings_on_view(view)
 
             content = get_response_view_content(r.request, r.response)
             view.run_command('requester_replace_view_text',
