@@ -4,7 +4,10 @@ import os
 import sys
 import imp
 import re
+import json
+from collections import OrderedDict
 from threading import Thread
+from time import time
 
 from .responses import ResponseThreadPool
 from .parsers  import prepare_request
@@ -94,7 +97,7 @@ class RequestCommandMixin:
                 ) for r in requests]
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
-            self.persist_requests(requests, self._env)
+            self.persist_requests(requests)
 
     def is_requester_view(self):
         """Was this view opened by a Requester command? This is useful, e.g., to
@@ -105,27 +108,6 @@ class RequestCommandMixin:
         if self.view.settings().get('requester.test_view', False):
             return True
         return False
-
-    @staticmethod
-    def parse_env_block(text):
-        """Parses `text` for first env block, and returns text within this env
-        block.
-        """
-        delimeter = '###env'
-        in_block = False
-        env_lines = []
-        for line in text.splitlines():
-            if in_block:
-                if line == delimeter:
-                    in_block = False
-                    break
-                env_lines.append(line)
-            else:
-                if line == delimeter:
-                    in_block = True
-        if not len(env_lines) or in_block: # env block must be closed
-            return None
-        return '\n'.join(env_lines)
 
     def reset_env_string(self):
         """(Re)sets the `requester.env_string` setting on the view, if appropriate.
@@ -170,29 +152,6 @@ class RequestCommandMixin:
                                              os.path.join(os.path.dirname(file_path), env_file))
         else:
             self.view.settings().set('requester.env_file', None)
-
-    @staticmethod
-    def get_env_dict_from_string(s):
-        """What it sounds like.
-
-        http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
-        """
-        try:
-            del sys.modules['requester.env'] # this avoids a subtle bug, DON'T REMOVE
-        except KeyError:
-            pass
-
-        if not s:
-            return {}
-
-        env = imp.new_module('requester.env')
-        try:
-            exec(s, env.__dict__)
-        except Exception as e:
-            sublime.error_message('EnvBlock Error:\n{}'.format(e))
-            return {}
-        else:
-            return dict(env.__dict__)
 
     def get_env(self):
         """Computes an env from various settings: `requester.env_string`,
@@ -281,8 +240,102 @@ class RequestCommandMixin:
 
         sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
 
-    def persist_requests(self, requests, env):
-        pass
+    def persist_requests(self, requests):
+        """Persist up to N requests to a history file, along with the context
+        needed to rebuild the env for these requests. One entry per unique
+        request. Old requests are removed when requests exceed file capacity.
+        """
+        history_file = self.config.get('history_file', None)
+        if not history_file:
+            return
+        history_path = os.path.join(sublime.packages_path(), 'User', history_file)
+
+        try:
+            with open(history_path, 'r') as f:
+                text = f.read() or '{}'
+        except FileNotFoundError:
+            open(history_path, 'w').close() # create history file if it didn't exist
+            text = '{}'
+        except Exception as e:
+            sublime.error_message('HistoryFile Error:\n{}'.format(e))
+            return
+        rh = json.loads(text, object_pairs_hook=OrderedDict)
+
+        ts = int(time())
+        for r in requests: # insert new requests
+            if r in rh:
+                rh.pop(r, None) # remove duplicate requests
+            rh[r] = {
+                'ts': ts,
+                'env_string': self.view.settings().get('requester.env_string', None),
+                'file': self.view.settings().get('requester.file', None),
+                'env_file': self.view.settings().get('requester.env_file', None),
+            }
+
+        # remove oldest requests if number of requests has exceeded `global_max_entries`
+        global_max_entries = self.config.get('global_max_entries', 100)
+        to_delete = len(rh) - global_max_entries
+        if to_delete > 0:
+            keys = []
+            iter_ = iter(rh.keys())
+            for i in range(to_delete):
+                try:
+                    keys.append(next(iter_))
+                except StopIteration:
+                    break
+            for key in keys:
+                try:
+                    del rh[key]
+                except KeyError:
+                    pass
+
+        # rewrite all requests to history file
+        with open(history_path, 'w') as f:
+            f.write(json.dumps(rh, f))
+
+    @staticmethod
+    def parse_env_block(text):
+        """Parses `text` for first env block, and returns text within this env
+        block.
+        """
+        delimeter = '###env'
+        in_block = False
+        env_lines = []
+        for line in text.splitlines():
+            if in_block:
+                if line == delimeter:
+                    in_block = False
+                    break
+                env_lines.append(line)
+            else:
+                if line == delimeter:
+                    in_block = True
+        if not len(env_lines) or in_block: # env block must be closed
+            return None
+        return '\n'.join(env_lines)
+
+    @staticmethod
+    def get_env_dict_from_string(s):
+        """What it sounds like.
+
+        http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
+        """
+        try:
+            del sys.modules['requester.env'] # this avoids a subtle bug, DON'T REMOVE
+        except KeyError:
+            pass
+
+        if not s:
+            return {}
+
+        env = imp.new_module('requester.env')
+        try:
+            exec(s, env.__dict__)
+        except Exception as e:
+            sublime.error_message('EnvBlock Error:\n{}'.format(e))
+            return {}
+        else:
+            return dict(env.__dict__)
 
     @staticmethod
     def get_activity_indicator(count, spaces):

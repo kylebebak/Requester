@@ -15,7 +15,7 @@
   // based on requests in requester file after requests return
   "reorder_tabs_after_requests": false,
 
-  // path to store the requester history
+  // name of history file, this is stored in User directory
   "history_file": "Requester.history.json",
 
   // max number of requests in history

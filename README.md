@@ -2,7 +2,7 @@
 
 ![License](https://camo.githubusercontent.com/890acbdcb87868b382af9a4b1fac507b9659d9bf/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6c6963656e73652d4d49542d626c75652e737667)
 
-A powerful, modern HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's intuitive and easy to use.
+A modern, team-oriented HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's powerful and easy to use.
 
 Requester is like Postman+HTTPie for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
 
@@ -15,6 +15,7 @@ Requester is like Postman+HTTPie for your text editor. Get environment variables
 - Execute requests and display responses in parallel, or execute them serially
 - Chain requests
 - Edit and replay requests from individual response tabs
+- Replay requests from fuzzy searchable request history
 - Formatted, colorized output
   + Automatic syntax highlighting and pretty printing
 - Clear error handling and error messages
@@ -145,6 +146,15 @@ s.get('http://httpbin.org/get')
 ~~~
 
 
+### Forms and File Uploads
+- Forms: <http://docs.python-requests.org/en/latest/user/quickstart/#more-complicated-post-requests>
+- File uploads: <http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file>
+
+
+### Downloads
+Wget-like downloads coming soon.
+
+
 ### Test Runner
 Requester has a built-in test runner! Copy and paste this into an empty file.
 
@@ -249,6 +259,8 @@ Commands defined by this package, in case you want to change key bindings.
 - __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
 - __change_focus_after_requests__: if multiple requests are executed, change focus to final response tab after requests return
 - __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
+- __history_file__: name of requests history file, this is stored in User directory
+- __global_max_entries__: max number of requests in history file
 
 
 ## Gotchas
@@ -281,14 +293,15 @@ There are several HTTP clients for Sublime Text, so why Requester? Because the o
 - Multiple, editable response tabs
 - Sessions and chainable requests
 - File uploads and downloads
+- Searchable request history
 - Automatic syntax highlighting
 - A test runner of any kind
 
-Postman, Paw, and Insomnia address these concerns, but using one of these apps has its own disadvantages:
+Postman, Paw, and Insomnia address some of these concerns, but using one of these apps has its own disadvantages:
 
 - Constantly switching contexts between HTTP client and code.
 - Manipulating requests requires lots of point and click: keyboard wizardry is nearly worthless.
 - Requests are stored in a proprietary format: difficult to share (usually a paid feature), difficult to add to version control.
 - Requests aren't defined in a syntax literally famed for its beauty.
 
-Requester is built from the ground up to give you the best of both worlds. It's cross-platform. It's free. Try it, see for yourself =)
+Requester is built from the ground up to give you the best of both worlds. It's cross-platform, it's free, it's built for teams. Try it, see for yourself =)
