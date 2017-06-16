@@ -25,6 +25,7 @@ class RequestCommandMixin:
     REFRESH_MS = 200 # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9 # number of spaces in activity indicator
     MAX_WORKERS = 10 # default request concurrency
+    PREPARE_REQUESTS = True
 
     def get_requests(self):
         """This must be overridden to return a list of request strings.
@@ -90,8 +91,7 @@ class RequestCommandMixin:
 
         else:
             requests = self.get_requests()
-            settings = self.view.settings()
-            if settings.get('requester.prepare_requests', False) and not self.is_requester_view():
+            if not self.is_requester_view() and self.PREPARE_REQUESTS:
                 requests = [prepare_request(
                     r, timeout=self.config.get('timeout', None)
                 ) for r in requests]

@@ -119,8 +119,6 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         cursor's current line is taken as selection.
         """
         view = self.view
-        view.settings().set('requester.prepare_requests', True)
-
         requests = []
         for region in view.sel():
             if not region.empty():
@@ -232,12 +230,24 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         except:
             return
         self.requests = list( reversed(list(rh.items())) )
+
         self.window.show_quick_panel(
-            [[self.remove_prefix(r[0]), self.approximate_age(r[1]['ts'])] for r in self.requests],
+            [self.get_entry_parts(r) for r in self.requests],
             self.on_done
         )
 
+    def get_entry_parts(self, r):
+        """Display request, approximate age and requester file for each entry.
+        """
+        return [
+            self.remove_prefix(r[0]),
+            self.approximate_age(r[1]['ts']),
+            r[1]['file'] or '?'
+        ]
+
     def on_done(self, index):
+        """Callback for quick panel choice.
+        """
         if index < 0: # e.g. user presses escape
             return
 
@@ -248,6 +258,8 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
 
     @staticmethod
     def remove_prefix(text, prefix='requests.'):
+        """Removes "requests." prefix from history entries to reduce noise.
+        """
         if text.startswith(prefix):
             return text[len(prefix):]
         return text
@@ -302,6 +314,7 @@ class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
     def run(self, edit, request, env_string, file, env_file, **kwargs):
         """Specify `request` and env parameters.
         """
+        self.PREPARE_REQUESTS = False
         self.request = request
         self.view.settings().set('requester.env_string', env_string)
         self.view.settings().set('requester.file', file)

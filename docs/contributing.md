@@ -36,7 +36,7 @@ Command classes __must__ also override `get_requests`, which must return a list 
 ### Writing a New Command Class
 If you want to write a new command class for Requester, check out how `RequesterCommand` works; it simply uses the mixin and overrides `get_requests` and `handle_response`.
 
-If you want a better understanding of the details, dive into `core` directory. The heavy lifting is done by roughly 400 lines of code.
+If you want a better understanding of the details, dive into `core` directory. This is where the heavy lifting is done.
 
 
 ## Python Code Style
