@@ -27,6 +27,11 @@
   },
 
   {
+    "caption": "Requester: Request History",
+    "command": "requester_history"
+  },
+
+  {
     "caption": "Requester: Close All Response Tabs",
     "command": "requester_close_response_tabs"
   },

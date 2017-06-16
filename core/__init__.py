@@ -91,9 +91,9 @@ class RequestCommandMixin:
         else:
             requests = self.get_requests()
             settings = self.view.settings()
-            if not settings.get('requester.test_view', False) and not settings.get('requester.response_view', False):
+            if settings.get('requester.prepare_requests', False) and not self.is_requester_view():
                 requests = [prepare_request(
-                    r, timeout = self.config.get('timeout', None)
+                    r, timeout=self.config.get('timeout', None)
                 ) for r in requests]
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
