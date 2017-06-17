@@ -4,7 +4,7 @@
 
 A modern, team-oriented HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's powerful and easy to use.
 
-Requester is like Postman+HTTPie for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard. It's honestly so good that you should try it even if you don't use Sublime Text...
+Requester is like Postman+HTTPie for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard. It's honestly so good you should try it even if you don't use Sublime Text...
 
 
 ## Features
@@ -264,6 +264,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __requester_show_documentation__
 - __requester_show_syntax__
 - __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file
+- __requester_new_requester_file__: create empty requester file
 
 
 ## Settings

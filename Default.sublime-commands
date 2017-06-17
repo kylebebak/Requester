@@ -59,5 +59,10 @@
   {
     "caption": "Requester: Reorder Response Tabs",
     "command": "requester_reorder_response_tabs"
+  },
+
+  {
+    "caption": "Requester: New Requester File",
+    "command": "requester_new_requester_file"
   }
 ]

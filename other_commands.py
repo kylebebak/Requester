@@ -138,3 +138,24 @@ def remove_duplicates(seq):
     seen = set()
     seen_add = seen.add
     return [x for x in seq if not (x in seen or seen_add(x))]
+
+
+NEW_REQUESTER_FILE = """# http://docs.python-requests.org/en/master/user/quickstart/
+
+env_file = ''
+
+###env
+import requests # import statements not required, they just prevent Python linters from complaining
+from requests import get, options, head, post, put, patch, delete
+
+###env
+
+"""
+
+class RequesterNewRequesterFileCommand(sublime_plugin.TextCommand):
+    """Create a new view with a skeleton for a requester file.
+    """
+    def run(self, edit):
+        view = self.view.window().new_file()
+        view.insert(edit, 0, NEW_REQUESTER_FILE)
+        set_syntax(view, 'Packages/Python/Python.sublime-syntax')
