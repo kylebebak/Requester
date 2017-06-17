@@ -279,9 +279,9 @@ class RequestCommandMixin:
                 'code': r.response.status_code,
             }
 
-        # remove oldest requests if number of requests has exceeded `global_max_entries`
-        global_max_entries = self.config.get('global_max_entries', 100)
-        to_delete = len(rh) - global_max_entries
+        # remove oldest requests if number of requests has exceeded `history_max_entries`
+        history_max_entries = self.config.get('history_max_entries', 100)
+        to_delete = len(rh) - history_max_entries
         if to_delete > 0:
             keys = []
             iter_ = iter(rh.keys())

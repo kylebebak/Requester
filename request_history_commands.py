@@ -37,8 +37,8 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         """
         return [
             self.remove_prefix(r[0]),
-            '{}: {}'.format( self.approximate_age(r[1]['ts']), r[1]['code'] ),
-            r[1]['url'].split('?')[0],
+            self.approximate_age(r[1]['ts']),
+            '{}, {}'.format(r[1]['code'], r[1]['url'].split('?')[0]),
             r[1]['file'] or '?',
         ]
 

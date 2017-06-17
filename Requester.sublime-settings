@@ -19,5 +19,5 @@
   "history_file": "Requester.history.json",
 
   // max number of requests in history
-  "global_max_entries": 100
+  "history_max_entries": 100
 }

@@ -4,7 +4,7 @@
 
 A modern, team-oriented HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's powerful and easy to use.
 
-Requester is like Postman+HTTPie for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard.
+Requester is like Postman+HTTPie for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard. It's honestly so good that you should try it even if you don't use Sublime Text...
 
 
 ## Features
@@ -147,12 +147,24 @@ s.get('http://httpbin.org/get')
 
 
 ### Forms and File Uploads
+Requests makes both of these tasks trivial. Read up on in the Requests Quickstart:
+
 - Forms: <http://docs.python-requests.org/en/latest/user/quickstart/#more-complicated-post-requests>
 - File uploads: <http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file>
 
 
 ### Downloads
 Wget-like downloads coming soon.
+
+
+### Cancel Outstanding Requests
+If you have outstanding requests that are taking a while to return, and you don't want to wait for them to time out, you can cancel them by calling __Requester: Cancel Requests__ from the command palette.
+
+
+### Request History
+Requester saves a history of executed requests. Call __Requester: Request History__ to check it out. They appear in reverse chronological order and include each request's age, URL, response status code, and requester file. They're fuzzy searchable!
+
+Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__.
 
 
 ### Test Runner
@@ -244,8 +256,10 @@ Commands defined by this package, in case you want to change key bindings.
 
 - __requester__
 - __requester_replay_request__
-- __requester_run_tests__
+- __requester_cancel_requests__: cancel all outstanding requests
+- __requester_history__: search and re-execute past requests
 - __requester_close_response_tabs__
+- __requester_run_tests__
 - __requester_show_tutorial__
 - __requester_show_documentation__
 - __requester_show_syntax__
@@ -259,8 +273,8 @@ Commands defined by this package, in case you want to change key bindings.
 - __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
 - __change_focus_after_requests__: if multiple requests are executed, change focus to final response tab after requests return
 - __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
-- __history_file__: name of requests history file, this is stored in User directory
-- __global_max_entries__: max number of requests in history file
+- __history_file__: name of request history file, this is stored in User directory
+- __history_max_entries__: max number of requests in history file
 
 
 ## Gotchas
@@ -282,7 +296,7 @@ That's it.
 
 
 ## Contributing and Tests
-[See here](https://github.com/kylebebak/Requester/blob/master/docs/contributing.md).
+I would be very grateful! [See here](https://github.com/kylebebak/Requester/blob/master/docs/contributing.md).
 
 
 ## Comparison
