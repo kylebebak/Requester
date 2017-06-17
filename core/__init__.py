@@ -13,6 +13,10 @@ from .responses import ResponseThreadPool
 from .parsers  import prepare_request
 
 
+OUTSTANDING_POOLS = []
+NUM_OUTSTANDING_POOLS = 3
+
+
 class RequestCommandMixin:
     """This mixin is the motor for parsing an env, executing requests in parallel
     in the context of this env, invoking activity indicator methods, and invoking
@@ -97,7 +101,6 @@ class RequestCommandMixin:
                 ) for r in requests]
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
-            self.persist_requests(requests)
 
     def is_requester_view(self):
         """Was this view opened by a Requester command? This is useful, e.g., to
@@ -202,6 +205,9 @@ class RequestCommandMixin:
         an alternate thread so as not to block the UI.
         """
         pool = ResponseThreadPool(requests, env, self.MAX_WORKERS) # pass along env vars to thread pool
+        OUTSTANDING_POOLS.append(pool)
+        while len(OUTSTANDING_POOLS) > NUM_OUTSTANDING_POOLS:
+            OUTSTANDING_POOLS.pop(0)
         sublime.set_timeout_async(lambda: pool.run(), 0) # run on an alternate thread
         sublime.set_timeout(lambda: self.gather_responses(pool), 0)
 
@@ -235,12 +241,13 @@ class RequestCommandMixin:
             responses.sort(key=lambda response: response.ordering) # parsing order is preserved
             self.handle_responses(responses)
             self.default_handle_errors(responses)
+            self.persist_requests(responses)
             self.view.set_status('requester.activity', '') # remove activity indicator from status bar
             return
 
         sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
 
-    def persist_requests(self, requests):
+    def persist_requests(self, responses):
         """Persist up to N requests to a history file, along with the context
         needed to rebuild the env for these requests. One entry per unique
         request. Old requests are removed when requests exceed file capacity.
@@ -262,14 +269,16 @@ class RequestCommandMixin:
         rh = json.loads(text, object_pairs_hook=OrderedDict)
 
         ts = int(time())
-        for r in requests: # insert new requests
-            if r in rh:
-                rh.pop(r, None) # remove duplicate requests
-            rh[r] = {
+        for r in responses: # insert new requests
+            if r.request in rh:
+                rh.pop(r.request, None) # remove duplicate requests
+            rh[r.request] = {
                 'ts': ts,
                 'env_string': self.view.settings().get('requester.env_string', None),
                 'file': self.view.settings().get('requester.file', None),
                 'env_file': self.view.settings().get('requester.env_file', None),
+                'url': r.response.url,
+                'code': r.response.status_code,
             }
 
         # remove oldest requests if number of requests has exceeded `global_max_entries`

@@ -27,6 +27,11 @@
   },
 
   {
+    "caption": "Requester: Cancel Requests",
+    "command": "requester_cancel_requests"
+  },
+
+  {
     "caption": "Requester: Request History",
     "command": "requester_history"
   },
