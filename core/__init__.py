@@ -13,10 +13,6 @@ from .responses import ResponseThreadPool
 from .parsers  import prepare_request
 
 
-OUTSTANDING_POOLS = []
-NUM_OUTSTANDING_POOLS = 3
-
-
 class RequestCommandMixin:
     """This mixin is the motor for parsing an env, executing requests in parallel
     in the context of this env, invoking activity indicator methods, and invoking
@@ -30,6 +26,8 @@ class RequestCommandMixin:
     ACTIVITY_SPACES = 9 # number of spaces in activity indicator
     MAX_WORKERS = 10 # default request concurrency
     PREPARE_REQUESTS = True
+    RESPONSE_POOLS = []
+    MAX_NUM_RESPONSE_POOLS = 10 # up to N response pools can be stored (and therefore cancelled)
 
     def get_requests(self):
         """This must be overridden to return a list of request strings.
@@ -205,9 +203,9 @@ class RequestCommandMixin:
         an alternate thread so as not to block the UI.
         """
         pool = ResponseThreadPool(requests, env, self.MAX_WORKERS) # pass along env vars to thread pool
-        OUTSTANDING_POOLS.append(pool)
-        while len(OUTSTANDING_POOLS) > NUM_OUTSTANDING_POOLS:
-            OUTSTANDING_POOLS.pop(0)
+        self.RESPONSE_POOLS.append(pool)
+        while len(self.RESPONSE_POOLS) > self.MAX_NUM_RESPONSE_POOLS:
+            self.RESPONSE_POOLS.pop(0)
         sublime.set_timeout_async(lambda: pool.run(), 0) # run on an alternate thread
         sublime.set_timeout(lambda: self.gather_responses(pool), 0)
 

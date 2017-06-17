@@ -216,6 +216,9 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
 
 
 class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
+    """Cancel unfinished requests in recently instantiated response pools.
+    """
     def run(self):
-        from .core import OUTSTANDING_POOLS
-        print(OUTSTANDING_POOLS)
+        pools = RequestCommandMixin.RESPONSE_POOLS
+        for pool in pools:
+            pool.is_done = True

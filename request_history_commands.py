@@ -10,7 +10,9 @@ from .core import RequestCommandMixin
 
 
 class RequesterHistoryCommand(sublime_plugin.WindowCommand):
-    """Loads request history from file, and populates quick panel with list of requests in reverse chronological order. If a request is chosen from quick panel, invoke
+    """Loads request history from file, and populates quick panel with list of
+    requests in reverse chronological order. If a request is chosen from quick
+    panel, invoke request.
     """
     def run(self):
         history_file = sublime.load_settings('Requester.sublime-settings').get('history_file', None)
@@ -41,7 +43,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         ]
 
     def on_done(self, index):
-        """Callback for quick panel choice.
+        """Callback for invokes request chosen from quick panel.
         """
         if index < 0: # e.g. user presses escape
             return
@@ -105,10 +107,11 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
 
 
 class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
-    """
+    """Re-execute request chosen from requester history in context of env under
+    which request was originally executed.
     """
     def run(self, edit, request, env_string, file, env_file, **kwargs):
-        """Specify `request` and env parameters.
+        """Client must pass `request` and env parameters.
         """
         self.PREPARE_REQUESTS = False
         self.request = request
