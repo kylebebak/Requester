@@ -64,6 +64,7 @@ class RequestCommandMixin:
             sublime.error_message('\n\n'.join(errors))
 
     def run(self, edit):
+        self.reset_errors_status_bar()
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
         self.reset_env_string()
@@ -170,7 +171,7 @@ class RequestCommandMixin:
                 with open(file, 'r') as f:
                     text = f.read()
             except Exception as e:
-                sublime.error_message('File Error:\n{}'.format(e))
+                self.add_error_status_bar(str(e))
             else:
                 env_block = self.parse_env_block(text)
                 # env computed from `file` takes precedence over `env_string`
@@ -181,7 +182,7 @@ class RequestCommandMixin:
             try:
                 env = imp.load_source('requester.env', env_file)
             except Exception as e:
-                sublime.error_message('EnvFile Error:\n{}'.format(e))
+                self.add_error_status_bar(str(e))
             else:
                 env_dict_ = vars(env)
                 env_dict.update(env_dict_) # env computed from `env_file` takes precedence
@@ -299,6 +300,22 @@ class RequestCommandMixin:
         # rewrite all requests to history file
         with open(history_path, 'w') as f:
             f.write(json.dumps(rh, f))
+
+    def add_error_status_bar(self, error):
+        """Logs error to console, and adds error in status bar. Not as obtrusive
+        as `sublime.error_message`.
+        """
+        self._status_errors.append(error)
+        print('{}: {}'.format('Requester Error', error))
+        self.view.set_status('requester.errors', '{}: {}'.format(
+            'RequesterErrors', ', '.join(self._status_errors)
+        ))
+
+    def reset_errors_status_bar(self):
+        """Make sure this is called before `add_error_status_bar`.
+        """
+        self._status_errors = []
+        self.view.set_status('requester.errors', '')
 
     @staticmethod
     def parse_env_block(text):
