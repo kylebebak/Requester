@@ -147,7 +147,7 @@ s.get('http://httpbin.org/get')
 
 
 ### Forms and File Uploads
-Requests makes both of these tasks trivial. Read up on in the Requests Quickstart:
+Requests makes both of these tasks trivial. See how in the Requests Quickstart:
 
 - Forms: <http://docs.python-requests.org/en/latest/user/quickstart/#more-complicated-post-requests>
 - File uploads: <http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file>
@@ -157,7 +157,6 @@ Requests makes both of these tasks trivial. Read up on in the Requests Quickstar
 Requester also provides Wget-like downloads. Just add the `filename` keyword arg to a call to `requests.get`.
 
 ~~~py
-requests.get('https://upload.wikimedia.org/wikipedia/commons/d/dd/Big_%26_Small_Pumkins.JPG', filename='image.jpg')
 requests.get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='image.jpg')
 ~~~
 

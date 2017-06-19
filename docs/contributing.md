@@ -12,13 +12,13 @@ Please do! Possible improvements:
 - Import from and export to common request formats (HTTP, cURL, etc)
 - Generate API documentation from JSON Schema
 - Creating tutorial videos showing Requester in action
-- Quick panel with list of recently executed requests?
 - Better test coverage
   + Tests for error messages
   + Tests for proper parsing of env block and env files
   + Tests for activity indicators
   + Tests for syntax files
   + Tests for test runner
+  + Tests for request history
 
 
 ## How Does It Work?
