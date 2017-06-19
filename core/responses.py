@@ -1,10 +1,12 @@
+import sublime
+
 from concurrent import futures
 from collections import namedtuple
 
 requests = __import__('requests')
 
 
-Response = namedtuple('Response', 'request, response, error, ordering')
+Response = namedtuple('Response', 'request, response, error, ordering, type')
 
 
 class ResponseThreadPool:
@@ -22,7 +24,7 @@ class ResponseThreadPool:
         env = self.env or {}
         env['requests'] = requests
 
-        response, error = None, ''
+        response, error, type_ = None, '', None
         try:
             response = eval(request, env)
         except requests.Timeout:
@@ -32,6 +34,11 @@ class ResponseThreadPool:
         except SyntaxError as e:
             error = '{}: {}\n\n{}'.format('Syntax Error', e,
                                           'Run "Requester: Show Syntax" to review properly formatted requests')
+        except TypeError as e:
+            if "'filename'" in str(e):
+                type_ = 'download'
+            else:
+                error = '{}: {}'.format('Type Error', e)
         except Exception as e:
             error = '{}: {}'.format('Other Error', e)
         else: # only check response type if no exceptions were raised
@@ -43,7 +50,7 @@ class ResponseThreadPool:
         if not self.env:
             self.env = {}
         self.env['Response'] = response # to allow "chaining" of serially executed requests
-        return Response(request, response, error, ordering)
+        return Response(request, response, error, ordering, type_)
 
     def __init__(self, requests_, env, max_workers):
         self.is_done = False
@@ -73,5 +80,18 @@ class ResponseThreadPool:
                     self.pending_requests.remove(result.request)
                 except ValueError:
                     pass
-                self.responses.append(result)
+
+                if result.type == 'download': # `RequestCommandMixin` machinery doesn't handle downloads
+                    self.download_file(result.request)
+                else:
+                    self.responses.append(result)
         self.is_done = True
+
+    def download_file(self, request):
+        """This is very hacky, but only JSON serializable args can be passed to
+        `run_command`, and `env` isn't JSON serializable...
+        """
+        from ..download_commands import RequesterDownloadCommand as download
+        download.REQUEST = request
+        download.ENV = self.env
+        sublime.run_command('requester_download')

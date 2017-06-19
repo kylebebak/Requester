@@ -64,7 +64,7 @@ class RequestCommandMixin:
             sublime.error_message('\n\n'.join(errors))
 
     def run(self, edit):
-        self.reset_errors_status_bar()
+        self.reset_status()
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
         self.reset_env_string()
@@ -311,11 +311,12 @@ class RequestCommandMixin:
             'RequesterErrors', ', '.join(self._status_errors)
         ))
 
-    def reset_errors_status_bar(self):
+    def reset_status(self):
         """Make sure this is called before `add_error_status_bar`.
         """
         self._status_errors = []
         self.view.set_status('requester.errors', '')
+        self.view.set_status('requester.download', '')
 
     @staticmethod
     def parse_env_block(text):

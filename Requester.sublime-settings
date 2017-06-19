@@ -19,5 +19,8 @@
   "history_file": "Requester.history.json",
 
   // max number of requests in history
-  "history_max_entries": 100
+  "history_max_entries": 100,
+
+  // chunk size for file downloads (bytes)
+  "chunk_size": 512
 }

@@ -276,6 +276,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
 - __history_file__: name of request history file, this is stored in User directory
 - __history_max_entries__: max number of requests in history file
+- __chunk_size__: chunk size for file downloads (bytes)
 
 
 ## Gotchas
