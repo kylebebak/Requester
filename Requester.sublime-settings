@@ -22,5 +22,5 @@
   "history_max_entries": 100,
 
   // chunk size for file downloads (bytes)
-  "chunk_size": 512
+  "chunk_size": 1024
 }

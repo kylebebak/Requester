@@ -64,5 +64,10 @@
   {
     "caption": "Requester: New Requester File",
     "command": "requester_new_requester_file"
+  },
+
+  {
+    "caption": "Requester: Cancel Downloads",
+    "command": "requester_cancel_downloads"
   }
 ]

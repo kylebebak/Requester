@@ -154,7 +154,14 @@ Requests makes both of these tasks trivial. Read up on in the Requests Quickstar
 
 
 ### Downloads
-Wget-like downloads coming soon.
+Requester also provides Wget-like downloads. Just add the `filename` keyword arg to a call to `requests.get`.
+
+~~~py
+requests.get('https://upload.wikimedia.org/wikipedia/commons/d/dd/Big_%26_Small_Pumkins.JPG', filename='image.jpg')
+requests.get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='image.jpg')
+~~~
+
+`filename` can be an absolute path, or a path relative to your requester file. Downloads can be cancelled. They come with a nice progress bar.
 
 
 ### Cancel Outstanding Requests
@@ -265,6 +272,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __requester_show_syntax__
 - __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file
 - __requester_new_requester_file__: create empty requester file
+- __requester_cancel_downloads__: cancel outstanding file downloads
 
 
 ## Settings
