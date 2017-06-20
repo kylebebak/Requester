@@ -2,24 +2,28 @@
 
 ![License](https://camo.githubusercontent.com/890acbdcb87868b382af9a4b1fac507b9659d9bf/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6c6963656e73652d4d49542d626c75652e737667)
 
-A modern, team-oriented HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Like Requests, it's powerful and easy to use.
+A modern, team-oriented HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Requester combines features of apps like Postman, Paw and HTTPie, and improves on them wherever possible.
 
-Requester is like Postman+HTTPie for your text editor. Get environment variables, concurrent requests, multiple, editable response tabs and the elegant syntax of Requests, without neutering your keyboard. It's honestly so good you should try it even if you don't use Sublime Text...
+Get environment variables, concurrent requests, multiple, editable response tabs and the beautiful syntax of Requests, all without neutering your keyboard. You should honestly try it even if you've never used Sublime Text.
 
 
 ## Features
-- [Built on Requests](http://docs.python-requests.org/en/master/user/quickstart/)
+- [Elegant, well-documented syntax](http://docs.python-requests.org/en/master/user/quickstart/)
   + Easily set request body, query params, custom headers, cookies
-  + Persistent sessions, forms and file uploads, Wget-like downloads
-- Environment variables, defined in requester file or in a separate env file
-- Execute requests and display responses in parallel, or execute them serially
-- Chain requests
-- Edit and replay requests from individual response tabs
-- Replay requests from fuzzy searchable request history
-- Formatted, colorized output
+  + Support for sessions, authentication
+  + Forms and file uploads, Wget-style downloads  
+  + HTTPS, proxies, and more
+- Intuitive, modern UX
+  + Environment variables
+  + Execute requests and display responses in parallel, or chain requests
+  + Edit and replay requests from individual response tabs
+  + Replay requests from fuzzy searchable request history
+  + Formatted, colorized output
   + Automatic syntax highlighting and pretty printing
-- Clear error handling and error messages
-- Lightweight, integrated test runner with support for JSON Schema
+  + Clear error handling and error messages
+- Perfect for teams
+  + Sharing and versioning of requests and env vars
+  + Lightweight, integrated test runner with support for JSON Schema
 
 
 ## Installation
@@ -154,7 +158,7 @@ Requests makes both of these tasks trivial. See how in the Requests Quickstart:
 
 
 ### Downloads
-Requester also provides Wget-like downloads. Just add the `filename` keyword arg to a call to `requests.get`.
+Requester also provides Wget-style downloads. Just add the `filename` keyword arg to a call to `requests.get`.
 
 ~~~py
 requests.get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='image.jpg')
@@ -308,23 +312,15 @@ That's it.
 I would be very grateful! [See here](https://github.com/kylebebak/Requester/blob/master/docs/contributing.md).
 
 
-## Comparison
-There are several HTTP clients for Sublime Text, so why Requester? Because the others lack many of the following:
+## Why Requester?
+Requester combines features from applications like Postman, Paw, Insomnia and HTTPie with the elegance and power of Requests.
 
-- Well-documented, beautiful syntax
-- Environment variables
-- Multiple, editable response tabs
-- Sessions and chainable requests
-- File uploads and downloads
-- Searchable request history
-- Automatic syntax highlighting
-- A test runner of any kind
+Requester leans on Requests as much as possible. This means Requester does most anything Requests does, which means it does most anything you need to explore, debug, and test a modern API.
 
-Postman, Paw, and Insomnia address some of these concerns, but using one of these apps has its own disadvantages:
+It also means Requester uses an extensively documented, battle-tested syntax famed for its beauty. If you don't know how to do something with Requester, there are thousands of blog posts, articles and answers on Stack Overflow that explain how to do it.
 
-- Constantly switching contexts between HTTP client and code.
-- Manipulating requests requires lots of point and click: keyboard wizardry is nearly worthless.
-- Requests are stored in a proprietary format: difficult to share (usually a paid feature), difficult to add to version control.
-- Requests aren't defined in a syntax literally famed for its beauty.
+Apart from being feature-rich, Requester is built for speed and simplicity. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
 
-Requester is built from the ground up to give you the best of both worlds. It's cross-platform, it's free, it's built for teams. Try it, see for yourself =)
+The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they won't beat GitHub at collaboration, and they won't beat Git at version control.
+
+Requester is cross-platform, free, and built for teams. If you debug web APIs for work or for fun, try it. Try it even if you don't use Sublime Text. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use =)
