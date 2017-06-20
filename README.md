@@ -134,6 +134,10 @@ If you execute the last request, you'll notice the response tab shows the series
 If you don't know how to do something, check out __Requester: Show Tutorial__ from the command palette, or review syntax at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
 
 
+### New Requester File
+Want to start a new collection of requests? Run __Requester: New Requester File__ from the command palette. You'll get a new file pointing to an empty env file, with an empty env block, and with a link to Requester's syntax at the top.
+
+
 ### Sessions
 Need to log in first so all your requests include a session cookie? [Session objects](http://docs.python-requests.org/en/master/user/advanced/#session-objects) make this a cinch. 
 
@@ -317,7 +321,7 @@ Requester combines features from applications like Postman, Paw, Insomnia and HT
 
 Requester leans on Requests as much as possible. This means Requester does most anything Requests does, which means it does most anything you need to explore, debug, and test a modern API.
 
-It also means Requester uses an extensively documented, battle-tested syntax famed for its beauty. If you don't know how to do something with Requester, there are thousands of blog posts, articles and answers on Stack Overflow that explain how to do it.
+It also means Requester uses an extensively documented, battle-tested library famed for its beauty. If you don't know how to do something with Requester, there are thousands of blog posts, articles and answers on Stack Overflow that explain how to do it.
 
 Apart from being feature-rich, Requester is built for speed and simplicity. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
 
