@@ -4,6 +4,8 @@ import os
 
 import requests
 
+from .core.parsers import truncate
+
 
 def parse_args(*args, **kwargs):
     """Used in conjunction with eval to parse args and kwargs from a string.
@@ -37,11 +39,16 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
             return
 
         if r.status_code != 200:
-            sublime.error_message('Download Error: response status code != 200')
+            sublime.error_message(
+                'Download Error: response status code is not 200\n\n{}'.format(truncate(r.text, 500))
+            )
+            if sublime.load_settings('Requester.sublime-settings').get('only_download_for_200', True):
+                return
         sublime.set_timeout_async(lambda: self.download_file(r, filename, view), 0)
 
+
     def download_file(self, response, filename, view):
-        length = int(response.headers.get('content-length'))
+        length = int(response.headers.get('content-length') or 0)
         chunk_size = sublime.load_settings('Requester.sublime-settings').get('chunk_size', 1024)
         chunk_size = max(int(chunk_size), 128)
         chunk_count = 0

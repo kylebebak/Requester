@@ -12,7 +12,7 @@ Get environment variables, concurrent requests, multiple, editable response tabs
   + Easily set request body, query params, custom headers, cookies
   + Support for sessions, authentication
   + Forms and file uploads, Wget-style downloads  
-  + HTTPS, proxies, and more
+  + HTTPS, proxies, redirects, and more
 - Intuitive, modern UX
   + Environment variables
   + Execute requests and display responses in parallel, or chain requests
@@ -27,10 +27,11 @@ Get environment variables, concurrent requests, multiple, editable response tabs
 
 
 ## Installation
-1. Install [Package Control](https://packagecontrol.io/) if you don't have it already.
-2. Open the command palette <kbd>shift+cmd+p</kbd> and type __Package Control: Install Package__.
-3. Search for __Requester__ (not ~~Http Requester~~) and install it.
-4. __If you're seeing errors__ every time you run a request, this probably means the __requests__ dependency wasn't installed successfully. To fix this, look for __Package Control: Satisfy Dependencies__ in the command palette, run it, and restart Sublime Text.
+1. Download and install [Sublime Text 3](https://www.sublimetext.com/3).
+2. Install [Package Control for Sublime Text](https://packagecontrol.io/).
+3. Open the command palette <kbd>shift+cmd+p</kbd> and type __Package Control: Install Package__.
+4. Search for __Requester__ (not ~~Http Requester~~) and install it.
+5. __If you're seeing errors__ every time you run a request, this probably means the __requests__ dependency wasn't installed successfully. To fix this, look for __Package Control: Satisfy Dependencies__ in the command palette, run it, and restart Sublime Text.
 
 
 ## Getting Started
@@ -86,7 +87,11 @@ Try executing these requests. Nice, huh?
 The __###env__ lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
 
 
-#### Separate Env File
+## Advanced Features
+Find out what makes Requester really special. In the future if you need to refresh your memory, just press <kbd>shift+cmd+p</kbd> to open the command palette, and type __Requester__.
+
+
+### Separate Env File
 Requester also lets you save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env vars file, which is convenient. Save it with any name, like `requester.py`.
 
 Next, save a file with the name `requester_env.py` in the same directory as `requester.py`, and add an env var to it.
@@ -179,6 +184,12 @@ If you have outstanding requests that are taking a while to return, and you don'
 Requester saves a history of executed requests. Call __Requester: Request History__ to check it out. They appear in reverse chronological order and include each request's age, URL, response status code, and requester file. They're fuzzy searchable!
 
 Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__.
+
+Open your keymap from the command palette by running __Prefences: Key Bindings__. For example, on OSX you might bind it to <kbd>ctrl+h</kbd> by adding the following:
+
+~~~json
+{ "keys": ["ctrl+h"], "command": "requester_history" },
+~~~
 
 
 ### Test Runner
@@ -292,6 +303,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __history_file__: name of request history file, this is stored in User directory
 - __history_max_entries__: max number of requests in history file
 - __chunk_size__: chunk size for file downloads (bytes)
+- __only_download_for_200__: only perform file download if response status code is 200
 
 
 ## Gotchas

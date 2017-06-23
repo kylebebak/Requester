@@ -108,3 +108,11 @@ def prepare_request(r, timeout):
     r = r.replace('\n', '')
 
     return ' '.join(r.split()) # replace all multiple whitespace with single space
+
+
+def truncate(s, l, ellipsis='...'):
+    """Truncates string to length `l` if need be and adds `ellipsis`.
+    """
+    if len(s) > l:
+        return s[:l] +  ellipsis
+    return s

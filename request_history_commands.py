@@ -7,6 +7,7 @@ from collections import OrderedDict
 
 from .request_commands import RequesterCommand
 from .core import RequestCommandMixin
+from .core.parsers import truncate
 
 
 class RequesterHistoryCommand(sublime_plugin.WindowCommand):
@@ -36,7 +37,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         """Display request and other properties for each entry.
         """
         return [
-            self.remove_prefix(r[0]),
+            self.remove_prefix( truncate(r[0], 100) ),
             self.approximate_age(r[1]['ts']),
             '{}, {}'.format(r[1]['code'], r[1]['url'].split('?')[0]),
             r[1]['file'] or '?',

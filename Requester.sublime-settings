@@ -22,5 +22,8 @@
   "history_max_entries": 100,
 
   // chunk size for file downloads (bytes)
-  "chunk_size": 1024
+  "chunk_size": 1024,
+
+  // only perform file download if response status code is 200
+  "only_download_for_200": true
 }
