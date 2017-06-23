@@ -311,16 +311,6 @@ Requester automatically includes the `timeout` argument in requests executed fro
 
 Not recommended: if you really want to disable automatic `timeout` for requests, set it to `None` in your Requester settings.
 
-Also, __don't include inline comments on the same lines__ as multi-line requests in your requester file. For example, don't do this:
-
-~~~py
-requests.get( # comment on same line as request
-  'http://mysite.com/api'
-)
-~~~
-
-Doing so can lead to unexpected results.
-
 That's it.
 
 

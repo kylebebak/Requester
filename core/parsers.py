@@ -17,12 +17,14 @@ def parse_args(*args, **kwargs):
     return args, kwargs
 
 
-def parse_requests(s, n=None):
+def parse_requests(s, n=None, return_selections=False):
     """Parse string for all calls to `{name}.{verb}(`, or simply `{verb}(`.
 
     Returns a list of strings with calls to the `requests` library.
     """
     selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], n=n)
+    if return_selections:
+        return selections
     return [sel.selection for sel in selections]
 
 

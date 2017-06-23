@@ -1,10 +1,6 @@
 import sublime, sublime_plugin
 
 import webbrowser
-from sys import maxsize
-from collections import namedtuple
-
-from .core.parsers import parse_requests, prepare_request
 
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
@@ -78,66 +74,6 @@ class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
     """
     def run(self):
         webbrowser.open_new_tab('http://docs.python-requests.org/en/master/user/quickstart/')
-
-
-class RequesterReorderResponseTabsCommand(sublime_plugin.TextCommand):
-    """Reorders open response tabs to match order of requests in current view.
-    """
-    def run(self, edit):
-        window = self.view.window()
-        # parse all requests in current view, prepare them, and cache them
-        requests = []
-        timeout = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
-        for request in parse_requests(
-            self.view.substr( sublime.Region(0, self.view.size()) )
-        ):
-            requests.append(prepare_request(request, timeout))
-        requests = remove_duplicates(requests)
-
-        # cache all response views in current window
-        response_views = []
-        for sheet in window.sheets():
-            view = sheet.view()
-            if view and view.settings().get('requester.response_view', False):
-                response_views.append(view)
-
-        View = namedtuple('View', 'view, line')
-        views = []
-        # add `line` property to cached response views, indicating at which line they appear in current view
-        for view in response_views:
-            request = view.settings().get('requester.request', None)
-            if not request:
-                views.append(View(view, maxsize))
-            try:
-                line = requests.index(request)
-            except ValueError:
-                views.append(View(view, maxsize))
-            else:
-                views.append(View(view, line))
-
-        if not len(views):
-            return
-
-        # get largest index among open tabs
-        group, index = 0, 0
-        for sheet in window.sheets():
-            view = sheet.view()
-            group, index = window.get_view_index(view)
-
-        # sort response views by line property, and reorder response tabs
-        views.sort(key=lambda view: view.line)
-        # requester tab, then response tabs are moved sequentially to largest index
-        window.set_view_index(self.view, group, index)
-        for v in views:
-            window.set_view_index(v.view, group, index)
-
-
-def remove_duplicates(seq):
-    """Removes duplicates from sequence. Preserves order of sequence.
-    """
-    seen = set()
-    seen_add = seen.add
-    return [x for x in seq if not (x in seen or seen_add(x))]
 
 
 NEW_REQUESTER_FILE = """# http://docs.python-requests.org/en/master/user/quickstart/
