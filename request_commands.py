@@ -5,7 +5,7 @@ from urllib import parse
 from collections import namedtuple
 
 from .core import RequestCommandMixin
-from .core.parsers import parse_requests
+from .core.parsers import parse_requests, parse_args
 
 
 Content = namedtuple('Content', 'content, point')
@@ -62,13 +62,42 @@ def set_response_view_name(view, response):
         view.settings().set('requester.name', name)
 
 
+def parse_method_and_url_from_request(request, env):
+    """Parses method and url from request string.
+    """
+    env = env or {}
+    env['__parse_args__'] = parse_args
+    index = request.index('(')
+    args, kwargs = eval('__parse_args__{}'.format(request[index:]), env)
+
+    method = request[:index].split('.')[1].strip().upper()
+    try:
+        url = kwargs.get('url') or args[0]
+    except:
+        return method, None
+    else:
+        return method, url
+
+
+def base_url(url):
+    """Get base url without trailing slash.
+    """
+    url = url.split('?')[0]
+    if url and url[-1] == '/':
+        return url[:-1]
+    return url
+
+
 class RequestsMixin:
     def show_activity_for_pending_requests(self, requests, count, activity):
         """If there are already open response views waiting to display content from
         pending requests, show activity indicators in views.
         """
         for request in requests:
-            for view in self.response_views_with_matching_request(request):
+
+            for view in self.response_views_with_matching_request(
+                    *parse_method_and_url_from_request(request, self._env)
+                ):
                 # view names set BEFORE view content is set, otherwise
                 # activity indicator in view names seems to lag a little
                 name = view.settings().get('requester.name')
@@ -84,7 +113,7 @@ class RequestsMixin:
                     request, activity
                 )})
 
-    def response_views_with_matching_request(self, request):
+    def response_views_with_matching_request(self, method, url):
         """Get all response views whose request matches `request`.
         """
         if self.view.settings().get('requester.response_view', False):
@@ -95,11 +124,21 @@ class RequestsMixin:
             view = sheet.view()
             if view and view.settings().get('requester.response_view', False):
                 view_request = view.settings().get('requester.request', None)
-                if not view_request:
+                if not view_request or not view_request[0] or not view_request[1]:
+                    # don't match only falsy method or url
                     continue
-                if request == view_request:
+                if view_request[0] == method and base_url(url) == base_url(view_request[1]):
                     views.append(view)
         return views
+
+    @staticmethod
+    def set_request_setting_on_view(view, response):
+        """For reordering requests, showing pending activity for requests, and
+        jumping to matching response tabs after requests return.
+        """
+        url = response.response.url
+        view.settings().set('requester.request',
+                            [response.response.request.method, url.split('?')[0]])
 
 
 class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
@@ -139,9 +178,10 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         Don't create new response tab if a response tab matching request is open.
         """
         window = self.view.window(); r = response
+        method, url = r.response.request.method, r.response.url
 
         if r.error: # ignore responses with errors
-            for view in self.response_views_with_matching_request(r.request):
+            for view in self.response_views_with_matching_request(method, url):
                 set_response_view_name(view, r.response)
             return
 
@@ -154,7 +194,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
                 last_sheet = sheet
         window.focus_sheet(last_sheet)
 
-        views = self.response_views_with_matching_request(r.request)
+        views = self.response_views_with_matching_request(method, url)
         if not len(views): # if there are no matching response tabs, create a new one
             views = [window.new_file()]
         else: # move focus to matching view after response is returned if match occurred
@@ -171,7 +211,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
             view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
-            view.settings().set('requester.request', r.request)
+            self.set_request_setting_on_view(view, r)
 
         # should response tabs be reordered after requests return?
         if self.config.get('reorder_tabs_after_requests', False):
@@ -196,7 +236,15 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
     def get_requests(self):
         """Parses requests from first line only.
         """
-        return [self.view.substr( self.view.line(0) )]
+        try:
+            requests = parse_requests(self.view.substr(
+                sublime.Region(0, self.view.size())
+            ), n=1)
+        except:
+            sublime.error_message('Parse Error: there may be unbalanced parentheses in your request')
+            return []
+        else:
+            return requests
 
     def handle_response(self, response, **kwargs):
         """Overwrites content in current view.
@@ -210,7 +258,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         view.run_command('requester_replace_view_text',
                          {'text': content.content, 'point': content.point})
         view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
-        view.settings().set('requester.request', r.request)
+        self.set_request_setting_on_view(view, r)
 
         set_response_view_name(view, r.response)
 

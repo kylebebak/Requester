@@ -4,13 +4,7 @@ import os
 
 import requests
 
-from .core.parsers import truncate
-
-
-def parse_args(*args, **kwargs):
-    """Used in conjunction with eval to parse args and kwargs from a string.
-    """
-    return args, kwargs
+from .core.parsers import truncate, parse_args
 
 
 class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
@@ -30,8 +24,8 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
         if request is None or env is None:
             return
 
-        env['__parse_args'] = parse_args
-        args, kwargs = eval('__parse_args{}'.format(
+        env['__parse_args__'] = parse_args
+        args, kwargs = eval('__parse_args__{}'.format(
             request[request.index('('):] # get args and kwargs that were passed to `requests.get`
         ), env)
         filename = kwargs.pop('filename')

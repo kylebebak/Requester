@@ -11,12 +11,18 @@ Selection = namedtuple('Selection', 'selection, ordering, type')
 RequestAssertion = namedtuple('RequestAssertion', 'request, assertion')
 
 
-def parse_requests(s):
+def parse_args(*args, **kwargs):
+    """Used in conjunction with eval to parse args and kwargs from a string.
+    """
+    return args, kwargs
+
+
+def parse_requests(s, n=None):
     """Parse string for all calls to `{name}.{verb}(`, or simply `{verb}(`.
 
     Returns a list of strings with calls to the `requests` library.
     """
-    selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS])
+    selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], n=n)
     return [sel.selection for sel in selections]
 
 
@@ -41,18 +47,22 @@ def parse_tests(s):
     return tests
 
 
-def parse(s, open_bracket, close_bracket, match_patterns, type_=''):
+def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
     """Parse string for selections that begin with at least one of the specified
     match patterns. Continue expanding each selection until its opening and
     closing brackets are balanced.
 
     Chokes on inline comments if they contain unbalanced brackets. Clients should
     catch any exception raised by this method and handle it as a parsing error.
+
+    Optionally stop after `n` selections have been parsed.
     """
     start_indices = []
 
     index = 0
     for line in s.splitlines(True):
+        if n and len(start_indices) >= n:
+            break
         for pattern in match_patterns:
             if re.match(pattern, line):
                 start_indices.append(index)
@@ -61,6 +71,8 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_=''):
 
     end_indices = []
     for index in start_indices:
+        if n and len(end_indices) >= n:
+            break
         bc = 0 # bracket count
         while True:
             if s[index] == open_bracket:
@@ -90,8 +102,6 @@ def prepare_request(r, timeout):
 
     Also, ensure request can time out so it doesn't hang indefinitely.
     http://docs.python-requests.org/en/master/user/advanced/#timeouts
-
-    Finally, ensure that request occupies only one line.
     """
     r = r.strip()
     if not re.match(PREFIX, r):
@@ -100,14 +110,7 @@ def prepare_request(r, timeout):
     if timeout is not None:
         timeout_string = ', timeout={})'.format(timeout)
         r = r[:-1] + timeout_string
-
-    r = r.replace('\r', '')
-    r = re.sub('^\s+', '', r, flags=re.MULTILINE)
-    r = re.sub('\s+$', '', r, flags=re.MULTILINE)
-    r = r.replace(',\n', ', ')
-    r = r.replace('\n', '')
-
-    return ' '.join(r.split()) # replace all multiple whitespace with single space
+    return r
 
 
 def truncate(s, l, ellipsis='...'):
