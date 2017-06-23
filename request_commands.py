@@ -56,7 +56,10 @@ def set_response_view_name(view, response):
     """Set name for `view` with content from `response`.
     """
     try: # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
-        name = '{}: {}'.format(response.request.method, parse.urlparse(response.url).path)
+        path = parse.urlparse(response.url).path
+        if path and path[-1] == '/':
+            path = path[:-1]
+        name = '{}: {}'.format(response.request.method, path)
     except:
         view.set_name( view.settings().get('requester.name') )
     else:
@@ -65,24 +68,27 @@ def set_response_view_name(view, response):
 
 
 def parse_method_and_url_from_request(request, env):
-    """Parses method and url from request string.
+    """Parses method and url from request string, under context of `env`.
     """
     env = env or {}
     env['__parse_args__'] = parse_args
     index = request.index('(')
-    args, kwargs = eval('__parse_args__{}'.format(request[index:]), env)
+    try:
+        args, kwargs = eval('__parse_args__{}'.format(request[index:]), env)
+    except Exception as e:
+        print(e)
+        return None, None
 
     method = request[:index].split('.')[1].strip().upper()
     try:
         url = kwargs.get('url') or args[0]
     except:
         return method, None
-    else:
-        return method, url
+    return method, url
 
 
 def base_url(url):
-    """Get base url without trailing slash.
+    """Get base url from `url`, without trailing slash.
     """
     url = url.split('?')[0]
     if url and url[-1] == '/':
@@ -181,7 +187,10 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         Don't create new response tab if a response tab matching request is open.
         """
         window = self.view.window(); r = response
-        method, url = r.response.request.method, r.response.url
+        try:
+            method, url = r.response.request.method, r.response.url
+        except:
+            method, url = None, None
 
         if r.error: # ignore responses with errors
             for view in self.response_views_with_matching_request(method, url):
@@ -298,10 +307,7 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
             method, url = parse_method_and_url_from_request(request, self._env)
             requests.append(Request(request, method, url, s.ordering))
 
-        print(requests)
-        return
         window = self.view.window()
-
         # cache all response views in current window
         response_views = []
         for sheet in window.sheets():
@@ -309,23 +315,27 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
             if view and view.settings().get('requester.response_view', False):
                 response_views.append(view)
 
-        # for view in self.response_views_with_matching_request(
-        #     *parse_method_and_url_from_request(request, self._env)
-        # ):
-
-        View = namedtuple('View', 'view, line')
+        View = namedtuple('View', 'view, ordering')
         views = []
-        # add `line` property to cached response views, indicating at which line they appear in current view
+        # add `ordering` property to cached response views, indicating at which ordering they appear in current view
         for view in response_views:
             request = view.settings().get('requester.request', None)
-            if not request:
+            if not request or not request[0] or not request[1]:
+                # don't match for falsy method or url
                 views.append(View(view, maxsize))
-            try:
-                line = requests.index(request)
-            except ValueError:
+                continue
+
+            match = False
+            # iterate over requests parsed from requester file (which are in
+            # parsing order), see if request in response view matches any of them
+            for r in requests:
+                if request[0] == r.method and base_url(request[1]) == base_url(r.url):
+                    views.append(View(view, r.ordering))
+                    match = True
+                    break
+
+            if not match:
                 views.append(View(view, maxsize))
-            else:
-                views.append(View(view, line))
 
         if not len(views):
             return
@@ -336,8 +346,8 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
             view = sheet.view()
             group, index = window.get_view_index(view)
 
-        # sort response views by line property, and reorder response tabs
-        views.sort(key=lambda view: view.line)
+        # sort response views by ordering property, and reorder response tabs
+        views.sort(key=lambda view: view.ordering)
         # requester tab, then response tabs are moved sequentially to largest index
         window.set_view_index(self.view, group, index)
         for v in views:

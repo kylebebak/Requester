@@ -270,7 +270,7 @@ If you need __true__ request chaining, such that a request can reference the `Re
 ~~~py
 get('http://httpbin.org/get')
 
-get('http://httpbin.org/get', params={'url': Response.json()['url']})
+get('http://httpbin.org/cookies', cookies={'url': Response.json()['url']})
 ~~~
 
 If you don't run requests serially, this probably won't work, because requests are executed in parallel. All the requests may have already been executed before any of the responses return, which means none of them will be able to reference the `Response` object.
