@@ -1,0 +1,8 @@
+{
+  "@python": "3.3",
+  "linters": {
+    "pep8": {
+      "@disable": true
+    }
+  }
+}

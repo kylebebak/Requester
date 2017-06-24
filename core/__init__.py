@@ -250,6 +250,11 @@ class RequestCommandMixin:
         """Persist up to N requests to a history file, along with the context
         needed to rebuild the env for these requests. One entry per unique
         request. Old requests are removed when requests exceed file capacity.
+
+        Requests in history are keyed for uniqueness on (method + url/qs), a
+        compromise to minimize duplicate requests without clobbering requests
+        whose meanings could be very different. Imagine GET requests to a GraphQL
+        API, where the querystring determines most everything about the response.
         """
         history_file = self.config.get('history_file', None)
         if not history_file:
@@ -268,18 +273,24 @@ class RequestCommandMixin:
         rh = json.loads(text, object_pairs_hook=OrderedDict)
 
         ts = int(time())
-        for r in responses: # insert new requests
-            if not r.response:
+        for response in responses: # insert new requests
+            res = response.response
+            if not res:
                 continue
-            if r.request in rh:
-                rh.pop(r.request, None) # remove duplicate requests
-            rh[r.request] = {
+            method, url = res.request.method, res.url
+            # uniqueness of request in history is determined by method and url + qs
+            key = '{}: {}'.format(method, url)
+            if key in rh:
+                rh.pop(key, None) # remove duplicate requests
+            rh[key] = {
                 'ts': ts,
                 'env_string': self.view.settings().get('requester.env_string', None),
                 'file': self.view.settings().get('requester.file', None),
                 'env_file': self.view.settings().get('requester.env_file', None),
-                'url': r.response.url,
-                'code': r.response.status_code,
+                'method': method,
+                'url': url,
+                'code': res.status_code,
+                'request': response.request
             }
 
         # remove oldest requests if number of requests has exceeded `history_max_entries`

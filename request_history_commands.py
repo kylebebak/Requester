@@ -28,20 +28,25 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
             return
         self.requests = list( reversed(list(rh.items())) )
 
+        entries = [self.get_entry_parts(r) for r in self.requests]
         self.window.show_quick_panel(
-            [self.get_entry_parts(r) for r in self.requests],
+            [e for e in entries if e is not None], # in case, e.g., schema has changed
             self.on_done
         )
 
     def get_entry_parts(self, r):
         """Display request and other properties for each entry.
         """
-        return [
-            self.remove_prefix( truncate(r[0], 100) ),
-            self.approximate_age(r[1]['ts']),
-            '{}, {}'.format(r[1]['code'], r[1]['url'].split('?')[0]),
-            r[1]['file'] or '?',
-        ]
+        header = '{}, {}'.format(r[1]['method'].lower(), r[1]['url'])
+        try: # in case, e.g., schema has changed
+            return [
+                truncate(header, 100),
+                self.approximate_age(r[1]['ts']),
+                str(r[1]['code']),
+                r[1]['file'] or '?',
+            ]
+        except:
+            return None
 
     def on_done(self, index):
         """Callback for invokes request chosen from quick panel.
@@ -51,7 +56,6 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
 
         request = self.requests[index]
         params_dict = request[1]
-        params_dict['request'] = request[0]
         self.window.run_command('requester_replay_request_from_history', params_dict)
 
     @staticmethod
@@ -104,7 +108,8 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
                 break
             magnitudes.append(s)
 
-        return ', '.join(magnitudes) + ' ago'
+        age = ', '.join(magnitudes)
+        return (age or '0 seconds') + ' ago'
 
 
 class RequesterReplayRequestFromHistoryCommand(RequesterCommand):

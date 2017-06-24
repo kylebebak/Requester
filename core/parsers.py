@@ -54,9 +54,6 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
     match patterns. Continue expanding each selection until its opening and
     closing brackets are balanced.
 
-    Chokes on inline comments if they contain unbalanced brackets. Clients should
-    catch any exception raised by this method and handle it as a parsing error.
-
     Optionally stop after `n` selections have been parsed.
     """
     start_indices = []
@@ -78,7 +75,7 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
             break
 
         bc = 0 # bracket count
-        while True: # fix: this doesn't handle escaped quotes or """ strings
+        while True: # fix: this doesn't handle escaped quotes
             c = s[index]
 
             if c == "'" and not dq and not comment:
@@ -137,3 +134,12 @@ def truncate(s, l, ellipsis='...'):
     if len(s) > l:
         return s[:l] +  ellipsis
     return s
+
+
+def clean_url(url):
+    """Remove trailing slash and query string from `url`.
+    """
+    url = url.split('?')[0]
+    if url and url[-1] == '/':
+        return url[:-1]
+    return url

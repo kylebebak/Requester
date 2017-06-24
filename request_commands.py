@@ -6,7 +6,7 @@ from urllib import parse
 from collections import namedtuple
 
 from .core import RequestCommandMixin
-from .core.parsers import parse_requests, parse_args, prepare_request
+from .core.parsers import parse_requests, parse_args, prepare_request, clean_url
 
 
 Content = namedtuple('Content', 'content, point')
@@ -87,15 +87,6 @@ def parse_method_and_url_from_request(request, env):
     return method, url
 
 
-def base_url(url):
-    """Get base url from `url`, without trailing slash.
-    """
-    url = url.split('?')[0]
-    if url and url[-1] == '/':
-        return url[:-1]
-    return url
-
-
 class RequestsMixin:
     def show_activity_for_pending_requests(self, requests, count, activity):
         """If there are already open response views waiting to display content from
@@ -135,7 +126,7 @@ class RequestsMixin:
                 if not view_request or not view_request[0] or not view_request[1]:
                     # don't match only falsy method or url
                     continue
-                if view_request[0] == method and base_url(url) == base_url(view_request[1]):
+                if view_request[0] == method and clean_url(url) == clean_url(view_request[1]):
                     views.append(view)
         return views
 
@@ -329,7 +320,7 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
             # iterate over requests parsed from requester file (which are in
             # parsing order), see if request in response view matches any of them
             for r in requests:
-                if request[0] == r.method and base_url(request[1]) == base_url(r.url):
+                if request[0] == r.method and clean_url(request[1]) == clean_url(r.url):
                     views.append(View(view, r.ordering))
                     match = True
                     break

@@ -19,6 +19,7 @@ Please do! Possible improvements:
   + Tests for syntax files
   + Tests for test runner
   + Tests for request history
+  + Tests for file downloads
 
 
 ## How Does It Work?
