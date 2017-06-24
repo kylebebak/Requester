@@ -71,15 +71,31 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
                 break
         index += len(line)
 
+    sq, dq, comment = False, False, False
     end_indices = []
     for index in start_indices:
         if n and len(end_indices) >= n:
             break
+
         bc = 0 # bracket count
-        while True:
-            if s[index] == open_bracket:
+        while True: # fix: this doesn't handle escaped quotes or """ strings
+            c = s[index]
+
+            if c == "'" and not dq and not comment:
+                sq = not sq
+            if c == '"' and not sq and not comment:
+                dq = not dq
+            if c == '#' and not comment and not sq and not comment:
+                comment = True
+            if c == '\n': # new line always terminates comment
+                comment = False
+            if sq or dq or comment:
+                index += 1
+                continue
+
+            if c == open_bracket:
                 bc += 1
-            elif s[index] == close_bracket:
+            elif c == close_bracket:
                 bc -= 1
                 if bc == 0:
                     end_indices.append(index)

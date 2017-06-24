@@ -269,6 +269,8 @@ class RequestCommandMixin:
 
         ts = int(time())
         for r in responses: # insert new requests
+            if not r.response:
+                continue
             if r.request in rh:
                 rh.pop(r.request, None) # remove duplicate requests
             rh[r.request] = {
