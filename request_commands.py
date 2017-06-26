@@ -1,4 +1,5 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 
 import json
 from sys import maxsize
@@ -19,21 +20,21 @@ def get_response_view_content(request, response):
     and the index of the string at which response content begins.
     """
     r = response
-    redirects = [res.url for res in r.history] # URLs traversed due to redirects
-    redirects.append(r.url) # final URL
+    redirects = [res.url for res in r.history]  # URLs traversed due to redirects
+    redirects.append(r.url)  # final URL
 
     header = '{} {}\n{}s, {}B\n{}'.format(
         r.status_code, r.reason, r.elapsed.total_seconds(), len(r.content),
         ' -> '.join(redirects)
     )
     headers = '\n'.join(
-        [ '{}: {}'.format(k, v) for k, v in sorted(r.headers.items()) ]
+        ['{}: {}'.format(k, v) for k, v in sorted(r.headers.items())]
     )
     try:
         json_dict = r.json()
     except:
         content = r.text
-    else: # prettify json regardless of what raw response looks like
+    else:  # prettify json regardless of what raw response looks like
         content = json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
 
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
@@ -55,13 +56,13 @@ def get_response_view_content(request, response):
 def set_response_view_name(view, response):
     """Set name for `view` with content from `response`.
     """
-    try: # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
+    try:  # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
         path = parse.urlparse(response.url).path
         if path and path[-1] == '/':
             path = path[:-1]
         name = '{}: {}'.format(response.request.method, path)
     except:
-        view.set_name( view.settings().get('requester.name') )
+        view.set_name(view.settings().get('requester.name'))
     else:
         view.set_name(name)
         view.settings().set('requester.name', name)
@@ -88,6 +89,8 @@ def parse_method_and_url_from_request(request, env):
 
 
 class RequestsMixin:
+    FROM_HISTORY = False
+
     def show_activity_for_pending_requests(self, requests, count, activity):
         """If there are already open response views waiting to display content from
         pending requests, show activity indicators in views.
@@ -95,8 +98,8 @@ class RequestsMixin:
         for request in requests:
 
             for view in self.response_views_with_matching_request(
-                    *parse_method_and_url_from_request(request, self._env)
-                ):
+                *parse_method_and_url_from_request(request, self._env)
+            ):
                 # view names set BEFORE view content is set, otherwise
                 # activity indicator in view names seems to lag a little
                 name = view.settings().get('requester.name')
@@ -105,8 +108,8 @@ class RequestsMixin:
                 else:
                     spaces = min(self.ACTIVITY_SPACES, len(name))
                     activity = self.get_activity_indicator(count, spaces)
-                    extra_spaces = 4 # extra spaces because tab names don't use monospace font =/
-                    view.set_name(activity.ljust( len(name) + extra_spaces ))
+                    extra_spaces = 4  # extra spaces because tab names don't use monospace font =/
+                    view.set_name(activity.ljust(len(name) + extra_spaces))
 
                 view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
                     request, activity
@@ -115,8 +118,8 @@ class RequestsMixin:
     def response_views_with_matching_request(self, method, url):
         """Get all response views whose request matches `request`.
         """
-        if self.view.settings().get('requester.response_view', False):
-            return [self.view] # don't update other views when replaying a request
+        if self.view.settings().get('requester.response_view', False) and not self.FROM_HISTORY:
+            return [self.view]  # don't update other views when replaying a request
 
         views = []
         for sheet in self.view.window().sheets():
@@ -177,20 +180,21 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
 
         Don't create new response tab if a response tab matching request is open.
         """
-        window = self.view.window(); r = response
+        window = self.view.window()
+        r = response
         try:
             method, url = r.response.request.method, r.response.url
         except:
             method, url = None, None
 
-        if r.error: # ignore responses with errors
+        if r.error:  # ignore responses with errors
             for view in self.response_views_with_matching_request(method, url):
                 set_response_view_name(view, r.response)
             return
 
         requester_sheet = window.active_sheet()
 
-        last_sheet = requester_sheet # find last sheet (tab) with a response view
+        last_sheet = requester_sheet  # find last sheet (tab) with a response view
         for sheet in window.sheets():
             view = sheet.view()
             if view and view.settings().get('requester.response_view', False):
@@ -198,9 +202,9 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         window.focus_sheet(last_sheet)
 
         views = self.response_views_with_matching_request(method, url)
-        if not len(views): # if there are no matching response tabs, create a new one
+        if not len(views):  # if there are no matching response tabs, create a new one
             views = [window.new_file()]
-        else: # move focus to matching view after response is returned if match occurred
+        else:  # move focus to matching view after response is returned if match occurred
             window.focus_view(views[0])
 
         for view in views:
@@ -253,9 +257,10 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
     def handle_response(self, response, **kwargs):
         """Overwrites content in current view.
         """
-        view = self.view; r = response
+        view = self.view
+        r = response
 
-        if r.error: # ignore responses with errors
+        if r.error:  # ignore responses with errors
             return
 
         content = get_response_view_content(r.request, r.response)
@@ -288,10 +293,10 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
             print(e)
-        return [] # these will show up again in `make_requests`, but we're only interested in selections
+        return []  # these will show up again in `make_requests`, but we're only interested in selections
 
     def make_requests(self, *args, **kwargs):
-        selections = self._selections # 'selection', 'ordering', 'type' keys
+        selections = self._selections  # 'selection', 'ordering', 'type' keys
         requests = []
         for s in selections:
             request = prepare_request(s.selection, None)

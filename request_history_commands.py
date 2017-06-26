@@ -1,4 +1,5 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 
 import os
 import json
@@ -26,11 +27,13 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
                 rh = json.loads(f.read() or '{}', object_pairs_hook=OrderedDict)
         except:
             return
-        self.requests = list( reversed(list(rh.items())) )
+        self.requests = list(reversed(
+            list(rh.items())
+        ))
 
         entries = [self.get_entry_parts(r) for r in self.requests]
         self.window.show_quick_panel(
-            [e for e in entries if e is not None], # in case, e.g., schema has changed
+            [e for e in entries if e is not None],  # in case, e.g., schema has changed
             self.on_done
         )
 
@@ -38,7 +41,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         """Display request and other properties for each entry.
         """
         header = '{}, {}'.format(r[1]['method'].lower(), r[1]['url'])
-        try: # in case, e.g., schema has changed
+        try:  # in case, e.g., schema has changed
             return [
                 truncate(header, 100),
                 self.approximate_age(r[1]['ts']),
@@ -51,7 +54,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
     def on_done(self, index):
         """Callback for invokes request chosen from quick panel.
         """
-        if index < 0: # e.g. user presses escape
+        if index < 0:  # e.g. user presses escape
             return
 
         request = self.requests[index]
@@ -99,7 +102,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
             if v == 0:
                 continue
             s = '{} {}'.format(v, magnitude)
-            if v == 1: # strip plural s
+            if v == 1:  # strip plural s
                 s = s[:-1]
             # handle precision limit
             if first is None:
@@ -120,6 +123,7 @@ class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
         """Client must pass `request` and env parameters.
         """
         self.PREPARE_REQUESTS = False
+        self.FROM_HISTORY = True
         self.request = request
         self.view.settings().set('requester.env_string', env_string)
         self.view.settings().set('requester.file', file)

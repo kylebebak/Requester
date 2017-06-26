@@ -40,12 +40,14 @@ If you want to write a new command class for Requester, check out how `Requester
 If you want a better understanding of the details, dive into `core` directory. This is where the heavy lifting is done.
 
 
-## Python Code Style
-Try to limit lines to 100 characters or less, unless doing so is inconvenient. No lines with more than 120 characters.
+## Python Linting and Code Style
+Uses __flake8__. First, install __flake8__ with `pip3 install flake8`.
 
-Two lines between classes or top-level methods. One line between class methods. Within methods, use vertical whitespace if it improves readability, but never more than one line.
+Read how set up pre-commit hook [here](http://flake8.pycqa.org/en/latest/user/using-hooks.html), or just keep reading.
 
-Indentation: 4 spaces. No tabs.
+Run `flake8 --install-hook git`, and check that `.git/hooks/pre-commit` was created. Then run `git config --bool flake8.strict true`, and check that this worked by running `git config --get --bool flake8.strict`. It should return __true__.
+
+You will now be unable to commit anything that doesn't pass __flake8__ validation.
 
 All classes and methods should have docstrings, limited to 82 characters per line. Except for `run` and `__init__`. Feel free to add comments for anything that's not obvious.
 

@@ -10,7 +10,7 @@ from threading import Thread
 from time import time
 
 from .responses import ResponseThreadPool
-from .parsers  import prepare_request
+from .parsers import prepare_request
 
 
 class RequestCommandMixin:
@@ -22,12 +22,12 @@ class RequestCommandMixin:
     It must be mixed in to classes that also inherit from
     `sublime_plugin.TextCommand`.
     """
-    REFRESH_MS = 200 # period of checks on async operations, e.g. requests
-    ACTIVITY_SPACES = 9 # number of spaces in activity indicator
-    MAX_WORKERS = 10 # default request concurrency
+    REFRESH_MS = 200  # period of checks on async operations, e.g. requests
+    ACTIVITY_SPACES = 9  # number of spaces in activity indicator
+    MAX_WORKERS = 10  # default request concurrency
     PREPARE_REQUESTS = True
     RESPONSE_POOLS = []
-    MAX_NUM_RESPONSE_POOLS = 10 # up to N response pools can be stored (and therefore cancelled)
+    MAX_NUM_RESPONSE_POOLS = 10  # up to N response pools can be stored (and therefore cancelled)
 
     def get_requests(self):
         """This must be overridden to return a list of request strings.
@@ -81,8 +81,8 @@ class RequestCommandMixin:
         """
         REFRESH_MULTIPLIER = 4
         activity = self.get_activity_indicator(count//REFRESH_MULTIPLIER, self.ACTIVITY_SPACES)
-        if count > 0: # don't distract user with RequesterEnv status if env can be evaluated quickly
-            self.view.set_status('requester.activity', '{} {}'.format( 'RequesterEnv', activity ))
+        if count > 0:  # don't distract user with RequesterEnv status if env can be evaluated quickly
+            self.view.set_status('requester.activity', '{} {}'.format('RequesterEnv', activity))
 
         if thread.is_alive():
             timeout = self.config.get('timeout_env', None)
@@ -116,7 +116,9 @@ class RequestCommandMixin:
         """
         if self.is_requester_view():
             return
-        env_string = self.parse_env_block(self.view.substr( sublime.Region(0, self.view.size()) ))
+        env_string = self.parse_env_block(self.view.substr(
+            sublime.Region(0, self.view.size())
+        ))
         self.view.settings().set('requester.env_string', env_string)
 
     def reset_file(self):
@@ -133,14 +135,16 @@ class RequestCommandMixin:
             return
 
         scope = {}
-        p = re.compile('\s*env_file\s*=.*') # `env_file` can be overridden from within requester file
-        for line in self.view.substr( sublime.Region(0, self.view.size()) ).splitlines():
-            if p.match(line): # matches only at beginning of string
+        p = re.compile('\s*env_file\s*=.*')  # `env_file` can be overridden from within requester file
+        for line in self.view.substr(
+                sublime.Region(0, self.view.size())
+        ).splitlines():
+            if p.match(line):  # matches only at beginning of string
                 try:
-                    exec(line, scope) # add `env_file` to `scope` dict
+                    exec(line, scope)  # add `env_file` to `scope` dict
                 except:
                     pass
-                break # stop looking after first match
+                break  # stop looking after first match
 
         env_file = scope.get('env_file')
         if env_file:
@@ -185,7 +189,7 @@ class RequestCommandMixin:
                 self.add_error_status_bar(str(e))
             else:
                 env_dict_ = vars(env)
-                env_dict.update(env_dict_) # env computed from `env_file` takes precedence
+                env_dict.update(env_dict_)  # env computed from `env_file` takes precedence
         return env_dict or None
 
     def _get_env(self):
@@ -203,18 +207,18 @@ class RequestCommandMixin:
         """Make requests concurrently using a `ThreadPool`, which itself runs on
         an alternate thread so as not to block the UI.
         """
-        pool = ResponseThreadPool(requests, env, self.MAX_WORKERS) # pass along env vars to thread pool
+        pool = ResponseThreadPool(requests, env, self.MAX_WORKERS)  # pass along env vars to thread pool
         self.RESPONSE_POOLS.append(pool)
         while len(self.RESPONSE_POOLS) > self.MAX_NUM_RESPONSE_POOLS:
             self.RESPONSE_POOLS.pop(0)
-        sublime.set_timeout_async(lambda: pool.run(), 0) # run on an alternate thread
+        sublime.set_timeout_async(lambda: pool.run(), 0)  # run on an alternate thread
         sublime.set_timeout(lambda: self.gather_responses(pool), 0)
 
     def _show_activity_for_pending_requests(self, requests, count):
         """Show activity indicator in status bar.
         """
         activity = self.get_activity_indicator(count, self.ACTIVITY_SPACES)
-        self.view.set_status('requester.activity', '{} {}'.format( 'Requester', activity ))
+        self.view.set_status('requester.activity', '{} {}'.format('Requester', activity))
         self.show_activity_for_pending_requests(requests, count, activity)
 
     def gather_responses(self, pool, count=0, responses=None):
@@ -226,22 +230,22 @@ class RequestCommandMixin:
         contains `request`, `response`, `error`, and `ordering` keys.
         """
         self._show_activity_for_pending_requests(pool.pending_requests, count)
-        is_done = pool.is_done # cache `is_done` before removing responses from pool
+        is_done = pool.is_done  # cache `is_done` before removing responses from pool
 
         if responses is None:
             responses = []
 
-        while len(pool.responses): # remove completed responses from thread pool and display them
-            r = pool.responses.pop(0) # O(N) but who cares, this list will never have more than 10 elements
+        while len(pool.responses):  # remove completed responses from thread pool and display them
+            r = pool.responses.pop(0)  # O(N) but who cares, this list will never have more than 10 elements
             responses.append(r)
             self.handle_response(r, num_requests=len(pool.requests))
 
         if is_done:
-            responses.sort(key=lambda response: response.ordering) # parsing order is preserved
+            responses.sort(key=lambda response: response.ordering)  # parsing order is preserved
             self.handle_responses(responses)
             self.default_handle_errors(responses)
             self.persist_requests(responses)
-            self.view.set_status('requester.activity', '') # remove activity indicator from status bar
+            self.view.set_status('requester.activity', '')  # remove activity indicator from status bar
             return
 
         sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
@@ -265,7 +269,7 @@ class RequestCommandMixin:
             with open(history_path, 'r') as f:
                 text = f.read() or '{}'
         except FileNotFoundError:
-            open(history_path, 'w').close() # create history file if it didn't exist
+            open(history_path, 'w').close()  # create history file if it didn't exist
             text = '{}'
         except Exception as e:
             sublime.error_message('HistoryFile Error:\n{}'.format(e))
@@ -273,7 +277,7 @@ class RequestCommandMixin:
         rh = json.loads(text, object_pairs_hook=OrderedDict)
 
         ts = int(time())
-        for response in responses: # insert new requests
+        for response in responses:  # insert new requests
             res = response.response
             if not res:
                 continue
@@ -281,7 +285,7 @@ class RequestCommandMixin:
             # uniqueness of request in history is determined by method and url + qs
             key = '{}: {}'.format(method, url)
             if key in rh:
-                rh.pop(key, None) # remove duplicate requests
+                rh.pop(key, None)  # remove duplicate requests
             rh[key] = {
                 'ts': ts,
                 'env_string': self.view.settings().get('requester.env_string', None),
@@ -348,7 +352,7 @@ class RequestCommandMixin:
             else:
                 if line == delimeter:
                     in_block = True
-        if not len(env_lines) or in_block: # env block must be closed
+        if not len(env_lines) or in_block:  # env block must be closed
             return None
         return '\n'.join(env_lines)
 
@@ -359,7 +363,7 @@ class RequestCommandMixin:
         http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
         """
         try:
-            del sys.modules['requester.env'] # this avoids a subtle bug, DON'T REMOVE
+            del sys.modules['requester.env']  # this avoids a subtle bug, DON'T REMOVE
         except KeyError:
             pass
 
