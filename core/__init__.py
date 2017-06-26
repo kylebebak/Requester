@@ -279,7 +279,7 @@ class RequestCommandMixin:
         ts = int(time())
         for response in responses:  # insert new requests
             res = response.response
-            if not res:
+            if res is None:
                 continue
             method, url = res.request.method, res.url
             # uniqueness of request in history is determined by method and url + qs

@@ -348,11 +348,3 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         window.set_view_index(self.view, group, index)
         for v in views:
             window.set_view_index(v.view, group, index)
-
-
-def remove_duplicates(seq):
-    """Removes duplicates from sequence. Preserves order of sequence.
-    """
-    seen = set()
-    seen_add = seen.add
-    return [x for x in seq if not (x in seen or seen_add(x))]
