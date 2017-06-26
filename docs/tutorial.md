@@ -3,7 +3,7 @@
 requests.get('https://jsonplaceholder.typicode.com/albums')
 requests.post('https://jsonplaceholder.typicode.com/albums')
 
-get('https://jsonplaceholder.typicode.com/posts')
+get('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optional
 post('https://jsonplaceholder.typicode.com/posts')
 ~~~
 
@@ -30,7 +30,7 @@ post(
 )
 ~~~
 
-Prefixing your requests with __requests.__ is optional. If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
+If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
 
 ### Environment Variables
@@ -41,8 +41,8 @@ It's time to add environment variables to your requests. Requester lets you to d
 base_url = 'https://jsonplaceholder.typicode.com'
 ###env
 
-requests.get(base_url + '/albums')
-requests.post(base_url + '/albums')
+get(base_url + '/albums')
+post(base_url + '/albums')
 ~~~
 
 Try executing these requests. Nice, huh?

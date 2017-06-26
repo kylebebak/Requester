@@ -2,7 +2,7 @@
 
 ![License](https://camo.githubusercontent.com/890acbdcb87868b382af9a4b1fac507b9659d9bf/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6c6963656e73652d4d49542d626c75652e737667)
 
-A modern, team-oriented HTTP client for Sublime Text 3, built on top of [Requests](http://docs.python-requests.org/en/master/). Requester combines features of apps like Postman, Paw and HTTPie, and improves on them wherever possible.
+A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie, and improves on them wherever possible.
 
 Get environment variables, concurrent requests, multiple, editable response tabs and the beautiful syntax of Requests, all without neutering your keyboard. You should honestly try it even if you've never used Sublime Text.
 
@@ -42,7 +42,7 @@ Open a file and insert the following:
 requests.get('https://jsonplaceholder.typicode.com/albums')
 requests.post('https://jsonplaceholder.typicode.com/albums')
 
-get('https://jsonplaceholder.typicode.com/posts')
+get('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optional
 post('https://jsonplaceholder.typicode.com/posts')
 ~~~
 
@@ -67,7 +67,7 @@ post(
 )
 ~~~
 
-Prefixing your requests with __requests.__ is optional. If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
+If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
 
 ### Environment Variables
@@ -78,8 +78,8 @@ It's time to add environment variables to your requests. Requester lets you to d
 base_url = 'https://jsonplaceholder.typicode.com'
 ###env
 
-requests.get(base_url + '/albums')
-requests.post(base_url + '/albums')
+get(base_url + '/albums')
+post(base_url + '/albums')
 ~~~
 
 Try executing these requests. Nice, huh?
@@ -105,8 +105,8 @@ Finally, define the path of your `env_file` in your requester file like so:
 ~~~py
 env_file = 'requester_env.py'
 
-requests.get(base_url + '/albums')
-requests.post(base_url + '/albums')
+get(base_url + '/albums')
+post(base_url + '/albums')
 ~~~
 
 Requester will now look for the env file at the path `requester_env.py`, which is relative to the location of the requester file. You can change this path to any relative path you want, e.g. `relative/path/to/env.py`. You can also use an __absolute path__ to the env vars file if you want.
@@ -170,7 +170,7 @@ Requests makes both of these tasks trivial. See how in the Requests Quickstart:
 Requester also provides Wget-style downloads. Just add the `filename` keyword arg to a call to `requests.get`.
 
 ~~~py
-requests.get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='image.jpg')
+get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='image.jpg')
 ~~~
 
 `filename` can be an absolute path, or a path relative to your requester file. Downloads can be cancelled. They come with a nice progress bar.
@@ -202,16 +202,16 @@ prop = 'status_code'
 ###env
 
 # first request
-requests.get(
+get(
   base_url + '/posts'
 )
 assert {prop: 200, 'encoding': 'utf-8'}
 
 # second request, with no assertion
-requests.get(base_url + '/profile')
+get(base_url + '/profile')
 
 # third request
-requests.get(base_url + '/comments')
+get(base_url + '/comments')
 
 assert {
   'status_code': 500
@@ -229,7 +229,7 @@ Some valid properties: `apparent_encoding`, `cookies`, `encoding`, `headers`, `h
 Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). If you have a JSON API, [JSON Schema](http://json-schema.org/) is an excellent way to describe your API's data format. Use it.
 
 ~~~py
-requests.get('https://jsonplaceholder.typicode.com/posts')
+get('https://jsonplaceholder.typicode.com/posts')
 assert {
     'json_schema': {
         "type": "array",
@@ -321,7 +321,7 @@ I would be very grateful! [See here](https://github.com/kylebebak/Requester/blob
 ## Why Requester?
 Requester combines features from applications like Postman, Paw, Insomnia and HTTPie with the elegance and power of Requests.
 
-Requester leans on Requests as much as possible. This means Requester does most anything Requests does, which means it does most anything you need to explore, debug, and test a modern API.
+Requester leans on [Requests](http://docs.python-requests.org/en/master/user/quickstart/) as much as possible. This means Requester does most anything Requests does, which means it does most anything you need to explore, debug, and test a modern API.
 
 It also means Requester uses an extensively documented, battle-tested library famed for its beauty. If you don't know how to do something with Requester, there are thousands of blog posts, articles and answers on Stack Overflow that explain how to do it.
 
