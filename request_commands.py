@@ -15,6 +15,39 @@ Request = namedtuple('Request', 'request, method, url, ordering')
 platform = sublime.platform()
 
 
+def get_content(response):
+    """Efficiently decides if response content is binary. If this is the case,
+    returns before `text` or `json` are invoked on response, because they are VERY
+    SLOW when invoked on binary responses. See below:
+
+    https://github.com/requests/requests/issues/2371
+
+    Also makes sure response isn't too large to display. Finally, prettifies JSON
+    if response content is JSON.
+    """
+    config = sublime.load_settings('Requester.sublime-settings')
+    max_len = 1000 * int(config.get('max_content_length_kb', 5000))
+    if len(response.content) > max_len:
+        return "Response is too big. This might be a binary file, or you might need to increase " +\
+            "`max_content_length_kb` in Requester's settings."
+
+    if response.encoding is None:
+        try:
+            response.content.decode('utf-8')
+        except UnicodeDecodeError:
+            # content is almost certainly binary, and if it's not, requests won't know how to decode it anyway
+            return "Response content is binary, so it can't be displayed. Try downloading this file instead."
+        else:
+            response.encoding = 'utf-8'
+
+    try:
+        json_dict = response.json()
+    except:
+        return response.text
+    else:  # prettify json regardless of what raw response looks like
+        return json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
+
+
 def get_response_view_content(request, response):
     """Returns a response string that includes metadata, headers and content,
     and the index of the string at which response content begins.
@@ -30,13 +63,8 @@ def get_response_view_content(request, response):
     headers = '\n'.join(
         ['{}: {}'.format(k, v) for k, v in sorted(r.headers.items())]
     )
-    try:
-        json_dict = r.json()
-    except:
-        content = r.text
-    else:  # prettify json regardless of what raw response looks like
-        content = json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
 
+    content = get_content(r)
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     before_content_items = [
         request,

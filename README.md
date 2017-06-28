@@ -304,6 +304,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __history_max_entries__: max number of requests in history file
 - __chunk_size__: chunk size for file downloads (bytes)
 - __only_download_for_200__: only perform file download if response status code is 200
+- __max_content_length_kb__: don't render responses whose content length (kilobytes) exceeds this value
 
 
 ## Gotchas

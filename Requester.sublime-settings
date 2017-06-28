@@ -25,5 +25,8 @@
   "chunk_size": 1024,
 
   // only perform file download if response status code is 200
-  "only_download_for_200": true
+  "only_download_for_200": true,
+
+  // don't render responses whose content length (kilobytes) exceeds this value
+  "max_content_length_kb": 5000
 }
