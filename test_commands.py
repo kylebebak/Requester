@@ -1,4 +1,5 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 
 from collections import namedtuple
 
@@ -37,7 +38,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 self._tests = parse_tests(selection)
             except:
                 sublime.error_message('Parse Error: unbalanced brackets in tests')
-            break # only parse first selection
+            break  # only parse first selection
 
         return [test.request for test in self._tests]
 
@@ -49,13 +50,13 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             sublime.error_message('Parse Error: something went wrong')
             return
 
-        results = []; errors = []
-        count_assertions = 0; count_errors = 0
+        results, errors = [], []
+        count_assertions, count_errors = 0, 0
         for i, response in enumerate(responses):
             try:
                 assertion = self.eval_assertion(self._tests[i].assertion)
             except Exception as e:
-                errors.append( '{}: {}'.format('Assertion Error', e) )
+                errors.append('{}: {}'.format('Assertion Error', e))
             else:
                 r = self.get_result(response, assertion)
                 count_assertions += r.assertions
@@ -64,7 +65,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
 
         if errors:
             sublime.error_message('\n\n'.join(errors))
-        if not results: # don't open test view if no tests were run
+        if not results:  # don't open test view if no tests were run
             return
 
         view = self.view.window().new_file()
@@ -106,11 +107,11 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         errors = []
         count = 0
 
-        assertion = {str(k): v for k, v in assertion.items()} # make sure keys can be ordered
+        assertion = {str(k): v for k, v in assertion.items()}  # make sure keys can be ordered
         for prop, expected in sorted(assertion.items()):
-            prop = str(prop) # so lookup with hasattr doesn't explode
+            prop = str(prop)  # so lookup with hasattr doesn't explode
 
-            if prop in ('cookies_schema', 'json_schema', 'headers_schema'): # jsonschema validation
+            if prop in ('cookies_schema', 'json_schema', 'headers_schema'):  # jsonschema validation
                 count += 1
                 from jsonschema import validate, ValidationError
 
@@ -129,7 +130,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                     sublime.error_message('Schema Error: {}'.format(e))
                     continue
 
-            elif prop in ('cookies', 'json'): # method equality validtion
+            elif prop in ('cookies', 'json'):  # method equality validtion
                 count += 1
                 if prop == 'cookies':
                     got = r.cookies.get_dict()
@@ -138,7 +139,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 if got != expected:
                     errors.append(Error(prop, expected, got, 'not equal'))
 
-            else: # prop equality validation
+            else:  # prop equality validation
                 if not hasattr(r, prop):
                     continue
                 count += 1

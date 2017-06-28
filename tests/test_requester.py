@@ -36,11 +36,15 @@ def select_line_beginnings(view, lines, clear=True):
     if clear:
         view.sel().clear()
     for line in lines:
-        view.sel().add(sublime.Region( view.text_point(line-1, 0) ))
+        view.sel().add(sublime.Region(
+            view.text_point(line-1, 0)
+        ))
 
 
 def get_line(view, line):
-        return view.substr(view.line( view.text_point(line-1, 0) ))
+        return view.substr(view.line(
+            view.text_point(line-1, 0)
+        ))
 
 
 ####################
@@ -49,7 +53,7 @@ def get_line(view, line):
 
 class TestRequesterMixin:
 
-    WAIT_MS = 2000 # wait in ms for responses to return
+    WAIT_MS = 2000  # wait in ms for responses to return
 
     def setUp(self):
         self.config = sublime.load_settings('Requester.sublime-settings')
@@ -84,7 +88,9 @@ class TestRequesterMixin:
         self.assertEqual(view.name(), name)
 
     def _test_string_in_view(self, view, string):
-        content = view.substr( sublime.Region(0, view.size()) )
+        content = view.substr(sublime.Region(
+            0, view.size()
+        ))
         self.assertTrue(string in content)
 
 
@@ -97,7 +103,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         """
         select_line_beginnings(self.view, 5)
         self.view.run_command('requester')
-        yield self.WAIT_MS # this use of yield CAN'T be moved into a helper, it needs to be part of a test method
+        yield self.WAIT_MS  # this use of yield CAN'T be moved into a helper, it needs to be part of a test method
         self._test_url_in_view(self.window.active_view(), 'https://jsonplaceholder.typicode.com/albums')
         self._test_name_in_view(self.window.active_view(), 'POST: /albums')
 
@@ -125,7 +131,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         view = self.window.open_file(
             path.join(sublime.packages_path(), 'Requester', 'tests', 'requester_env_file.py')
         )
-        yield 1000 # not waiting here causes a strange bug to happen
+        yield 1000  # not waiting here causes a strange bug to happen
         select_line_beginnings(view, 3)
         view.run_command('requester')
         yield self.WAIT_MS
@@ -151,7 +157,6 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         self.assertEqual(index, new_index)
 
 
-
 class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
 
     REQUESTER_FILE = 'Packages/Requester/tests/requester.py'
@@ -163,7 +168,7 @@ class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
             - Focus doesn't change to any response tab after it appears
             - Reordering response tabs works correctly
         """
-        select_line_beginnings(self.view, [5,6,7,8])
+        select_line_beginnings(self.view, [5, 6, 7, 8])
         self.view.run_command('requester')
         yield self.WAIT_MS
         self.assertEqual(self.window.active_view(), self.view)
@@ -192,6 +197,6 @@ class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
         yield self.WAIT_MS
         self._test_url_in_view(self.window.active_view(), 'http://httpbin.org/cookies/set?k1=v1')
         self._test_name_in_view(self.window.active_view(), 'GET: /cookies/set')
-        self._test_string_in_view(self.window.active_view(), "'X-Test': 'true'") # header added to session
-        self._test_string_in_view(self.window.active_view(), "'Cookie': 'k0=v0'") # cookies added to session
+        self._test_string_in_view(self.window.active_view(), "'X-Test': 'true'")  # header added to session
+        self._test_string_in_view(self.window.active_view(), "'Cookie': 'k0=v0'")  # cookies added to session
         self._test_string_in_view(self.window.active_view(), "Response Cookies: {'k1': 'v1'}")

@@ -1,4 +1,5 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 
 import webbrowser
 
@@ -87,6 +88,7 @@ from requests import get, options, head, post, put, patch, delete
 ###env
 
 """
+
 
 class RequesterNewRequesterFileCommand(sublime_plugin.TextCommand):
     """Create a new view with a skeleton for a requester file.

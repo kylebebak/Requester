@@ -1,4 +1,5 @@
-import sublime, sublime_plugin
+import sublime
+import sublime_plugin
 
 import os
 
@@ -26,7 +27,7 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
 
         env['__parse_args__'] = parse_args
         args, kwargs = eval('__parse_args__{}'.format(
-            request[request.index('('):] # get args and kwargs that were passed to `requests.get`
+            request[request.index('('):]  # get args and kwargs that were passed to `requests.get`
         ), env)
         filename = kwargs.pop('filename')
         sublime.set_timeout_async(lambda: self.run_initial_request(args, kwargs, filename, view), 0)
@@ -46,7 +47,6 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
                 return
         sublime.set_timeout_async(lambda: self.download_file(r, filename, view), 0)
 
-
     def download_file(self, response, filename, view):
         length = int(response.headers.get('content-length') or 0)
         chunk_size = sublime.load_settings('Requester.sublime-settings').get('chunk_size', 1024)
@@ -63,7 +63,7 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
                 return
 
         try:
-            with open(filename, 'xb') as f: # don't overwrite file if it already exists
+            with open(filename, 'xb') as f:  # don't overwrite file if it already exists
                 for chunk in response.iter_content(chunk_size):
                     if self.CANCELLED:
                         break

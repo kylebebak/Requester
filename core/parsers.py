@@ -74,8 +74,8 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
         if n and len(end_indices) >= n:
             break
 
-        bc = 0 # bracket count
-        while True: # fix: this doesn't handle escaped quotes
+        bc = 0  # bracket count
+        while True:  # fix: this doesn't handle escaped quotes
             c = s[index]
 
             if c == "'" and not dq and not comment:
@@ -84,7 +84,7 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
                 dq = not dq
             if c == '#' and not comment and not sq and not comment:
                 comment = True
-            if c == '\n': # new line always terminates comment
+            if c == '\n':  # new line always terminates comment
                 comment = False
             if sq or dq or comment:
                 index += 1
@@ -105,7 +105,7 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
     selections = []
     for pair in zip(start_indices, end_indices):
         selections.append(Selection(
-            s[ pair[0]:pair[1]+1 ], pair[0], type_
+            s[pair[0]:pair[1]+1], pair[0], type_
         ))
     return selections
 
@@ -132,7 +132,7 @@ def truncate(s, l, ellipsis='...'):
     """Truncates string to length `l` if need be and adds `ellipsis`.
     """
     if len(s) > l:
-        return s[:l] +  ellipsis
+        return s[:l] + ellipsis
     return s
 
 

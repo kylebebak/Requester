@@ -41,15 +41,15 @@ class ResponseThreadPool:
                 error = '{}: {}'.format('Type Error', e)
         except Exception as e:
             error = '{}: {}'.format('Other Error', e)
-        else: # only check response type if no exceptions were raised
+        else:  # only check response type if no exceptions were raised
             if not isinstance(response, requests.Response):
                 error = '{}: {}'.format('Type Error',
                                         'request did not return an instance of requests.Response')
-                response = None # reset response to `None` if it's not a `Response`
+                response = None  # reset response to `None` if it's not a `Response`
 
         if not self.env:
             self.env = {}
-        self.env['Response'] = response # to allow "chaining" of serially executed requests
+        self.env['Response'] = response  # to allow "chaining" of serially executed requests
         return Response(request, response, error, ordering, type_)
 
     def __init__(self, requests_, env, max_workers):
@@ -81,7 +81,7 @@ class ResponseThreadPool:
                 except ValueError:
                     pass
 
-                if result.type == 'download': # `RequestCommandMixin` machinery doesn't handle downloads
+                if result.type == 'download':  # `RequestCommandMixin` machinery doesn't handle downloads
                     self.download_file(result.request)
                 else:
                     self.responses.append(result)
