@@ -72,6 +72,12 @@ post(
 If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
 
+### Pinned Response Tabs
+When you execute a request, Requester overwrites response tabs that have the same request method and base URL as the request you're executing. This means you can't have multiple response tabs open for the same request.
+
+Just kidding, of course you can! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or just at the response tab content the shorcut to pin/unpin tabs. Pinned response tabs are never overwritten, which allows you as many views into a response as you like.
+
+
 ### Environment Variables
 It's time to add environment variables to your requests. Requester lets you to do this directly in your requester file. Just put your environment variables in a code block fenced by __###env__ lines.
 
@@ -283,16 +289,17 @@ Commands defined by this package, in case you want to change key bindings.
 
 - __requester__
 - __requester_replay_request__
-- __requester_cancel_requests__: cancel all outstanding requests
 - __requester_history__: search and re-execute past requests
+- __requester_cancel_requests__: cancel all outstanding requests
+- __requester_cancel_downloads__: cancel outstanding file downloads
+- __requester_response_tab_toggle_pinned__: pin (or unpin) a response tab so that it isn't overwritten by requests with its same method and URL
 - __requester_close_response_tabs__
+- __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file
+- __requester_new_requester_file__: create empty requester file
 - __requester_run_tests__
 - __requester_show_tutorial__
 - __requester_show_documentation__
 - __requester_show_syntax__
-- __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file
-- __requester_new_requester_file__: create empty requester file
-- __requester_cancel_downloads__: cancel outstanding file downloads
 
 
 ## Settings

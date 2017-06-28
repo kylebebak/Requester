@@ -152,7 +152,12 @@ class RequestsMixin:
         views = []
         for sheet in self.view.window().sheets():
             view = sheet.view()
-            if view and view.settings().get('requester.response_view', False):
+            if not view:
+                continue
+            if view.settings().get('requester.response_pinned', False):
+                continue
+
+            if view.settings().get('requester.response_view', False):
                 view_request = view.settings().get('requester.request', None)
                 if not view_request or not view_request[0] or not view_request[1]:
                     # don't match only falsy method or url
@@ -307,6 +312,25 @@ class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
         pools = RequestCommandMixin.RESPONSE_POOLS
         for pool in pools:
             pool.is_done = True
+
+
+class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
+    """Pin or unpin a response tab. A pinned response tab can't be overwritten.
+    """
+    def run(self):
+        view = self.window.active_view()
+        if not view:
+            return
+        if not view.settings().get('requester.response_view', False):
+            return
+        pinned = bool(view.settings().get('requester.response_pinned', False))
+        pinned = not pinned
+
+        view.settings().set('requester.response_pinned', pinned)
+        if pinned:
+            view.set_name('** {}'.format(view.settings().get('requester.name')))
+        else:
+            view.set_name(view.settings().get('requester.name'))
 
 
 class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):

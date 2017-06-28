@@ -11,24 +11,8 @@
   },
 
   {
-    "caption": "Requester: Run Tests",
-    "command": "requester_run_tests"
-  },
-
-  {
-    "caption": "Requester: Run Tests Serially",
-    "command": "requester_run_tests",
-    "args": { "concurrency": 1 }
-  },
-
-  {
     "caption": "Requester: Replay Request",
     "command": "requester_replay_request"
-  },
-
-  {
-    "caption": "Requester: Cancel Requests",
-    "command": "requester_cancel_requests"
   },
 
   {
@@ -37,8 +21,44 @@
   },
 
   {
+    "caption": "Requester: Cancel Requests",
+    "command": "requester_cancel_requests"
+  },
+
+  {
+    "caption": "Requester: Cancel Downloads",
+    "command": "requester_cancel_downloads"
+  },
+
+  {
     "caption": "Requester: Close All Response Tabs",
     "command": "requester_close_response_tabs"
+  },
+
+  {
+    "caption": "Requester: Reorder Response Tabs",
+    "command": "requester_reorder_response_tabs"
+  },
+
+  {
+    "caption": "Requester: Pin/Unpin Response Tab",
+    "command": "requester_response_tab_toggle_pinned"
+  },
+
+  {
+    "caption": "Requester: New Requester File",
+    "command": "requester_new_requester_file"
+  },
+
+  {
+    "caption": "Requester: Run Tests",
+    "command": "requester_run_tests"
+  },
+
+  {
+    "caption": "Requester: Run Tests Serially",
+    "command": "requester_run_tests",
+    "args": { "concurrency": 1 }
   },
 
   {
@@ -54,20 +74,5 @@
   {
     "caption": "Requester: Show Syntax",
     "command": "requester_show_syntax"
-  },
-
-  {
-    "caption": "Requester: Reorder Response Tabs",
-    "command": "requester_reorder_response_tabs"
-  },
-
-  {
-    "caption": "Requester: New Requester File",
-    "command": "requester_new_requester_file"
-  },
-
-  {
-    "caption": "Requester: Cancel Downloads",
-    "command": "requester_cancel_downloads"
   }
 ]
