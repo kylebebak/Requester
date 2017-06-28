@@ -4,7 +4,9 @@
 
 A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie, and improves on them wherever possible.
 
-Get environment variables, concurrent requests, multiple, editable response tabs and the beautiful syntax of Requests, all without neutering your keyboard. You should honestly try it even if you've never used Sublime Text.
+Get environment variables, concurrent requests, multiple, editable response tabs and the beautiful syntax of Requests, all without neutering your keyboard.
+
+[See a video of Requester in action](https://www.youtube.com/watch?v=kVO5AWIsmF0). You should honestly try it even if you've never used Sublime Text.
 
 
 ## Features
@@ -13,7 +15,7 @@ Get environment variables, concurrent requests, multiple, editable response tabs
   + Support for sessions, authentication
   + Forms and file uploads, Wget-style downloads  
   + HTTPS, proxies, redirects, and more
-- Intuitive, modern UX
+- [Intuitive, modern UX](https://www.youtube.com/watch?v=kVO5AWIsmF0)
   + Environment variables
   + Execute requests and display responses in parallel, or chain requests
   + Edit and replay requests from individual response tabs
