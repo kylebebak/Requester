@@ -75,7 +75,7 @@ If you want to close all open tabs, look for __Requester: Close All Response Tab
 ### Pinned Response Tabs
 When you execute a request, Requester overwrites response tabs that have the same request method and base URL as the request you're executing. This means you can't have multiple response tabs open for the same request.
 
-Just kidding, of course you can! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or just look at the response tab content for the shorcut to pin/unpin tabs. Pinned response tabs are never overwritten, which allows you as many views into a response as you like.
+Just kidding, of course you can! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or just look at the response tab content for the shortcut to pin/unpin tabs. Pinned response tabs are never overwritten, which allows you as many views into a response as you like.
 
 
 ### Environment Variables
