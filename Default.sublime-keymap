@@ -18,5 +18,13 @@
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
     ]
+  },
+
+  {
+    "keys": ["ctrl+t"],
+    "command": "requester_response_tab_toggle_pinned",
+    "context": [
+      { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
+    ]
   }
 ]

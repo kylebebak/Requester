@@ -66,11 +66,12 @@ def get_response_view_content(request, response):
 
     content = get_content(r)
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
+    pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [
         request,
         header,
         '{}: {}'.format('Request Headers', r.request.headers),
-        '{} replay request'.format(replay_binding),
+        '{} replay request'.format(replay_binding) + ', ' + '{} pin/unpin tab'.format(pin_binding),
         headers
     ]
     cookies = r.cookies.get_dict()
@@ -81,7 +82,7 @@ def get_response_view_content(request, response):
     return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
 
-def set_response_view_name(view, response):
+def set_response_view_name(view, response=None):
     """Set name for `view` with content from `response`.
     """
     try:  # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
@@ -90,10 +91,12 @@ def set_response_view_name(view, response):
             path = path[:-1]
         name = '{}: {}'.format(response.request.method, path)
     except:
-        view.set_name(view.settings().get('requester.name'))
+        name = view.settings().get('requester.name')
     else:
-        view.set_name(name)
         view.settings().set('requester.name', name)
+
+    pinned = view.settings().get('requester.response_pinned', False)
+    view.set_name('{}{}'.format('** ' if pinned else '', name))
 
 
 def parse_method_and_url_from_request(request, env):
@@ -327,10 +330,7 @@ class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
         pinned = not pinned
 
         view.settings().set('requester.response_pinned', pinned)
-        if pinned:
-            view.set_name('** {}'.format(view.settings().get('requester.name')))
-        else:
-            view.set_name(view.settings().get('requester.name'))
+        set_response_view_name(view)
 
 
 class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):

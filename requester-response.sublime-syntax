@@ -51,7 +51,7 @@ contexts:
       set: replay-request
 
   replay-request:
-    - match: '\[.*replay request$\n'
+    - match: '\[.*replay request.*$\n'
       scope: storage.type.replay-request.requester-response
       set:
         - match: ^$\n
