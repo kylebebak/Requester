@@ -73,7 +73,7 @@ If you want to close all open tabs, look for __Requester: Close All Response Tab
 
 
 ### Pinned Response Tabs
-When you execute a request, Requester overwrites response tabs that have the same request method and base URL as the request you're executing. This means you can't have multiple response tabs open for the same request.
+When you execute a request, Requester overwrites response tabs that have the same request method and URL as the request you're executing. This means you can't have multiple response tabs open for the same request.
 
 Just kidding, of course you can! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or just look at the response tab content for the shortcut to pin/unpin tabs. Pinned response tabs are never overwritten, which allows you as many views into a response as you like.
 
@@ -306,14 +306,15 @@ Commands defined by this package, in case you want to change key bindings.
 - __timeout__: default timeout in seconds for all requests
   + if you want to change this for a single request, __do so directly in the response tab__, not in your requester file
 - __timeout_env__: default timeout in seconds for executing env block/env file
+- __max_content_length_kb__: don't render responses whose content length (kilobytes) exceeds this value
 - __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
 - __change_focus_after_requests__: if multiple requests are executed, change focus to final response tab after requests return
 - __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
+- __pin_tabs_by_default__: pin newly opened response tabs by default, so they aren't overwritten by requests with the same method and URL
 - __history_file__: name of request history file, this is stored in User directory
 - __history_max_entries__: max number of requests in history file
 - __chunk_size__: chunk size for file downloads (bytes)
 - __only_download_for_200__: only perform file download if response status code is 200
-- __max_content_length_kb__: don't render responses whose content length (kilobytes) exceeds this value
 
 
 ## Gotchas

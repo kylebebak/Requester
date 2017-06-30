@@ -68,15 +68,24 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
                 break
         index += len(line)
 
-    sq, dq, comment = False, False, False
+    sq, dq, comment, escape = False, False, False, False
     end_indices = []
     for index in start_indices:
         if n and len(end_indices) >= n:
             break
 
         bc = 0  # bracket count
-        while True:  # fix: this doesn't handle escaped quotes
+        while True:
             c = s[index]
+            if c == '\\':  # escape char skips next char
+                escape = True
+                index += 1
+                continue
+
+            if escape:
+                escape = False
+                index += 1
+                continue
 
             if c == "'" and not dq and not comment:
                 sq = not sq

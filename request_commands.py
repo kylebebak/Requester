@@ -224,8 +224,6 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             method, url = None, None
 
         if r.error:  # ignore responses with errors
-            for view in self.response_views_with_matching_request(method, url):
-                set_response_view_name(view, r.response)
             return
 
         requester_sheet = window.active_sheet()
@@ -239,7 +237,11 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
 
         views = self.response_views_with_matching_request(method, url)
         if not len(views):  # if there are no matching response tabs, create a new one
-            views = [window.new_file()]
+            view = window.new_file()
+            pinned = self.config.get('pin_tabs_by_default', False)
+            if pinned:  # is this newly opened view pinned by default?
+                view.settings().set('requester.response_pinned', True)
+            views = [view]
         else:  # move focus to matching view after response is returned if match occurred
             window.focus_view(views[0])
 

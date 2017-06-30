@@ -5,6 +5,9 @@
   // display error if env hasn't been executed after this many seconds
   "timeout_env": 15,
 
+  // don't render responses whose content length (kilobytes) exceeds this value
+  "max_content_length_kb": 5000,
+
   // if a single request is executed, change focus to response tab after request returns
   "change_focus_after_request": true,
 
@@ -15,18 +18,19 @@
   // based on requests in requester file after requests return
   "reorder_tabs_after_requests": false,
 
+  // pin newly opened response tabs by default, so they aren't overwritten by
+  // requests with the same method and URL
+  "pin_tabs_by_default": false,
+
   // name of history file, this is stored in User directory
   "history_file": "Requester.history.json",
 
   // max number of requests in history
-  "history_max_entries": 150,
+  "history_max_entries": 250,
 
   // chunk size for file downloads (bytes)
   "chunk_size": 1024,
 
   // only perform file download if response status code is 200
-  "only_download_for_200": true,
-
-  // don't render responses whose content length (kilobytes) exceeds this value
-  "max_content_length_kb": 5000
+  "only_download_for_200": true
 }
