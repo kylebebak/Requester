@@ -4,18 +4,12 @@
 
 A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie, and improves on them wherever possible.
 
-Get environment variables, concurrent requests, multiple, editable response tabs and the beautiful syntax of Requests, all without neutering your keyboard.
-
-[See a video of Requester in action](https://www.youtube.com/watch?v=kVO5AWIsmF0). You should honestly try it even if you've never used Sublime Text.
-
-
-## Features
 - [Elegant, well-documented syntax](http://docs.python-requests.org/en/master/user/quickstart/)
-  + Easily set request body, query params, custom headers, cookies
+  + Easily set request data, query params, custom headers, cookies
   + Support for sessions, authentication
   + Forms and file uploads, Wget-style downloads  
   + HTTPS, proxies, redirects, and more
-- [Intuitive, modern UX](https://www.youtube.com/watch?v=kVO5AWIsmF0)
+- Intuitive, modern UX
   + Environment variables
   + Execute requests and display responses in parallel, or chain requests
   + Edit and replay requests from individual response tabs
@@ -26,6 +20,10 @@ Get environment variables, concurrent requests, multiple, editable response tabs
 - Perfect for teams
   + Sharing and versioning of requests and env vars
   + Lightweight, integrated test runner with support for JSON Schema
+
+If you're looking for an HTTP client you should try Requester __even if you've never used Sublime Text__. [Here are some reasons why](https://github.com/kylebebak/Requester#why-requester).
+
+[![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester").
 
 
 ## Installation
@@ -48,13 +46,13 @@ get('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optio
 post('https://jsonplaceholder.typicode.com/posts')
 ~~~
 
-Place your cursor on one of the lines and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r</kbd> on OSX). Or, look for __Requester: Run Requests__ in the command palette and hit Enter. A response tab will appear, with a name like __GET: /albums__.
+Place your cursor on one of the lines and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r</kbd> on OSX). Or, look for __Requester: Run Requests__ in the command palette <kbd>shift+cmd+p</kbd> and hit Enter. A response tab will appear, with a name like __GET: /albums__.
 
 Head to the response tab and check out the response. Hit <kbd>ctrl+alt+r</kbd> or <kbd>ctrl+r</kbd> (<kbd>ctrl+r</kbd> or <kbd>cmd+r</kbd> on OSX) to replay the request. You can edit the request, which is at the top of the file, before replaying it.
 
 Now, go back to the requester file and highlight all 5 lines, and once again execute the requests.
 
-Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, but simply overwrite the content in the matching response tabs.
+Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, but simply overwrite the content in the matching response tabs (read on if you'd like to change this behavior).
 
 Want to see something nifty? Mix up the order of the 4 open response tabs, come back to your requester file, and run __Requester: Reorder Response Tabs__.
 
@@ -311,7 +309,7 @@ Commands defined by this package, in case you want to change key bindings.
 - __change_focus_after_requests__: if multiple requests are executed, change focus to final response tab after requests return
 - __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
 - __pin_tabs_by_default__: pin newly opened response tabs by default, so they aren't overwritten by requests with the same method and URL
-- __history_file__: name of request history file, this is stored in User directory
+- __history_file__: name of request history file, stored in User directory
 - __history_max_entries__: max number of requests in history file
 - __chunk_size__: chunk size for file downloads (bytes)
 - __only_download_for_200__: only perform file download if response status code is 200
@@ -330,14 +328,14 @@ I would be very grateful! [See here](https://github.com/kylebebak/Requester/blob
 
 
 ## Why Requester?
-Requester combines features from applications like Postman, Paw, Insomnia and HTTPie with the elegance and power of Requests.
+Requester combines features from applications like Postman, Paw, Insomnia and HTTPie with the elegance and power of Requests and rock-solid UX of Sublime Text.
 
 Requester leans on [Requests](http://docs.python-requests.org/en/master/user/quickstart/) as much as possible. This means Requester does most anything Requests does, which means it does most anything you need to explore, debug, and test a modern API.
 
 It also means Requester uses an extensively documented, battle-tested library famed for its beauty. If you don't know how to do something with Requester, there are thousands of blog posts, articles and answers on Stack Overflow that explain how to do it.
 
-Apart from being feature-rich, Requester is built for speed and simplicity. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
+Apart from being feature-rich, __Requester is built for speed and simplicity__. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
 
-The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they won't beat GitHub at collaboration, and they won't beat Git at version control.
+The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control.
 
-Requester is cross-platform, free, and built for teams. If you debug web APIs for work or for fun, try it. Try it even if you don't use Sublime Text. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use =)
+Requester is cross-platform, free, and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use =)
