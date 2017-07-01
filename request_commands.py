@@ -315,8 +315,12 @@ class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
     """
     def run(self):
         pools = RequestCommandMixin.RESPONSE_POOLS
-        for pool in pools:
-            pool.is_done = True
+        while not pools.empty():
+            pool = pools.get()
+            if not pool.is_done:
+                pool.is_done = True
+                for request in pool.requests:
+                    print('Request cancelled: {}'.format(request))
 
 
 class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):

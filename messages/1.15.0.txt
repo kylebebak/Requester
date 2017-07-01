@@ -3,3 +3,6 @@
 Improvements to request parser: parser doesn't choke on escaped single quotes or escaped double quotes.
 
 Added __pin_tabs_by_default__ setting, which allows users that don't want any reponses to be overwritten to pin newly opened response tabs by default.
+
+# Code
+Improved behavior of `RequesterCancelRequestsCommand`.

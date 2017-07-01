@@ -8,6 +8,7 @@ import json
 from collections import OrderedDict
 from threading import Thread
 from time import time
+from queue import Queue
 
 from .responses import ResponseThreadPool
 from .parsers import prepare_request
@@ -26,8 +27,8 @@ class RequestCommandMixin:
     ACTIVITY_SPACES = 9  # number of spaces in activity indicator
     MAX_WORKERS = 10  # default request concurrency
     PREPARE_REQUESTS = True
-    RESPONSE_POOLS = []
-    MAX_NUM_RESPONSE_POOLS = 10  # up to N response pools can be stored (and therefore cancelled)
+    RESPONSE_POOLS = Queue()
+    MAX_NUM_RESPONSE_POOLS = 10  # up to N response pools can be stored
 
     def get_requests(self):
         """This must be overridden to return a list of request strings.
@@ -207,10 +208,12 @@ class RequestCommandMixin:
         """Make requests concurrently using a `ThreadPool`, which itself runs on
         an alternate thread so as not to block the UI.
         """
+        pools = self.RESPONSE_POOLS
         pool = ResponseThreadPool(requests, env, self.MAX_WORKERS)  # pass along env vars to thread pool
-        self.RESPONSE_POOLS.append(pool)
-        while len(self.RESPONSE_POOLS) > self.MAX_NUM_RESPONSE_POOLS:
-            self.RESPONSE_POOLS.pop(0)
+        pools.put(pool)
+        while pools.qsize() > self.MAX_NUM_RESPONSE_POOLS:
+            old_pool = pools.get()
+            old_pool.is_done = True  # don't display responses for a pool which has already been removed
         sublime.set_timeout_async(lambda: pool.run(), 0)  # run on an alternate thread
         sublime.set_timeout(lambda: self.gather_responses(pool), 0)
 
