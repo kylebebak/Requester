@@ -77,7 +77,10 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
         bc = 0  # bracket count
         while True:
             c = s[index]
-            if c == '\\':  # escape char skips next char
+            if c == '\n':  # new line always terminates comment
+                comment = False
+
+            if c == '\\':  # escape char skips next char, unless it's a new line
                 escape = True
                 index += 1
                 continue
@@ -91,10 +94,8 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
                 sq = not sq
             if c == '"' and not sq and not comment:
                 dq = not dq
-            if c == '#' and not comment and not sq and not comment:
+            if c == '#' and not sq and not dq:
                 comment = True
-            if c == '\n':  # new line always terminates comment
-                comment = False
             if sq or dq or comment:
                 index += 1
                 continue
