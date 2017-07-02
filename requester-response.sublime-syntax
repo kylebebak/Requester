@@ -40,13 +40,13 @@ contexts:
   url:
     - match: ^.*$\n
       scope: entity.name.tag.requester-response # hack to make URL bold
-      set: headers-cookies
+      set: headers-body-cookies
 
-  headers-cookies:
-    - match: ^(Request Headers:|Response Cookies:)(.*)$\n
+  headers-body-cookies:
+    - match: ^(Request Headers:|Request Body:|Response Cookies:)(.*)$\n
       captures:
         1: constant.numeric.label.requester-response
-        2: constant.language.headers-cookies.requester-response
+        2: constant.language.headers-body-cookies.requester-response
     - match: ^(?=\[) # use look-ahead to not include bracket in match
       set: replay-request
 

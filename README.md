@@ -5,7 +5,7 @@
 A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie, and improves on them wherever possible.
 
 - [Elegant, well-documented syntax](http://docs.python-requests.org/en/master/user/quickstart/)
-  + Easily set request data, query params, custom headers, cookies
+  + Easily set request body, query params, custom headers, cookies
   + Support for sessions, authentication
   + Forms and file uploads, Wget-style downloads  
   + HTTPS, proxies, redirects, and more
@@ -20,6 +20,8 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
 - Perfect for teams
   + Sharing and versioning of requests and env vars
   + Lightweight, integrated test runner with support for JSON Schema
+
+---
 
 If you're looking for an HTTP client you should try Requester __even if you've never used Sublime Text__. [Here are some reasons why](https://github.com/kylebebak/Requester#why-requester).
 

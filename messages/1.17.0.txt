@@ -1,0 +1,6 @@
+# New Features
+
+Display request body in response tab, if body was present.
+
+# Code
+Fixed comment/backslash bug in parser.

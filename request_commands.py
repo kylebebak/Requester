@@ -70,13 +70,21 @@ def get_response_view_content(request, response):
     before_content_items = [
         request,
         header,
-        '{}: {}'.format('Request Headers', r.request.headers),
+        'Request Headers: {}'.format(r.request.headers),
         '{} replay request'.format(replay_binding) + ', ' + '{} pin/unpin tab'.format(pin_binding),
         headers
     ]
+    try:
+        body = parse.parse_qs(r.request.body)
+        body = {k: v[0] for k, v in body.items()}
+    except:
+        body = r.request.body
+
     cookies = r.cookies.get_dict()
     if cookies:
-        before_content_items.insert(3, '{}: {}'.format('Response Cookies', cookies))
+        before_content_items.insert(3, 'Response Cookies: {}'.format(cookies))
+    if body:
+        before_content_items.insert(3, 'Request Body: {}'.format(body))
     before_content = '\n\n'.join(before_content_items)
 
     return Content(before_content + '\n\n' + content, len(before_content) + 2)
