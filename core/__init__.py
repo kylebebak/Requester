@@ -317,9 +317,13 @@ class RequestCommandMixin:
                 except KeyError:
                     pass
 
-        # rewrite all requests to history file
-        with open(history_path, 'w') as f:
-            f.write(json.dumps(rh, f))
+        # write all requests to history file: https://stackoverflow.com/questions/1812115/how-to-safely-write-to-a-file
+        history_path_temp = history_path + '.tmp'
+        history_path_backup = history_path + '.bkp'
+        with open(history_path_temp, 'w') as f:
+            f.write(json.dumps(rh))  # write to temp file to ensure no data loss if exception raised here
+        os.rename(history_path, history_path_backup)  # create backup file in case rename is unsuccessful
+        os.rename(history_path_temp, history_path)
 
     def add_error_status_bar(self, error):
         """Logs error to console, and adds error in status bar. Not as obtrusive
