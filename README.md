@@ -2,9 +2,9 @@
 
 ![License](https://camo.githubusercontent.com/890acbdcb87868b382af9a4b1fac507b9659d9bf/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6c6963656e73652d4d49542d626c75652e737667)
 
-A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie, and improves on them wherever possible.
+A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie with rock-solid usability and the secret sauce of Requests.
 
-- [Elegant, well-documented syntax](http://docs.python-requests.org/en/master/user/quickstart/)
+- [Super classy, well-documented syntax](http://docs.python-requests.org/en/master/user/quickstart/)
   + Easily set request body, query params, custom headers, cookies
   + Support for sessions, authentication
   + Forms and file uploads, Wget-style downloads  
@@ -14,18 +14,16 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
   + Execute requests and display responses in parallel, or chain requests
   + Edit and replay requests from individual response tabs
   + Replay requests from fuzzy searchable request history
-  + Formatted, colorized output
-  + Automatic syntax highlighting and pretty printing
+  + Formatted, colorized output with automatic syntax highlighting
   + Clear error handling and error messages
 - Perfect for teams
-  + Sharing and versioning of requests and env vars
+  + Version and share requests however you want (Git, GitHub, etc)
   + Lightweight, integrated test runner with support for JSON Schema
+  + Runs on Linux, Windows and macOS/OS X
 
 ---
 
-If you're looking for an HTTP client you should try Requester __even if you've never used Sublime Text__. [Here are some reasons why](https://github.com/kylebebak/Requester#why-requester).
-
-[![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester").
+If you're looking for an HTTP client you should try Requester __even if you've never used Sublime Text__. [Here's why](https://github.com/kylebebak/Requester#why-requester).
 
 
 ## Installation
@@ -37,7 +35,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 
 
 ## Getting Started
->An interactive version of this tutorial is also available. Look for __Requester: Show Tutorial__ in the command palette.
+Open the interactive tutorial in Sublime Text! Look for __Requester: Show Tutorial__ in the command palette. Alternatively, just keep reading.
 
 Open a file and insert the following:
 ~~~py
@@ -73,9 +71,9 @@ If you want to close all open tabs, look for __Requester: Close All Response Tab
 
 
 ### Pinned Response Tabs
-When you execute a request, Requester overwrites response tabs that have the same request method and URL as the request you're executing. This means you can't have multiple response tabs open for the same request.
+When you execute a request, Requester overwrites response tabs that have the same request method and URL as the request you're executing. Hmmm... Does this mean you can't open multiple response tabs for the same request?
 
-Just kidding, of course you can! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or just look at the response tab content for the shortcut to pin/unpin tabs. Pinned response tabs are never overwritten, which allows you as many views into a response as you like.
+Of course not! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or look in the response tab for the keyboard shortcut to __pin/unpin tab__. Pinned response tabs are never overwritten, which allows you as many views into a response as you like.
 
 
 ### Environment Variables
@@ -144,8 +142,6 @@ Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cook
 
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
 
-If you don't know how to do something, check out __Requester: Show Tutorial__ from the command palette, or review syntax at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
-
 
 ### New Requester File
 Want to start a new collection of requests? Run __Requester: New Requester File__ from the command palette. You'll get a new file pointing to an empty env file, with an empty env block, and with a link to Requester's syntax at the top.
@@ -154,7 +150,7 @@ Want to start a new collection of requests? Run __Requester: New Requester File_
 ### Sessions
 Need to log in first so all your requests include a session cookie? [Session objects](http://docs.python-requests.org/en/master/user/advanced/#session-objects) make this a cinch. 
 
-Instantiate the session object in the env block and use it in your requests. Copy this code to a new file and give it a try.
+Instantiate the session object in the env block and use it in your requests. Copy this code to a new file, run the request, and check out the `session_id` cookie in the request headers.
 
 ~~~py
 ###env
@@ -163,7 +159,7 @@ s = requests.Session()
 s.get('http://httpbin.org/cookies/set?session_id=12345', timeout=5)
 ###env
 
-s.get('http://httpbin.org/get')
+s.get('http://httpbin.org/get') # run me
 ~~~
 
 
@@ -193,7 +189,7 @@ Requester saves a history of executed requests. Call __Requester: Request Histor
 
 Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__.
 
-Open your keymap from the command palette by running __Prefences: Key Bindings__. For example, on OSX you might bind it to <kbd>ctrl+h</kbd> by adding the following:
+Open your keymap from the command palette by running __Preferences: Key Bindings__. For example, on OSX you might bind it to <kbd>ctrl+h</kbd> by adding the following:
 
 ~~~json
 { "keys": ["ctrl+h"], "command": "requester_history" },
@@ -234,7 +230,9 @@ Some valid properties: `apparent_encoding`, `cookies`, `encoding`, `headers`, `h
 
 `cookies`, `headers` and `json` point to Python dicts or lists, which means comparing for equality isn't very useful. Much more useful are the following special assertion keys for these properties: `cookies_schema` `headers_schema` `json_schema`.
 
-Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). If you have a JSON API, [JSON Schema](http://json-schema.org/) is an excellent way to describe your API's data format. Use it.
+Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). Look at the example below. The test fails because we assert that the `userId` for each object in the array of results has a type of `string`, and this isn't true.
+
+If you have a JSON API, [JSON Schema](http://json-schema.org/) is an excellent way to describe your API's data format. Use it.
 
 ~~~py
 get('https://jsonplaceholder.typicode.com/posts')
@@ -285,7 +283,7 @@ If you don't run requests serially, this probably won't work, because requests a
 
 
 ## Commands
-Commands defined by this package, in case you want to change key bindings.
+Commands defined by this package, in case you want to add or change key bindings.
 
 - __requester__
 - __requester_replay_request__
@@ -337,6 +335,8 @@ Requester leans on [Requests](http://docs.python-requests.org/en/master/user/qui
 It also means Requester uses an extensively documented, battle-tested library famed for its beauty. If you don't know how to do something with Requester, there are thousands of blog posts, articles and answers on Stack Overflow that explain how to do it.
 
 Apart from being feature-rich, __Requester is built for speed and simplicity__. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
+
+[![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester")
 
 The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control.
 

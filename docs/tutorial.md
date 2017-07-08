@@ -33,6 +33,12 @@ post(
 If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
 
+### Pinned Response Tabs
+When you execute a request, Requester overwrites response tabs that have the same request method and URL as the request you're executing. Hmmm... Does this mean you can't open multiple response tabs for the same request?
+
+Of course not! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or look in the response tab for the keyboard shortcut to __pin/unpin tab__. Try it: pin a response tab, go to the requester file, and execute the same request again.
+
+
 ### Environment Variables
 It's time to add environment variables to your requests. Requester lets you to do this directly in your requester file. Just put your environment variables in a code block fenced by __###env__ lines.
 
@@ -66,7 +72,7 @@ Body, Query Params, Headers and Cookies can be passed to __requests__ as diction
 
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
 
-If you don't know how to do something, just have a look at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
+__Requester's syntax is Requests syntax__. If you don't know how to do something, just have a look at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
 
 
 ### New Requester File
@@ -74,4 +80,4 @@ Want to start a new collection of requests? Run __Requester: New Requester File_
 
 
 ## More Info
-This tutorial is not meant to be complete, and if you have doubts about how Requester works [the README](https://github.com/kylebebak/Requester) is a better source of information. Check it out!
+This tutorial is not meant to be complete, and if you have doubts about how Requester works the README has the goods. Check it out [here](https://github.com/kylebebak/Requester) or by running __Requester: Show Documentation__!

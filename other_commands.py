@@ -82,8 +82,6 @@ NEW_REQUESTER_FILE = """# http://docs.python-requests.org/en/master/user/quickst
 env_file = ''
 
 ###env
-import requests # import statements not required, they just prevent Python linters from complaining
-from requests import get, options, head, post, put, patch, delete
 
 ###env
 
