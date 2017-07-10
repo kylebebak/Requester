@@ -25,6 +25,9 @@ class ResponseThreadPool:
         env['requests'] = requests
 
         response, error, type_ = None, '', None
+        if self.is_done:  # prevents further requests from being made if pool is cancelled
+            return Response(request, response, error, ordering, type_)  # check using: https://requestb.in/
+
         try:
             response = eval(request, env)
         except requests.Timeout:
