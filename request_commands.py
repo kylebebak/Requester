@@ -226,13 +226,9 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         """
         window = self.view.window()
         r = response
-        try:
-            method, url = r.response.request.method, r.response.url
-        except:
-            method, url = None, None
-
-        if r.error:  # ignore responses with errors
+        if not r.response or r.error:  # ignore responses with errors
             return
+        method, url = r.response.request.method, r.response.url
 
         requester_sheet = window.active_sheet()
 

@@ -9,14 +9,23 @@ from .core import RequestCommandMixin
 from .core.parsers import parse_requests
 
 
-ResponseMetrics = namedtuple('ResponseMetrics', 'elapsed, sent, received, code, successful')
+ResponseMetrics = namedtuple('ResponseMetrics', 'elapsed, sent, received, code, success')
+AggregateMetrics = namedtuple(
+    'ResponseMetrics',
+    'success, failure,' +
+    'ok, redirect, client_error, server_error,' +
+    'sent, received,' +
+    'min_time, max_time, avg_time'
+)
 
 
 def header_size(headers):
+    """https://stackoverflow.com/questions/33064891/python-requests-urllib-monitoring-bandwidth-usage
+    """
     return sum(len(key) + len(value) + 4 for key, value in headers.items()) + 2
 
 
-def request_response_size(response):
+def request_response_size_kb(response):
     """https://stackoverflow.com/questions/33064891/python-requests-urllib-monitoring-bandwidth-usage
     """
     r = response
@@ -24,7 +33,7 @@ def request_response_size(response):
     request_size = request_line_size + header_size(r.request.headers) + int(r.request.headers.get('content-length', 0))
     response_line_size = len(r.reason) + 15
     response_size = response_line_size + header_size(r.headers) + int(r.headers.get('content-length', 0))
-    return (request_size, response_size)
+    return (request_size / 1024, response_size / 1024)
 
 
 class RequesterPromptBenchmarksCommand(sublime_plugin.WindowCommand):
@@ -107,31 +116,120 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             ))
 
         r = response
-        try:
-            method, url = r.response.request.method, r.response.url
-        except:
-            method, url = None, None
-        key = '{}: {}'.format(method, url)
-
-        if method and url:
-            sent, received = request_response_size(r.response)
-            elapsed = r.response.elapsed.total_seconds()
-            self.metrics[key].append(ResponseMetrics(elapsed, sent, received, r.response.status_code, True))
-        else:
+        key = r.request
+        if not r.response or r.error:
             self.metrics[key].append(ResponseMetrics(0, 0, 0, None, False))
+            return
+
+        sent, received = request_response_size_kb(r.response)
+        elapsed = r.response.elapsed.total_seconds()
+        self.metrics[key].append(ResponseMetrics(elapsed, sent, received, r.response.status_code, True))
 
     def handle_responses(self, responses):
+        """Invoke the real function on a different thread to avoid blocking UI.
+        """
+        sublime.set_timeout_async(lambda: self._handle_responses(), 0)
+
+    def _handle_responses(self):
         """Inspect cached metrics for individual responses and extract aggregate
         metrics for all requests, and requests grouped by method and URL. Display
         metrics tab with the information.
         """
-        # elapsed = time() - self.start_time
-        for k, v in self.metrics.items():
-            for metrics in v:
-                pass
+        elapsed = time() - self.start_time
+        method_url_metrics = {k: self.aggregate_metrics(v) for k, v in self.metrics.items()}
+        metrics = []
+        for v in self.metrics.values():
+            metrics += v
+        all_metrics = self.aggregate_metrics(metrics)
+
+        response_rate, transfer_rate = None, None
+        if elapsed > 0:
+            response_rate = all_metrics.success / elapsed
+            transfer_rate = all_metrics.received / elapsed
+
+        rates = '-- {}s, {} requests/s, {} kB/s, {} concurrency --'.format(
+            round(elapsed, 3),
+            round(response_rate, 2) if response_rate else '?',
+            round(transfer_rate, 2) if transfer_rate else '?',
+            self.MAX_WORKERS
+        )
+        profiles = ['{}\n{}'.format(k, self.get_profile_string(v)) for k, v in method_url_metrics.items()]
+        if len(method_url_metrics) > 1:
+            profiles.insert(0, self.get_profile_string(all_metrics))
+
+        view = self.view.window().new_file()
+        view.set_scratch(True)
+        view.run_command('requester_replace_view_text',
+                         {'text': rates + '\n\n' + '\n\n'.join(profiles), 'point': 0})
+        view.set_name('Requester Benchmarks')
+        view.set_syntax_file('Packages/Requester/requester-benchmarks.sublime-syntax')
+
+    @staticmethod
+    def get_profile_string(metrics):
+        """Builds the profile string for a given group of metrics.
+        """
+        m = metrics
+        header = '{} requests, {} successful'.format(m.success + m.failure, m.success)
+        codes = '{} ok, {} redirect, {} client error, {} server error'.format(
+            m.ok, m.redirect, m.client_error, m.server_error
+        )
+        transfer = '{} kB sent, {} kB received'.format(round(m.sent, 2), round(m.received, 2))
+        times = 'fastest: {}s\nslowest: {}s\naverage: {}s'.format(
+            round(m.min_time, 3) if m.min_time is not None else '?',
+            round(m.max_time, 3) if m.max_time is not None else '?',
+            round(m.avg_time, 3) if m.avg_time is not None else '?'
+        )
+        return '\n'.join([header, codes, transfer, times])
+
+    @staticmethod
+    def aggregate_metrics(metrics):
+        """Returns a `namedtuple` with metrics aggregated from `metrics`.
+        """
+        success, failure = 0, 0
+        ok, redirect, client_error, server_error = 0, 0, 0, 0
+        sent, received = 0, 0
+        elapsed, min_time, max_time = 0, None, None
+
+        for m in metrics:
+            if m.success:
+                success += 1
+            else:
+                failure += 1
+                continue
+
+            try:
+                code = int(m.code)
+            except:
+                code = 500  # if server doesn't return a response code, this is a server error
+            if code < 300 or code >= 600:
+                ok += 1
+            elif code < 400:
+                redirect += 1
+            elif code < 500:
+                client_error += 1
+            else:
+                server_error += 1
+
+            elapsed += m.elapsed
+            sent += m.sent
+            received += m.received
+
+            if min_time is None:
+                min_time = m.elapsed
+            else:
+                min_time = min(min_time, m.elapsed)
+            if max_time is None:
+                max_time = m.elapsed
+            else:
+                max_time = max(max_time, m.elapsed)
+
+        return AggregateMetrics(success, failure, ok, redirect, client_error, server_error,
+                                sent, received, min_time, max_time, elapsed / success if success else None)
 
     @staticmethod
     def get_progress_indicator(count, total, spaces=50):
+        """For showing user how many requests are remaining.
+        """
         if not total:
             return '?'
         spaces_filled = int(spaces * count/total)

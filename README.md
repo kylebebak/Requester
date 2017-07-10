@@ -275,7 +275,6 @@ assert {
 
 The test runner was built for convenience:
 
-- requests and assertions can be defined over multiple lines
 - requests and assertions can use env vars
 - requests without corresponding assertions are ignored
 - the order of requests is preserved in the results tab

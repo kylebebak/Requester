@@ -1,0 +1,14 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+scope: source.requester-benchmarks
+name: Requester Benchmarks
+hidden: true
+contexts:
+  main:
+    - match: '^-- ([\d]+) (assertions?), ([\d]+) (errors?) --'
+      captures:
+        1: constant.numeric.label.requester-benchmarks
+        2: constant.language.props.requester-benchmarks
+        3: constant.numeric.label.requester-benchmarks
+        4: constant.language.errors.requester-benchmarks
