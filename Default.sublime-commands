@@ -67,6 +67,11 @@
   },
 
   {
+    "caption": "Requester: Run Benchmarks",
+    "command": "requester_prompt_benchmarks"
+  },
+
+  {
     "caption": "Requester: Show Documentation",
     "command": "requester_show_documentation"
   },

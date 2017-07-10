@@ -328,7 +328,7 @@ class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
             if not pool.is_done:
                 pool.is_done = True
                 requests = pool.pending_requests
-                if len(requests) > 20:
+                if len(requests) > 100:
                     print('{} requests cancelled'.format(len(requests)))
                     return
                 for request in requests:

@@ -62,7 +62,9 @@ class RequestCommandMixin:
         """
         errors = ['{}\n{}'.format(r.request, r.error) for r in responses if r.error]
         if errors:
-            sublime.error_message('\n\n'.join(errors))
+            sublime.error_message('\n\n'.join(errors[:100]))
+            if len(errors) > 100:
+                print('Requester Errors: {} remaining errors not printed'.format(len(errors) - 100))
 
     def run(self, edit):
         self.reset_status()
@@ -341,6 +343,7 @@ class RequestCommandMixin:
         self._status_errors = []
         self.view.set_status('requester.errors', '')
         self.view.set_status('requester.download', '')
+        self.view.set_status('requester.benchmarks', '')
 
     @staticmethod
     def parse_env_block(text):

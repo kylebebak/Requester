@@ -288,7 +288,7 @@ Want to see how your staging or production servers hold up under load? Requester
 
 You'll be prompted for the number `N` of each request to run, and the concurrency `C`. In other words, if you highlight 5 requests, then input 100 for `N` and 20 for `C`, you'll send a total of 500 requests, 100 to each endpoint, in bunches of 20 at a time.
 
-Requester will then display a profile with response time metrics, grouped by request URL. Try it on these 3 here, with N=100 and C=20.
+Requester will then display a profile with response time metrics, grouped by request URL and response status. Try it on these 3 here, with N=100 and C=20.
 
 ~~~py
 get('http://httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
@@ -314,6 +314,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file
 - __requester_new_requester_file__: create empty requester file
 - __requester_run_tests__
+- __requester_prompt_benchmarks__
 - __requester_show_tutorial__
 - __requester_show_documentation__
 - __requester_show_syntax__
