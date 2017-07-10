@@ -1,11 +1,30 @@
 import sublime
 import sublime_plugin
 
-from math import floor
+from math import floor, ceil
 from time import time
+from collections import namedtuple, defaultdict
 
 from .core import RequestCommandMixin
 from .core.parsers import parse_requests
+
+
+ResponseMetrics = namedtuple('ResponseMetrics', 'elapsed, sent, received, code, successful')
+
+
+def header_size(headers):
+    return sum(len(key) + len(value) + 4 for key, value in headers.items()) + 2
+
+
+def request_response_size(response):
+    """https://stackoverflow.com/questions/33064891/python-requests-urllib-monitoring-bandwidth-usage
+    """
+    r = response
+    request_line_size = len(r.request.method) + len(r.request.path_url) + 12
+    request_size = request_line_size + header_size(r.request.headers) + int(r.request.headers.get('content-length', 0))
+    response_line_size = len(r.reason) + 15
+    response_size = response_line_size + header_size(r.headers) + int(r.headers.get('content-length', 0))
+    return (request_size, response_size)
 
 
 class RequesterPromptBenchmarksCommand(sublime_plugin.WindowCommand):
@@ -39,6 +58,8 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
     """Execute each selected request `num` times, with specified `concurrency`,
     and display response time metrics.
     """
+    MAX_REQUESTS = 1000000
+
     def run(self, edit, num, concurrency):
         """Allow user to specify concurrency.
         """
@@ -47,6 +68,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         self.count = 0
         self.total = 0
         self.start_time = time()
+        self.metrics = defaultdict(list)
         super().run(edit)
 
     def get_requests(self):
@@ -68,7 +90,9 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             else:
                 for r in requests_:
                     requests.append(r)
-        requests = requests * self.REPETITIONS
+        if len(requests) * self.REPETITIONS > self.MAX_REQUESTS:  # avoid attempting to instantiate huge list
+            self.REPETITIONS = ceil(self.MAX_REQUESTS / len(requests))
+        requests = (requests * self.REPETITIONS)[:self.MAX_REQUESTS]
         self.total = len(requests)
         return requests
 
@@ -88,11 +112,23 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         except:
             method, url = None, None
         key = '{}: {}'.format(method, url)
-        print(key)
+
+        if method and url:
+            sent, received = request_response_size(r.response)
+            elapsed = r.response.elapsed.total_seconds()
+            self.metrics[key].append(ResponseMetrics(elapsed, sent, received, r.response.status_code, True))
+        else:
+            self.metrics[key].append(ResponseMetrics(0, 0, 0, None, False))
 
     def handle_responses(self, responses):
-        elapsed = time() - self.start_time
-        print('{}s elapsed'.format(elapsed))
+        """Inspect cached metrics for individual responses and extract aggregate
+        metrics for all requests, and requests grouped by method and URL. Display
+        metrics tab with the information.
+        """
+        # elapsed = time() - self.start_time
+        for k, v in self.metrics.items():
+            for metrics in v:
+                pass
 
     @staticmethod
     def get_progress_indicator(count, total, spaces=50):

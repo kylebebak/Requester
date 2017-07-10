@@ -298,7 +298,7 @@ get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
 get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 ~~~
 
-It goes without saying, but please don't use this for DoS attacks on servers you don't own. Also, `C` is capped at 1000, which translates to [tens of millions of requests per day](https://serverfault.com/questions/274253/apache-ab-choosing-number-of-concurrent-connections).
+It goes without saying, but please don't use this for DoS attacks on servers you don't own. Regardless what you pass for `N`, the total number of requests executed is capped at 1000000. `C` is capped at 1000, which translates to [tens of millions of requests per day](https://serverfault.com/questions/274253/apache-ab-choosing-number-of-concurrent-connections).
 
 
 ## Commands
