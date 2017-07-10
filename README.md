@@ -19,6 +19,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
 - Perfect for teams
   + Version and share requests however you want (Git, GitHub, etc)
   + Lightweight, integrated test runner with support for JSON Schema
+  + [AB-style](https://httpd.apache.org/docs/2.4/programs/ab.html) benchmarking tool
   + Runs on Linux, Windows and macOS/OS X
 
 ---
@@ -196,7 +197,27 @@ Open your keymap from the command palette by running __Preferences: Key Bindings
 ~~~
 
 
-### Test Runner
+### Chaining Requests
+If you need to run requests or tests one after another, in the order in which they're defined in your requester file, look for __Requester: Run Requests Serially__ or __Requester: Run Tests Serially__ in the command palette.
+
+Behind the scenes, this just passes the `concurrency=1` arg to `requester` or `requester_run_tests`, and voilà, you've chained your requests.
+
+Note: code inside your __env block/env file__ is always run serially, which includes any requests you put in there.
+
+
+#### Chaining By Reference
+If you need __true__ request chaining, such that a request can reference the `Response` object returned by the previous request, that's easy too. Requester lets you reference the most recently returned response using the `Response` variable. Copy the following code to a new view, highlight it, and run __Requester: Run Requests Serially__.
+
+~~~py
+get('http://httpbin.org/get')
+
+get('http://httpbin.org/cookies', cookies={'url': Response.json()['url']})
+~~~
+
+If you don't run requests serially, this probably won't work, because requests are executed in parallel. All the requests may have already been executed before any of the responses return, which means none of them will be able to reference the `Response` object.
+
+
+## Test Runner
 Requester has a built-in test runner! Copy and paste this into an empty file.
 
 ~~~py
@@ -262,24 +283,22 @@ The test runner was built for convenience:
 Assertions can be inserted seamlessly into a requester file; if you're not doing a test run they're simply ignored.
 
 
-### Chaining Requests
-If you need to run requests or tests one after another, in the order in which they're defined in your requester file, look for __Requester: Run Requests Serially__ or __Requester: Run Tests Serially__ in the command palette.
+## Benchmarking Tool
+Want to see how your staging or production servers hold up under load? Requester's benchmarking tool is like [ab](https://httpd.apache.org/docs/2.4/programs/ab.html) or [siege](https://www.joedog.org/siege-home/), but as usual it's easier to use. Highlight one or more requests, and call __Requester: Run Benchmarks__ from the command palette.
 
-Behind the scenes, this just passes the `concurrency=1` arg to `requester` or `requester_run_tests`, and voilà, you've chained your requests.
+You'll be prompted for the number `N` of each request to run, and the concurrency `C`. In other words, if you highlight 5 requests, then input 100 for `N` and 20 for `C`, you'll send a total of 500 requests, 100 to each endpoint, in bunches of 20 at a time.
 
-Note: code inside your __env block/env file__ is always run serially, which includes any requests you put in there.
-
-
-#### Chaining By Reference
-If you need __true__ request chaining, such that a request can reference the `Response` object returned by the previous request, that's easy too. Requester lets you reference the most recently returned response using the `Response` variable. Copy the following code to a new view, highlight it, and run __Requester: Run Requests Serially__.
+Requester will then display a profile with response time metrics, grouped by request URL. Try it on these 3 here, with N=100 and C=20.
 
 ~~~py
-get('http://httpbin.org/get')
+get('http://httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
 
-get('http://httpbin.org/cookies', cookies={'url': Response.json()['url']})
+get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
+
+get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 ~~~
 
-If you don't run requests serially, this probably won't work, because requests are executed in parallel. All the requests may have already been executed before any of the responses return, which means none of them will be able to reference the `Response` object.
+It goes without saying, but please don't use this for DoS attacks on servers you don't own. Also, `C` is capped at 1000, which translates to [tens of millions of requests per day](https://serverfault.com/questions/274253/apache-ab-choosing-number-of-concurrent-connections).
 
 
 ## Commands
@@ -340,4 +359,4 @@ Apart from being feature-rich, __Requester is built for speed and simplicity__. 
 
 The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control.
 
-Requester is cross-platform, free, and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use =)
+Requester is cross-platform and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use =)

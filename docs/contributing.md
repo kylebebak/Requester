@@ -5,21 +5,17 @@ Please do! Possible improvements:
   + Run tests in a requester file from command line, so that they can be integrated into an arbitrary test suite
   + Alternatively, create command to export requests and assertions in requester file to a runnable Python test script
   + Better syntax highlighting for test run results view
-- Create a clone of [ab](http://httpd.apache.org/docs/current/programs/ab.html)
-  + Allow user to specify `number_of_requests` and `concurrency` when invoking command
-  + Display results
-  + This should be easy given the API provided by `RequestCommandMixin`
 - Import from and export to common request formats (HTTP, cURL, etc)
 - Generate API documentation from JSON Schema
-- Creating tutorial videos showing Requester in action
+- Create tutorial videos showing Requester in action
 - Better test coverage
-  + Tests for error messages
-  + Tests for proper parsing of env block and env files
-  + Tests for activity indicators
-  + Tests for syntax files
-  + Tests for test runner
-  + Tests for request history
-  + Tests for file downloads
+  + Error messages
+  + Proper parsing of env block and env files
+  + Activity indicators
+  + Syntax files
+  + Test runner
+  + Request history
+  + File downloads
 
 
 ## How Does It Work?
