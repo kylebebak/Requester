@@ -160,7 +160,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         view = self.view.window().new_file()
         view.set_scratch(True)
         view.run_command('requester_replace_view_text',
-                         {'text': rates + '\n\n' + '\n\n'.join(profiles), 'point': 0})
+                         {'text': rates + '\n\n\n' + '\n\n\n'.join(profiles) + '\n', 'point': 0})
         view.set_name('Requester Benchmarks')
         view.set_syntax_file('Packages/Requester/requester-benchmarks.sublime-syntax')
 

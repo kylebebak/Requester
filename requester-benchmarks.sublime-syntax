@@ -6,9 +6,47 @@ name: Requester Benchmarks
 hidden: true
 contexts:
   main:
-    - match: '^-- ([\d]+) (assertions?), ([\d]+) (errors?) --'
+    - match: '^-- ([\d\.]+)(s), ([\d\.?]+) (requests/s), ([\d\.?]+) (kB/s), ([\d]+) (concurrency) --'
+      captures:
+        1: entity.name.tag.requester-benchmarks
+        2: constant.language.props.requester-benchmarks
+        3: entity.name.tag.requester-benchmarks
+        4: constant.language.props.requester-benchmarks
+        5: entity.name.tag.requester-benchmarks
+        6: constant.language.props.requester-benchmarks
+        7: entity.name.tag.requester-benchmarks
+        8: constant.language.props.requester-benchmarks
+
+    - match: '^(GET|OPTIONS|HEAD|POST|PUT|PATCH|DELETE):.*'
+      scope: storage.type.method-url.requester-benchmarks
+
+    - match: '^([\d]+) (requests), ([\d]+) (successful)'
       captures:
         1: constant.numeric.label.requester-benchmarks
         2: constant.language.props.requester-benchmarks
         3: constant.numeric.label.requester-benchmarks
-        4: constant.language.errors.requester-benchmarks
+        4: constant.language.props.requester-benchmarks
+
+    - match: '^([\d\.]+) (kB sent), ([\d\.]+) (kB received)'
+      captures:
+        1: entity.name.tag.requester-benchmarks
+        2: constant.language.props.requester-benchmarks
+        3: entity.name.tag.requester-benchmarks
+        4: constant.language.props.requester-benchmarks
+
+    - match: '^([\d]+) (ok), ([\d]+) (redirect), ([\d]+) (client error), ([\d]+) (server error)'
+      captures:
+        1: constant.numeric.label.requester-benchmarks
+        2: constant.language.props.requester-benchmarks
+        3: constant.numeric.label.requester-benchmarks
+        4: constant.language.props.requester-benchmarks
+        5: constant.numeric.label.requester-benchmarks
+        6: constant.language.props.requester-benchmarks
+        7: constant.numeric.label.requester-benchmarks
+        8: constant.language.props.requester-benchmarks
+
+    - match: '^(fastest|slowest|average): ([\d\.\?]+)(s)'
+      captures:
+        1: keyword.other.assertion.requester-benchmarks
+        2: entity.name.tag.requester-benchmarks
+        3: constant.language.props.requester-benchmarks
