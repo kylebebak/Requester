@@ -7,7 +7,8 @@ from urllib import parse
 from collections import namedtuple
 
 from .core import RequestCommandMixin
-from .core.parsers import parse_requests, parse_args, prepare_request, clean_url
+from .core.parsers import parse_requests, parse_args, prepare_request
+from .core.helpers import clean_url
 
 
 Content = namedtuple('Content', 'content, point')

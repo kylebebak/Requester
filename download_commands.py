@@ -5,7 +5,8 @@ import os
 
 import requests
 
-from .core.parsers import truncate, parse_args
+from .core.parsers import parse_args
+from .core.helpers import truncate
 
 
 class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
