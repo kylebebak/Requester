@@ -1,3 +1,5 @@
+import sublime
+
 import re
 from collections import namedtuple
 
@@ -7,32 +9,27 @@ PREFIX = '[\w_][\w\d_]*\.'
 PREFIX_VERBS = PREFIX + VERBS
 ASSERTIONS = 'assert \{'
 
-Selection = namedtuple('Selection', 'selection, ordering, type')
+Selection = namedtuple('Selection', 'selection, ordering')
+TypedSelection = namedtuple('TypedSelection', 'selection, type')
+Request = namedtuple('Request', 'request, method, args, kwargs, ordering')
 RequestAssertion = namedtuple('RequestAssertion', 'request, assertion')
 
 
-def parse_args(*args, **kwargs):
-    """Used in conjunction with eval to parse args and kwargs from a string.
-    """
-    return args, kwargs
-
-
-def parse_requests(s, n=None, return_selections=False):
+def parse_requests(s, env, n=None):
     """Parse string for all calls to `{name}.{verb}(`, or simply `{verb}(`.
 
-    Returns a list of strings with calls to the `requests` library.
+    Returns a list of `Request` instances.
     """
     selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], n=n)
-    if return_selections:
-        return selections
-    return [sel.selection for sel in selections]
+    return [prepare_request(sel.selection, env) for sel in selections]
 
 
-def parse_tests(s):
-    """Parse string and return an ordered list of (request, assertion) test pairs.
+def parse_tests(s, env):
+    """Parse string and return an ordered list of (request, assertion) test pairs,
+    where the first value in each pair is a `Request` instance.
     """
-    requests = parse(s, '(', ')', [PREFIX_VERBS, VERBS], 'request')
-    assertions = parse(s, '{', '}', [ASSERTIONS], 'assertion')
+    requests = [TypedSelection(sel, 'request') for sel in parse(s, '(', ')', [PREFIX_VERBS, VERBS])]
+    assertions = [TypedSelection(sel, 'assertion') for sel in parse(s, '{', '}', [ASSERTIONS])]
     selections = requests + assertions
     selections.sort(key=lambda s: s.ordering)
 
@@ -45,16 +42,19 @@ def parse_tests(s):
             break
         else:
             if s.type == 'request' and next_s.type == 'assertion':
-                tests.append(RequestAssertion(s.selection, next_s.selection))
+                tests.append(RequestAssertion(
+                    prepare_request(s.selection, env), next_s.selection.selection
+                ))
     return tests
 
 
-def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
-    """Parse string for selections that begin with at least one of the specified
-    match patterns. Continue expanding each selection until its opening and
-    closing brackets are balanced.
+def parse(s, open_bracket, close_bracket, match_patterns, n=None):
+    """Parse string `s` for selections that begin with at least one of the
+    specified match patterns. Continue expanding each selection until its opening
+    and closing brackets are balanced.
 
-    Optionally stop after `n` selections have been parsed.
+    Returns a list of `Selection` instances. Optionally stop after `n` selections
+    have been parsed.
     """
     start_indices = []
 
@@ -115,24 +115,51 @@ def parse(s, open_bracket, close_bracket, match_patterns, type_='', n=None):
     selections = []
     for pair in zip(start_indices, end_indices):
         selections.append(Selection(
-            s[pair[0]:pair[1]+1], pair[0], type_
+            s[pair[0]:pair[1]+1], pair[0]
         ))
     return selections
 
 
-def prepare_request(r, timeout):
+def parse_args(*args, **kwargs):
+    """Used in conjunction with eval to parse args and kwargs from a string.
+    """
+    return args, kwargs
+
+
+def prepare_request(selection, env):
     """If request is not prefixed with "{var_name}.", prefix request with
-    "requests.", because this module is guaranteed to be in the scope under
-    which the request is evaluated.
+    "requests.", because this module is guaranteed to be in the scope under which
+    the request is evaluated. Accepts a `Selection` instance and returns a
+    `Request` instance.
 
     Also, ensure request can time out so it doesn't hang indefinitely.
     http://docs.python-requests.org/en/master/user/advanced/#timeouts
     """
+    r, ordering = selection  # unpack namedtuple
     r = r.strip()
     if not re.match(PREFIX, r):
         r = 'requests.' + r
 
-    if timeout is not None:
-        timeout_string = ', timeout={})'.format(timeout)
-        r = r[:-1] + timeout_string
-    return r
+    env['__parse_args__'] = parse_args
+    index = r.index('(')
+    try:
+        args, kwargs = eval('__parse_args__{}'.format(r[index:]), env)
+    except:
+        args, kwargs = [], {}
+
+    method = r[:index].split('.')[1].strip().upper()
+    if 'url' not in kwargs:
+        # move url from args to kwargs, easy because url is first arg in all calls to requests
+        try:
+            url = args.pop(0)
+        except:
+            pass  # this method isn't responsible for raising exceptions
+        else:
+            kwargs['url'] = url
+
+    if 'timeout' not in kwargs:
+        settings = sublime.load_settings('Requester.sublime-settings')
+        timeout = settings.get('timeout', None)
+        kwargs['timeout'] = timeout
+        r = r[:-1] + ', timeout={})'.format(timeout)  # put timeout kwarg into request string
+    return Request(r, method, args, kwargs, ordering)

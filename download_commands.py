@@ -5,7 +5,6 @@ import os
 
 import requests
 
-from .core.parsers import parse_args
 from .core.helpers import truncate
 
 
@@ -26,10 +25,7 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
         if request is None or env is None:
             return
 
-        env['__parse_args__'] = parse_args
-        args, kwargs = eval('__parse_args__{}'.format(
-            request[request.index('('):]  # get args and kwargs that were passed to `requests.get`
-        ), env)
+        args, kwargs = request.args, request.kwargs
         filename = kwargs.pop('filename')
         sublime.set_timeout_async(lambda: self.run_initial_request(args, kwargs, filename, view), 0)
 

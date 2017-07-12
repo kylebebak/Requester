@@ -7,7 +7,7 @@ from urllib import parse
 from collections import namedtuple
 
 from .core import RequestCommandMixin
-from .core.parsers import parse_requests, parse_args, prepare_request
+from .core.parsers import parse_requests
 from .core.helpers import clean_url
 
 
@@ -108,26 +108,6 @@ def set_response_view_name(view, response=None):
     view.set_name('{}{}'.format('** ' if pinned else '', name))
 
 
-def parse_method_and_url_from_request(request, env):
-    """Parses method and url from request string, under context of `env`.
-    """
-    env = env or {}
-    env['__parse_args__'] = parse_args
-    index = request.index('(')
-    try:
-        args, kwargs = eval('__parse_args__{}'.format(request[index:]), env)
-    except Exception as e:
-        print(e)
-        return None, None
-
-    method = request[:index].split('.')[1].strip().upper()
-    try:
-        url = kwargs.get('url') or args[0]
-    except:
-        return method, None
-    return method, url
-
-
 class RequestsMixin:
     FROM_HISTORY = False
 
@@ -137,9 +117,7 @@ class RequestsMixin:
         """
         for request in requests:
 
-            for view in self.response_views_with_matching_request(
-                *parse_method_and_url_from_request(request, self._env)
-            ):
+            for view in self.response_views_with_matching_request(request):
                 # view names set BEFORE view content is set, otherwise
                 # activity indicator in view names seems to lag a little
                 name = view.settings().get('requester.name')
@@ -210,7 +188,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             else:
                 selection = view.substr(view.line(region))
             try:
-                requests_ = parse_requests(selection)
+                requests_ = parse_requests(selection, self._env)
             except Exception as e:
                 sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
                 print(e)
@@ -288,7 +266,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         """
         try:
             requests = parse_requests(self.view.substr(
-                sublime.Region(0, self.view.size())
+                sublime.Region(0, self.view.size()), self._env
             ), n=1)
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in your request')
@@ -356,7 +334,7 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         try:
             self._selections = parse_requests(self.view.substr(
                 sublime.Region(0, self.view.size())
-            ), return_selections=True)
+            ))
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
             print(e)
@@ -366,9 +344,8 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         selections = self._selections  # 'selection', 'ordering', 'type' keys
         requests = []
         for s in selections:
-            request = prepare_request(s.selection, None)
-            method, url = parse_method_and_url_from_request(request, self._env)
-            requests.append(Request(request, method, url, s.ordering))
+            pass
+            # requests.append(Request(request, method, url, s.ordering))
 
         window = self.view.window()
         # cache all response views in current window

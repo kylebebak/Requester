@@ -11,7 +11,6 @@ from time import time
 from queue import Queue
 
 from .responses import ResponseThreadPool
-from .parsers import prepare_request
 
 
 class RequestCommandMixin:
@@ -26,7 +25,6 @@ class RequestCommandMixin:
     REFRESH_MS = 200  # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9  # number of spaces in activity indicator
     MAX_WORKERS = 10  # default request concurrency
-    PREPARE_REQUESTS = True
     RESPONSE_POOLS = Queue()
     MAX_NUM_RESPONSE_POOLS = 10  # up to N response pools can be stored
 
@@ -97,10 +95,6 @@ class RequestCommandMixin:
 
         else:
             requests = self.get_requests()
-            if not self.is_requester_view() and self.PREPARE_REQUESTS:
-                requests = [prepare_request(
-                    r, timeout=self.config.get('timeout', None)
-                ) for r in requests]
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
 
