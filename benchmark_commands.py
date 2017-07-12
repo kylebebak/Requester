@@ -80,7 +80,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         self.metrics = defaultdict(list)
         super().run(edit)
 
-    def get_requests(self):
+    def get_requests(self, env):
         """Parses requests from multiple selections. If nothing is highlighted,
         cursor's current line is taken as selection.
         """
@@ -92,7 +92,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             else:
                 selection = view.substr(view.line(region))
             try:
-                requests_ = parse_requests(selection)
+                requests_ = parse_requests(selection, env)
             except Exception as e:
                 sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
                 print(e)

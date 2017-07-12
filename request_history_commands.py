@@ -8,6 +8,7 @@ from collections import OrderedDict
 
 from .request_commands import RequesterCommand
 from .core import RequestCommandMixin
+from .core.parsers import prepare_request
 from .core.helpers import truncate
 
 
@@ -122,7 +123,6 @@ class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
     def run(self, edit, request, env_string, file, env_file, **kwargs):
         """Client must pass `request` and env parameters.
         """
-        self.PREPARE_REQUESTS = False
         self.FROM_HISTORY = True
         self.request = request
         self.view.settings().set('requester.env_string', env_string)
@@ -130,8 +130,8 @@ class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
         self.view.settings().set('requester.env_file', env_file)
         RequestCommandMixin.run(self, edit)
 
-    def get_requests(self):
-        return [self.request]
+    def get_requests(self, env):
+        return [prepare_request(self.request, env)]
 
     def reset_env_string(self):
         pass

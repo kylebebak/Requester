@@ -12,7 +12,6 @@ from .core.helpers import clean_url
 
 
 Content = namedtuple('Content', 'content, point')
-Request = namedtuple('Request', 'request, method, url, ordering')
 platform = sublime.platform()
 
 
@@ -69,7 +68,7 @@ def get_response_view_content(request, response):
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [
-        request,
+        request.request,
         header,
         'Request Headers: {}'.format(r.request.headers),
         '{} replay request'.format(replay_binding) + ', ' + '{} pin/unpin tab'.format(pin_binding),
@@ -117,7 +116,9 @@ class RequestsMixin:
         """
         for request in requests:
 
-            for view in self.response_views_with_matching_request(request):
+            for view in self.response_views_with_matching_request(
+                request.method, request.url
+            ):
                 # view names set BEFORE view content is set, otherwise
                 # activity indicator in view names seems to lag a little
                 name = view.settings().get('requester.name')
@@ -130,7 +131,7 @@ class RequestsMixin:
                     view.set_name(activity.ljust(len(name) + extra_spaces))
 
                 view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
-                    request, activity
+                    request.request, activity
                 )})
 
     def response_views_with_matching_request(self, method, url):
@@ -162,8 +163,9 @@ class RequestsMixin:
         jumping to matching response tabs after requests return.
         """
         url = response.response.url
-        view.settings().set('requester.request',
-                            [response.response.request.method, url.split('?')[0]])
+        view.settings().set('requester.request', [
+            response.response.request.method, url.split('?')[0]
+        ])
 
 
 class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
@@ -176,7 +178,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         self.MAX_WORKERS = max(1, concurrency)
         super().run(edit)
 
-    def get_requests(self):
+    def get_requests(self, env):
         """Parses requests from multiple selections. If nothing is highlighted,
         cursor's current line is taken as selection.
         """
@@ -188,7 +190,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             else:
                 selection = view.substr(view.line(region))
             try:
-                requests_ = parse_requests(selection, self._env)
+                requests_ = parse_requests(selection, env)
             except Exception as e:
                 sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
                 print(e)
@@ -261,13 +263,13 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
 class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Replay a request from a response view.
     """
-    def get_requests(self):
+    def get_requests(self, env):
         """Parses requests from first line only.
         """
         try:
             requests = parse_requests(self.view.substr(
-                sublime.Region(0, self.view.size()), self._env
-            ), n=1)
+                sublime.Region(0, self.view.size())
+            ), env, n=1)
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in your request')
             print(e)
@@ -307,7 +309,7 @@ class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
                     print('{} requests cancelled'.format(len(requests)))
                     return
                 for request in requests:
-                    print('Request cancelled: {}'.format(request))
+                    print('Request cancelled: {}'.format(request.request))
 
 
 class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
@@ -329,23 +331,19 @@ class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
 class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Reorders open response tabs to match order of requests in current view.
     """
-    def get_requests(self):
-        self._selections = []
+    def get_requests(self, env):
+        self._requests = []
         try:
-            self._selections = parse_requests(self.view.substr(
+            self._requests = parse_requests(self.view.substr(
                 sublime.Region(0, self.view.size())
-            ))
+            ), env)
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
             print(e)
         return []  # these will show up again in `make_requests`, but we're only interested in selections
 
     def make_requests(self, *args, **kwargs):
-        selections = self._selections  # 'selection', 'ordering', 'type' keys
-        requests = []
-        for s in selections:
-            pass
-            # requests.append(Request(request, method, url, s.ordering))
+        requests = self._requests  # 'selection', 'ordering', 'type' keys
 
         window = self.view.window()
         # cache all response views in current window

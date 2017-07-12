@@ -28,11 +28,12 @@ class RequestCommandMixin:
     RESPONSE_POOLS = Queue()
     MAX_NUM_RESPONSE_POOLS = 10  # up to N response pools can be stored
 
-    def get_requests(self):
-        """This must be overridden to return a list of request strings.
+    def get_requests(self, env):
+        """This must be overridden to return a list of Request namedtuples. Hint:
+        use `core.parsers.parse_requests`.
         """
         raise NotImplementedError(
-            '"get_requests" must be overridden to return a list of request strings')
+            '"get_requests" must be overridden to return a list of Request namedtuples')
 
     def show_activity_for_pending_requests(self, requests, count, activity):
         """Override this method to customize user feedback for pending requests.
@@ -94,7 +95,7 @@ class RequestCommandMixin:
             sublime.set_timeout(lambda: self._run(thread, count+1), self.REFRESH_MS/REFRESH_MULTIPLIER)
 
         else:
-            requests = self.get_requests()
+            requests = self.get_requests(self._env)
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
 
@@ -240,7 +241,7 @@ class RequestCommandMixin:
             self.handle_response(r, num_requests=len(pool.requests))
 
         if is_done:
-            responses.sort(key=lambda response: response.ordering)  # parsing order is preserved
+            responses.sort(key=lambda response: response.request.ordering)  # parsing order is preserved
             self.handle_responses(responses)
             self.default_handle_errors(responses)
             self.persist_requests(responses)

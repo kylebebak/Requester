@@ -1,12 +1,10 @@
-import sublime
-
 from concurrent import futures
 from collections import namedtuple
 
 requests = __import__('requests')
 
 
-Response = namedtuple('Response', 'request, response, error, ordering, type')
+Response = namedtuple('Response', 'request, response, error')
 
 
 class ResponseThreadPool:
@@ -24,12 +22,12 @@ class ResponseThreadPool:
         env = self.env or {}
         env['requests'] = requests
 
-        response, error, type_ = None, '', None
+        response, error = None, ''
         if self.is_done:  # prevents further requests from being made if pool is cancelled
-            return Response(request, response, error, ordering, type_)  # check using: https://requestb.in/
+            return Response(request, response, error)  # check using: https://requestb.in/
 
         try:
-            response = eval(request, env)
+            response = eval(request.request, env)
         except requests.Timeout:
             error = 'Timeout Error: the request timed out'
         except requests.ConnectionError:
@@ -38,10 +36,7 @@ class ResponseThreadPool:
             error = '{}: {}\n\n{}'.format('Syntax Error', e,
                                           'Run "Requester: Show Syntax" to review properly formatted requests')
         except TypeError as e:
-            if "'filename'" in str(e):
-                type_ = 'download'
-            else:
-                error = '{}: {}'.format('Type Error', e)
+            error = '{}: {}'.format('Type Error', e)
         except Exception as e:
             error = '{}: {}'.format('Other Error', e)
         else:  # only check response type if no exceptions were raised
@@ -53,14 +48,13 @@ class ResponseThreadPool:
         if not self.env:
             self.env = {}
         self.env['Response'] = response  # to allow "chaining" of serially executed requests
-        return Response(request, response, error, ordering, type_)
+        return Response(request, response, error)
 
-    def __init__(self, requests_, env, max_workers):
+    def __init__(self, requests, env, max_workers):
         self.is_done = False
         self.responses = []
-
-        self.requests = requests_
-        self.pending_requests = list(requests_)
+        self.requests = requests
+        self.pending_requests = list(requests)
         self.env = env
         self.max_workers = max_workers
 
@@ -83,18 +77,5 @@ class ResponseThreadPool:
                     self.pending_requests.remove(result.request)
                 except ValueError:
                     pass
-
-                if result.type == 'download':  # `RequestCommandMixin` machinery doesn't handle downloads
-                    self.download_file(result.request)
-                else:
-                    self.responses.append(result)
+                self.responses.append(result)
         self.is_done = True
-
-    def download_file(self, request):
-        """This is very hacky, but only JSON serializable args can be passed to
-        `run_command`, and `env` isn't JSON serializable...
-        """
-        from ..download_commands import RequesterDownloadCommand as download
-        download.REQUEST = request
-        download.ENV = self.env
-        sublime.run_command('requester_download')

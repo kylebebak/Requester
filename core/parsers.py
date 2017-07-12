@@ -11,7 +11,7 @@ ASSERTIONS = 'assert \{'
 
 Selection = namedtuple('Selection', 'selection, ordering')
 TypedSelection = namedtuple('TypedSelection', 'selection, type')
-Request = namedtuple('Request', 'request, method, args, kwargs, ordering')
+Request = namedtuple('Request', 'request, method, url, args, kwargs, ordering')
 RequestAssertion = namedtuple('RequestAssertion', 'request, assertion')
 
 
@@ -148,6 +148,7 @@ def prepare_request(selection, env):
         args, kwargs = [], {}
 
     method = r[:index].split('.')[1].strip().upper()
+    url = ''
     if 'url' not in kwargs:
         # move url from args to kwargs, easy because url is first arg in all calls to requests
         try:
@@ -162,4 +163,4 @@ def prepare_request(selection, env):
         timeout = settings.get('timeout', None)
         kwargs['timeout'] = timeout
         r = r[:-1] + ', timeout={})'.format(timeout)  # put timeout kwarg into request string
-    return Request(r, method, args, kwargs, ordering)
+    return Request(r, method, url, args, kwargs, ordering)
