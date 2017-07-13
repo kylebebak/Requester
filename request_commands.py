@@ -196,8 +196,24 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
                 print(e)
             else:
                 for r in requests_:
+                    if self.handle_special_request(r, env):
+                        continue
                     requests.append(r)
         return requests
+
+    def handle_special_request(self, request, env):
+        """Handle requests which are initially run with `RequesterCommand` but are
+        then passed on to other handlers, like downloads.
+        """
+        if 'filename' in request.kwargs:
+            # this is very hacky, but only JSON serializable args can be passed to
+            # `run_command`, and `env` isn't JSON serializable...
+            from .download_commands import RequesterDownloadCommand as download
+            download.REQUEST = request
+            download.ENV = env
+            sublime.run_command('requester_download')
+            return True
+        return False
 
     def handle_response(self, response, num_requests):
         """Create a response view and insert response content into it. Ensure that
