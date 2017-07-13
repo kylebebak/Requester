@@ -116,8 +116,8 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             ))
 
         r = response
-        key = r.request
-        if not r.response or r.error:
+        key = '{}: {}'.format(r.request.method, r.request.url)
+        if r.response is None or r.error:
             self.metrics[key].append(ResponseMetrics(0, 0, 0, None, False))
             return
 

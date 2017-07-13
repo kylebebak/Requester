@@ -334,14 +334,6 @@ Commands defined by this package, in case you want to add or change key bindings
 - __only_download_for_200__: only perform file download if response status code is 200
 
 
-## Gotchas
-Requester automatically includes the `timeout` argument in requests executed from your requester file. If you include this arg in your requests, __Requester will raise a SyntaxError__.
-
-Not recommended: if you really want to disable automatic `timeout` for requests, set it to `None` in your Requester settings.
-
-That's it.
-
-
 ## Contributing and Tests
 I would be very grateful! [See here](https://github.com/kylebebak/Requester/blob/master/docs/contributing.md).
 

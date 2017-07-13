@@ -131,7 +131,7 @@ class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
         RequestCommandMixin.run(self, edit)
 
     def get_requests(self, env):
-        return [prepare_request(self.request, env)]
+        return [prepare_request((self.request, 0), env)]
 
     def reset_env_string(self):
         pass

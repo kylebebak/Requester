@@ -207,7 +207,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         """
         window = self.view.window()
         r = response
-        if not r.response or r.error:  # ignore responses with errors
+        if r.response is None or r.error:  # ignore responses with errors
             return
         method, url = r.response.request.method, r.response.url
 

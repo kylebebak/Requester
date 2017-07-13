@@ -21,7 +21,7 @@ def parse_requests(s, env, n=None):
     Returns a list of `Request` instances.
     """
     selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], n=n)
-    return [prepare_request(sel.selection, env) for sel in selections]
+    return [prepare_request(sel, env) for sel in selections]
 
 
 def parse_tests(s, env):
@@ -152,7 +152,8 @@ def prepare_request(selection, env):
     if 'url' not in kwargs:
         # move url from args to kwargs, easy because url is first arg in all calls to requests
         try:
-            url = args.pop(0)
+            url = args[0]
+            args = args[1:]  # can't pop from tuple
         except:
             pass  # this method isn't responsible for raising exceptions
         else:

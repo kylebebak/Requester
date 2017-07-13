@@ -95,9 +95,9 @@ class RequestCommandMixin:
             sublime.set_timeout(lambda: self._run(thread, count+1), self.REFRESH_MS/REFRESH_MULTIPLIER)
 
         else:
-            requests = self.get_requests(self._env)
+            requests = self.get_requests(self._env or {})
             self.view.set_status('requester.activity', '')
-            self.make_requests(requests, self._env)
+            self.make_requests(requests, self._env or {})
 
     def is_requester_view(self):
         """Was this view opened by a Requester command? This is useful, e.g., to
@@ -294,7 +294,7 @@ class RequestCommandMixin:
                 'method': method,
                 'url': url,
                 'code': res.status_code,
-                'request': response.request
+                'request': response.request.request
             }
 
         # remove oldest requests if number of requests has exceeded `history_max_entries`
