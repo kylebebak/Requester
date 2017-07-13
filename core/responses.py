@@ -11,7 +11,7 @@ class ResponseThreadPool:
     """Allows requests to be invoked concurrently, and allows client code to
     inspect instance's responses as they are returned.
     """
-    def get_response(self, request, ordering):
+    def get_response(self, request):
         """Evaluate `request` in context of `env`, which at the very least
         includes the `requests` module. Return `response`.
 
@@ -65,8 +65,8 @@ class ResponseThreadPool:
             max_workers=min(self.max_workers, len(self.requests))
         ) as executor:
             to_do = []
-            for i, request in enumerate(self.requests):
-                future = executor.submit(self.get_response, request, i)
+            for request in self.requests:
+                future = executor.submit(self.get_response, request)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):

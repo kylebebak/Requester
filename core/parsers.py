@@ -31,7 +31,7 @@ def parse_tests(s, env):
     requests = [TypedSelection(sel, 'request') for sel in parse(s, '(', ')', [PREFIX_VERBS, VERBS])]
     assertions = [TypedSelection(sel, 'assertion') for sel in parse(s, '{', '}', [ASSERTIONS])]
     selections = requests + assertions
-    selections.sort(key=lambda s: s.ordering)
+    selections.sort(key=lambda s: s.selection.ordering)
 
     tests = []
     for i in range(len(selections)):

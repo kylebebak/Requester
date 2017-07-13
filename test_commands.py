@@ -36,8 +36,9 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 selection = view.substr(region)
             try:
                 self._tests = parse_tests(selection, env)
-            except:
-                sublime.error_message('Parse Error: unbalanced brackets in tests')
+            except Exception as e:
+                sublime.error_message('Parse Error: there may be unbalanced brackets in tests')
+                print(e)
             break  # only parse first selection
 
         return [test.request for test in self._tests]
@@ -102,7 +103,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         assertion dict that don't correspond to a valid property or method of
         response.
         """
-        result = '{}\nassert {}\n'.format(response.request, assertion)
+        result = '{}\nassert {}\n'.format(response.request.request, assertion)
         r = response.response
         errors = []
         count = 0

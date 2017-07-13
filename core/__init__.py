@@ -59,7 +59,7 @@ class RequestCommandMixin:
         is a convenience method that is called on all responses after they are
         returned.
         """
-        errors = ['{}\n{}'.format(r.request, r.error) for r in responses if r.error]
+        errors = ['{}\n{}'.format(r.request.request, r.error) for r in responses if r.error]
         if errors:
             sublime.error_message('\n\n'.join(errors[:100]))
             if len(errors) > 100:

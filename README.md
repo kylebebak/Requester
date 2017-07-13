@@ -321,7 +321,6 @@ Commands defined by this package, in case you want to add or change key bindings
 
 ## Settings
 - __timeout__: default timeout in seconds for all requests
-  + if you want to change this for a single request, __do so directly in the response tab__, not in your requester file
 - __timeout_env__: default timeout in seconds for executing env block/env file
 - __max_content_length_kb__: don't render responses whose content length (kilobytes) exceeds this value
 - __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
