@@ -16,13 +16,13 @@ core = sys.modules['Requester.core']
 class TestFunctions(DeferrableTestCase):
 
     def test_prepare_request(self):
-        s = ("get('http://httpbin.org/get')", 0)
-        request = core.parsers.prepare_request(s, {})
+        s = "get('http://httpbin.org/get')"
+        request = core.responses.prepare_request(s, {}, 0)
         self.assertEqual(request.request, "requests.get('http://httpbin.org/get', timeout=15)")
 
     def test_prepare_request_with_prefix(self):
-        s = ("_s.get('http://httpbin.org/get')", 0)
-        request = core.parsers.prepare_request(s, {})
+        s = "_s.get('http://httpbin.org/get')"
+        request = core.responses.prepare_request(s, {}, 0)
         self.assertEqual(request.request, "_s.get('http://httpbin.org/get', timeout=15)")
 
 

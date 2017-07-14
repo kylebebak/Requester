@@ -8,6 +8,7 @@ from collections import namedtuple
 
 from .core import RequestCommandMixin
 from .core.parsers import parse_requests
+from .core.responses import prepare_request
 from .core.helpers import clean_url
 
 
@@ -353,7 +354,9 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         return []  # these will show up again in `make_requests`, but we're only interested in selections
 
     def make_requests(self, *args, **kwargs):
-        requests = self._requests  # 'selection', 'ordering', 'type' keys
+        requests = []
+        for i, req in enumerate(self._requests):
+            requests.append(prepare_request(req, self._env, i))
 
         window = self.view.window()
         # cache all response views in current window

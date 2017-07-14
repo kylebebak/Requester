@@ -22,7 +22,7 @@ class RequestCommandMixin:
     It must be mixed in to classes that also inherit from
     `sublime_plugin.TextCommand`.
     """
-    REFRESH_MS = 200  # period of checks on async operations, e.g. requests
+    REFRESH_MS = 100  # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9  # number of spaces in activity indicator
     MAX_WORKERS = 10  # default request concurrency
     RESPONSE_POOLS = Queue()
@@ -82,7 +82,7 @@ class RequestCommandMixin:
         indicator. Inspect thread at regular intervals until it's finished, at
         which point `make_requests` can be invoked. Return if thread times out.
         """
-        REFRESH_MULTIPLIER = 4
+        REFRESH_MULTIPLIER = 2
         activity = self.get_activity_indicator(count//REFRESH_MULTIPLIER, self.ACTIVITY_SPACES)
         if count > 0:  # don't distract user with RequesterEnv status if env can be evaluated quickly
             self.view.set_status('requester.activity', '{} {}'.format('RequesterEnv', activity))

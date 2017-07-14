@@ -9,7 +9,7 @@ import requests
 from .parsers import PREFIX
 
 
-Request = namedtuple('Request', 'request, method, url, args, kwargs, ordering')
+Request = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session')
 Response = namedtuple('Response', 'request, response, error')
 
 methods = {
@@ -41,7 +41,7 @@ class ResponseThreadPool:
         "chaining" of requests. If two requests are run serially, the second
         request can reference the response returned by the previous request.
         """
-        request = self.prepare_request(request, ordering)
+        request = prepare_request(request, self.env, ordering)
         self.pending_requests.append(request)
 
         response, error = None, ''
@@ -49,7 +49,11 @@ class ResponseThreadPool:
             return Response(request, response, error)  # check using: https://requestb.in/
 
         try:
-            response = methods.get(request.method)(*request.args, **request.kwargs)
+            if request.session:
+                session = self.env.get(request.session)
+                response = getattr(session, request.method.lower())(*request.args, **request.kwargs)
+            else:
+                response = methods.get(request.method)(*request.args, **request.kwargs)
         except requests.Timeout:
             error = 'Timeout Error: the request timed out'
         except requests.ConnectionError:
@@ -66,7 +70,6 @@ class ResponseThreadPool:
         return Response(request, response, error)
 
     def __init__(self, requests, env, max_workers):
-        self.config = sublime.load_settings('Requester.sublime-settings')
         self.is_done = False
         self.responses = []
         self.requests = requests
@@ -81,8 +84,8 @@ class ResponseThreadPool:
             max_workers=min(self.max_workers, len(self.requests))
         ) as executor:
             to_do = []
-            for ordering, request in enumerate(self.requests):
-                future = executor.submit(self.get_response, request, ordering)
+            for i, request in enumerate(self.requests):
+                future = executor.submit(self.get_response, request, i)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):
@@ -96,40 +99,44 @@ class ResponseThreadPool:
                 self.responses.append(result)
         self.is_done = True
 
-    def prepare_request(self, request, ordering):
-        """Parse and evaluate args and kwargs in request string under context of
-        env. These args and kwargs are later passed to call to requests in
-        `get_response`.
 
-        Also, prepare request string: if request is not prefixed with
-        "{var_name}.", prefix request with "requests.", because this module is
-        guaranteed to be in the scope under which the request is evaluated.
-        Accepts a request string and returns a `Request` instance.
+def prepare_request(request, env, ordering):
+    """Parse and evaluate args and kwargs in request string under context of
+    env. These args and kwargs are later passed to call to requests in
+    `get_response`.
 
-        Also, ensure request can time out so it doesn't hang indefinitely.
-        http://docs.python-requests.org/en/master/user/advanced/#timeouts
-        """
-        req = request.strip()
-        if not re.match(PREFIX, req):
-            req = 'requests.' + req
+    Also, prepare request string: if request is not prefixed with
+    "{var_name}.", prefix request with "requests.", because this module is
+    guaranteed to be in the scope under which the request is evaluated.
+    Accepts a request string and returns a `Request` instance.
 
-        self.env['__parse_args__'] = parse_args
-        index = req.index('(')
+    Also, ensure request can time out so it doesn't hang indefinitely.
+    http://docs.python-requests.org/en/master/user/advanced/#timeouts
+    """
+    req = request.strip()
+    if not re.match(PREFIX, req):
+        req = 'requests.' + req
+    session = None
+    if not req.startswith('requests.'):
+        session = req.split('.')[0]
+
+    env['__parse_args__'] = parse_args
+    index = req.index('(')
+    try:
+        args, kwargs = eval('__parse_args__{}'.format(req[index:]), env)
+    except:
+        args, kwargs = [], {}
+
+    method = req[:index].split('.')[1].strip().upper()
+    url = kwargs.get('url', None)
+    if url is None:
         try:
-            args, kwargs = eval('__parse_args__{}'.format(req[index:]), self.env)
+            url = args[0]
         except:
-            args, kwargs = [], {}
+            pass  # this method isn't responsible for raising exceptions
 
-        method = req[:index].split('.')[1].strip().upper()
-        url = kwargs.get('url', None)
-        if url is None:
-            try:
-                url = args[0]
-            except:
-                pass  # this method isn't responsible for raising exceptions
-
-        if 'timeout' not in kwargs:
-            timeout = self.config.get('timeout', None)
-            kwargs['timeout'] = timeout
-            req = req[:-1] + ', timeout={})'.format(timeout)  # put timeout kwarg into request string
-        return Request(req, method, url, args, kwargs, ordering)
+    if 'timeout' not in kwargs:
+        timeout = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
+        kwargs['timeout'] = timeout
+        req = req[:-1] + ', timeout={})'.format(timeout)  # put timeout kwarg into request string
+    return Request(req, method, url, args, kwargs, ordering, session)

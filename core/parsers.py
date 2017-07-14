@@ -39,7 +39,7 @@ def parse_tests(s):
         else:
             if s.type == 'request' and next_s.type == 'assertion':
                 tests.append(RequestAssertion(
-                    s.selection, next_s.selection
+                    s.selection.selection, next_s.selection.selection
                 ))
     return tests
 
