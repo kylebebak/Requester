@@ -55,7 +55,7 @@ class RequestCommandMixin:
         """
         pass
 
-    def default_handle_errors(self, responses):
+    def handle_errors(self, responses):
         """Override this method to change Requester's default error handling. This
         is a convenience method that is called on all responses after they are
         returned.
@@ -244,7 +244,7 @@ class RequestCommandMixin:
         if is_done:
             responses.sort(key=lambda response: response.request.ordering)  # parsing order is preserved
             self.handle_responses(responses)
-            self.default_handle_errors(responses)
+            self.handle_errors(responses)
             self.persist_requests(responses)
             self.view.set_status('requester.activity', '')  # remove activity indicator from status bar
             return

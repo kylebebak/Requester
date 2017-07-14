@@ -11,23 +11,17 @@ from .core.helpers import truncate
 class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
     """Download a file to disk without opening a response view.
     """
-    REQUEST = None
-    ENV = None
     CANCELLED = False
 
-    def run(self):
+    def run(self, args, kwargs):
         # cache for setting status on this view later, in case focus changes to
         # different view while env is executed and initial request is run
-        view = sublime.active_window().active_view()
-
         RequesterDownloadCommand.CANCELLED = False
-        request, env = self.REQUEST, self.ENV
-        if request is None or env is None:
-            return
-
-        args, kwargs = request.args, request.kwargs
+        view = sublime.active_window().active_view()
         filename = kwargs.pop('filename')
-        sublime.set_timeout_async(lambda: self.run_initial_request(args, kwargs, filename, view), 0)
+        sublime.set_timeout_async(
+            lambda: self.run_initial_request(args, kwargs, filename, view), 0
+        )
 
     def run_initial_request(self, args, kwargs, filename, view):
         try:

@@ -97,35 +97,39 @@ class ResponseThreadPool:
         self.is_done = True
 
     def prepare_request(self, request, ordering):
-        """If request is not prefixed with "{var_name}.", prefix request with
-        "requests.", because this module is guaranteed to be in the scope under
-        which the request is evaluated. Accepts a request string and returns a
-        `Request` instance.
+        """Parse and evaluate args and kwargs in request string under context of
+        env. These args and kwargs are later passed to call to requests in
+        `get_response`.
+
+        Also, prepare request string: if request is not prefixed with
+        "{var_name}.", prefix request with "requests.", because this module is
+        guaranteed to be in the scope under which the request is evaluated.
+        Accepts a request string and returns a `Request` instance.
 
         Also, ensure request can time out so it doesn't hang indefinitely.
         http://docs.python-requests.org/en/master/user/advanced/#timeouts
         """
-        r = request.strip()
-        if not re.match(PREFIX, r):
-            r = 'requests.' + r
+        req = request.strip()
+        if not re.match(PREFIX, req):
+            req = 'requests.' + req
 
         self.env['__parse_args__'] = parse_args
-        index = r.index('(')
+        index = req.index('(')
         try:
-            args, kwargs = eval('__parse_args__{}'.format(r[index:]), self.env)
+            args, kwargs = eval('__parse_args__{}'.format(req[index:]), self.env)
         except:
             args, kwargs = [], {}
 
-        method = r[:index].split('.')[1].strip().upper()
-        if 'url' not in kwargs:
+        method = req[:index].split('.')[1].strip().upper()
+        url = kwargs.get('url', None)
+        if url is None:
             try:
                 url = args[0]
             except:
                 pass  # this method isn't responsible for raising exceptions
-        else:
-            url = kwargs.get('url')
 
         if 'timeout' not in kwargs:
             timeout = self.config.get('timeout', None)
             kwargs['timeout'] = timeout
-        return Request(r, method, url, args, kwargs, ordering)
+            req = req[:-1] + ', timeout={})'.format(timeout)  # put timeout kwarg into request string
+        return Request(req, method, url, args, kwargs, ordering)

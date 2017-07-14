@@ -324,7 +324,6 @@ Commands defined by this package, in case you want to add or change key bindings
 - __timeout_env__: default timeout in seconds for executing env block/env file
 - __max_content_length_kb__: don't render responses whose content length (kilobytes) exceeds this value
 - __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
-- __change_focus_after_requests__: if multiple requests are executed, change focus to final response tab after requests return
 - __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
 - __pin_tabs_by_default__: pin newly opened response tabs by default, so they aren't overwritten by requests with the same method and URL
 - __history_file__: name of request history file, stored in User directory
