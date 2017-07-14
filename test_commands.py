@@ -25,7 +25,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         self.MAX_WORKERS = max(1, concurrency)
         super().run(edit)
 
-    def get_requests(self, env):
+    def get_requests(self):
         """Parses only first highlighted selection.
         """
         view = self.view
@@ -35,7 +35,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             if not region.empty():
                 selection = view.substr(region)
             try:
-                self._tests = parse_tests(selection, env)
+                self._tests = parse_tests(selection)
             except Exception as e:
                 sublime.error_message('Parse Error: there may be unbalanced brackets in tests')
                 print(e)

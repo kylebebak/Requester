@@ -8,7 +8,6 @@ from collections import OrderedDict
 
 from .request_commands import RequesterCommand
 from .core import RequestCommandMixin
-from .core.parsers import prepare_request
 from .core.helpers import truncate
 
 
@@ -130,8 +129,8 @@ class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
         self.view.settings().set('requester.env_file', env_file)
         RequestCommandMixin.run(self, edit)
 
-    def get_requests(self, env):
-        return [prepare_request((self.request, 0), env)]
+    def get_requests(self):
+        return [self.request]
 
     def reset_env_string(self):
         pass

@@ -27,7 +27,7 @@ The mixin uses the `ResponseThreadPool` class, which wraps a thread pool to exec
 
 Command classes that use this mixin should override `handle_response` and/or `handle_responses`. This way they can handle responses one at a time as they are completed, or as a group when they're all finished. Each response object contains the parsed `request` string, the `response` (a __requests.Response__ object), an `error` string, and an `ordering`. Responses are sorted by request parsing order before they are passed to `handle_responses`.
 
-Command classes __must__ also override `get_requests`, which must return a list of request strings parsed from the current view. To simplify this, `core` has a `parsers` module. The important parser is `parse_requests`. It takes a string, such as a selection from a view, and returns a list of all requests in the string. Each request is a namedtuple containing the `request` string, `method`, `args`, `kwargs`, and `ordering` of the request in the requester file.
+Command classes __must__ also override `get_requests`, which must return a list of request strings parsed from the current view. To simplify this, `core` has a `parsers` module. The important parser is `parse_requests`. It takes a string, such as a selection from a view, and returns a list of all requests in the string.
 
 
 ### Writing a New Command Class

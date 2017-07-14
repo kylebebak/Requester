@@ -178,7 +178,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         self.MAX_WORKERS = max(1, concurrency)
         super().run(edit)
 
-    def get_requests(self, env):
+    def get_requests(self):
         """Parses requests from multiple selections. If nothing is highlighted,
         cursor's current line is taken as selection.
         """
@@ -190,18 +190,16 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             else:
                 selection = view.substr(view.line(region))
             try:
-                requests_ = parse_requests(selection, env)
+                requests_ = parse_requests(selection)
             except Exception as e:
                 sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
                 print(e)
             else:
                 for r in requests_:
-                    if self.handle_special_request(r, env):
-                        continue
                     requests.append(r)
         return requests
 
-    def handle_special_request(self, request, env):
+    def handle_special_request(self, request):
         """Handle requests which are initially run with `RequesterCommand` but are
         then passed on to other handlers, like downloads.
         """
@@ -210,7 +208,6 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             # `run_command`, and `env` isn't JSON serializable...
             from .download_commands import RequesterDownloadCommand as download
             download.REQUEST = request
-            download.ENV = env
             sublime.run_command('requester_download')
             return True
         return False
@@ -224,6 +221,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         window = self.view.window()
         r = response
         if r.response is None or r.error:  # ignore responses with errors
+            self.handle_special_request(response.request)
             return
         method, url = r.response.request.method, r.response.url
 
@@ -279,13 +277,13 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
 class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Replay a request from a response view.
     """
-    def get_requests(self, env):
+    def get_requests(self):
         """Parses requests from first line only.
         """
         try:
             requests = parse_requests(self.view.substr(
                 sublime.Region(0, self.view.size())
-            ), env, n=1)
+            ), n=1)
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in your request')
             print(e)
@@ -347,12 +345,12 @@ class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
 class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Reorders open response tabs to match order of requests in current view.
     """
-    def get_requests(self, env):
+    def get_requests(self):
         self._requests = []
         try:
             self._requests = parse_requests(self.view.substr(
                 sublime.Region(0, self.view.size())
-            ), env)
+            ))
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
             print(e)

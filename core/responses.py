@@ -1,17 +1,39 @@
+import sublime
+
+import re
 from concurrent import futures
 from collections import namedtuple
 
-requests = __import__('requests')
+import requests
+
+from .parsers import PREFIX
 
 
+Request = namedtuple('Request', 'request, method, url, args, kwargs, ordering')
 Response = namedtuple('Response', 'request, response, error')
+
+methods = {
+    'GET': requests.get,
+    'OPTIONS': requests.options,
+    'HEAD': requests.head,
+    'POST': requests.post,
+    'PUT': requests.put,
+    'PATCH': requests.patch,
+    'DELETE': requests.delete,
+}
+
+
+def parse_args(*args, **kwargs):
+    """Used in conjunction with eval to parse args and kwargs from a string.
+    """
+    return args, kwargs
 
 
 class ResponseThreadPool:
     """Allows requests to be invoked concurrently, and allows client code to
     inspect instance's responses as they are returned.
     """
-    def get_response(self, request):
+    def get_response(self, request, ordering):
         """Evaluate `request` in context of `env`, which at the very least
         includes the `requests` module. Return `response`.
 
@@ -19,15 +41,15 @@ class ResponseThreadPool:
         "chaining" of requests. If two requests are run serially, the second
         request can reference the response returned by the previous request.
         """
-        env = self.env or {}
-        env['requests'] = requests
+        request = self.prepare_request(request, ordering)
+        self.pending_requests.append(request)
 
         response, error = None, ''
         if self.is_done:  # prevents further requests from being made if pool is cancelled
             return Response(request, response, error)  # check using: https://requestb.in/
 
         try:
-            response = eval(request.request, env)
+            response = methods.get(request.method)(*request.args, **request.kwargs)
         except requests.Timeout:
             error = 'Timeout Error: the request timed out'
         except requests.ConnectionError:
@@ -39,22 +61,16 @@ class ResponseThreadPool:
             error = '{}: {}'.format('Type Error', e)
         except Exception as e:
             error = '{}: {}'.format('Other Error', e)
-        else:  # only check response type if no exceptions were raised
-            if not isinstance(response, requests.Response):
-                error = '{}: {}'.format('Type Error',
-                                        'request did not return an instance of requests.Response')
-                response = None  # reset response to `None` if it's not a `Response`
 
-        if not self.env:
-            self.env = {}
         self.env['Response'] = response  # to allow "chaining" of serially executed requests
         return Response(request, response, error)
 
     def __init__(self, requests, env, max_workers):
+        self.config = sublime.load_settings('Requester.sublime-settings')
         self.is_done = False
         self.responses = []
         self.requests = requests
-        self.pending_requests = list(requests)
+        self.pending_requests = []
         self.env = env
         self.max_workers = max_workers
 
@@ -65,8 +81,8 @@ class ResponseThreadPool:
             max_workers=min(self.max_workers, len(self.requests))
         ) as executor:
             to_do = []
-            for request in self.requests:
-                future = executor.submit(self.get_response, request)
+            for ordering, request in enumerate(self.requests):
+                future = executor.submit(self.get_response, request, ordering)
                 to_do.append(future)
 
             for future in futures.as_completed(to_do):
@@ -79,3 +95,37 @@ class ResponseThreadPool:
                     pass
                 self.responses.append(result)
         self.is_done = True
+
+    def prepare_request(self, request, ordering):
+        """If request is not prefixed with "{var_name}.", prefix request with
+        "requests.", because this module is guaranteed to be in the scope under
+        which the request is evaluated. Accepts a request string and returns a
+        `Request` instance.
+
+        Also, ensure request can time out so it doesn't hang indefinitely.
+        http://docs.python-requests.org/en/master/user/advanced/#timeouts
+        """
+        r = request.strip()
+        if not re.match(PREFIX, r):
+            r = 'requests.' + r
+
+        self.env['__parse_args__'] = parse_args
+        index = r.index('(')
+        try:
+            args, kwargs = eval('__parse_args__{}'.format(r[index:]), self.env)
+        except:
+            args, kwargs = [], {}
+
+        method = r[:index].split('.')[1].strip().upper()
+        if 'url' not in kwargs:
+            try:
+                url = args[0]
+            except:
+                pass  # this method isn't responsible for raising exceptions
+        else:
+            url = kwargs.get('url')
+
+        if 'timeout' not in kwargs:
+            timeout = self.config.get('timeout', None)
+            kwargs['timeout'] = timeout
+        return Request(r, method, url, args, kwargs, ordering)
