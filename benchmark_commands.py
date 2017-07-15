@@ -25,14 +25,14 @@ def header_size(headers):
     return sum(len(key) + len(value) + 4 for key, value in headers.items()) + 2
 
 
-def request_response_size_kb(response):
+def request_response_size_kb(res):
     """https://stackoverflow.com/questions/33064891/python-requests-urllib-monitoring-bandwidth-usage
     """
-    r = response
-    request_line_size = len(r.request.method) + len(r.request.path_url) + 12
-    request_size = request_line_size + header_size(r.request.headers) + int(r.request.headers.get('content-length', 0))
-    response_line_size = len(r.reason) + 15
-    response_size = response_line_size + header_size(r.headers) + int(r.headers.get('content-length', 0))
+    request_line_size = len(res.request.method) + len(res.request.path_url) + 12
+    request_size = request_line_size + header_size(res.request.headers)\
+        + int(res.request.headers.get('content-length', 0))
+    response_line_size = len(res.reason) + 15
+    response_size = response_line_size + header_size(res.headers) + int(res.headers.get('content-length', 0))
     return (request_size / 1024, response_size / 1024)
 
 

@@ -60,7 +60,7 @@ class RequestCommandMixin:
         is a convenience method that is called on all responses after they are
         returned.
         """
-        errors = ['{}\n{}'.format(r.request.request, r.error) for r in responses if r.error]
+        errors = ['{}\n{}'.format(r.req.request, r.err) for r in responses if r.err]
         if errors:
             sublime.error_message('\n\n'.join(errors[:100]))
             if len(errors) > 100:
@@ -242,7 +242,7 @@ class RequestCommandMixin:
             self.handle_response(response)
 
         if is_done:
-            responses.sort(key=lambda response: response.request.ordering)  # parsing order is preserved
+            responses.sort(key=lambda response: response.req.ordering)  # parsing order is preserved
             self.handle_responses(responses)
             self.handle_errors(responses)
             self.persist_requests(responses)
@@ -279,11 +279,11 @@ class RequestCommandMixin:
 
         ts = int(time())
         for response in responses:  # insert new requests
-            res = response.response
+            req, res, err = response
             if res is None:
                 continue
             method, url = res.request.method, res.url
-            # uniqueness of request in history is determined by method and url + qs
+            # uniqueness of request in history is determined by method and url/qs
             key = '{}: {}'.format(method, url)
             if key in rh:
                 rh.pop(key, None)  # remove duplicate requests
@@ -295,7 +295,7 @@ class RequestCommandMixin:
                 'method': method,
                 'url': url,
                 'code': res.status_code,
-                'request': response.request.request
+                'request': req.request
             }
 
         # remove oldest requests if number of requests has exceeded `history_max_entries`

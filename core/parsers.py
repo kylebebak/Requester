@@ -22,7 +22,7 @@ def parse_requests(s, n=None):
 
 
 def parse_tests(s):
-    """Parse string and return an ordered list of (request, assertion) test pairs.
+    """Parse string and return an ordered list of (request, assertion) strings.
     """
     requests = [TypedSelection(sel, 'request') for sel in parse(s, '(', ')', [PREFIX_VERBS, VERBS])]
     assertions = [TypedSelection(sel, 'assertion') for sel in parse(s, '{', '}', [ASSERTIONS])]

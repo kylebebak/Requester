@@ -25,21 +25,21 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
 
     def run_initial_request(self, args, kwargs, filename, view):
         try:
-            req = requests.get(*args, stream=True, **kwargs)
+            res = requests.get(*args, stream=True, **kwargs)
         except Exception as e:
             sublime.error_message('Download Error: {}'.format(e))
             return
 
-        if req.status_code != 200:
+        if res.status_code != 200:
             sublime.error_message(
-                'Download Error: response status code is not 200\n\n{}'.format(truncate(req.text, 500))
+                'Download Error: response status code is not 200\n\n{}'.format(truncate(res.text, 500))
             )
             if sublime.load_settings('Requester.sublime-settings').get('only_download_for_200', True):
                 return
-        sublime.set_timeout_async(lambda: self.download_file(req, filename, view), 0)
+        sublime.set_timeout_async(lambda: self.download_file(res, filename, view), 0)
 
-    def download_file(self, response, filename, view):
-        length = int(response.headers.get('content-length') or 0)
+    def download_file(self, res, filename, view):
+        length = int(res.headers.get('content-length') or 0)
         chunk_size = sublime.load_settings('Requester.sublime-settings').get('chunk_size', 1024)
         chunk_size = max(int(chunk_size), 128)
         chunk_count = 0
@@ -55,7 +55,7 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
 
         try:
             with open(filename, 'xb') as f:  # don't overwrite file if it already exists
-                for chunk in response.iter_content(chunk_size):
+                for chunk in res.iter_content(chunk_size):
                     if self.CANCELLED:
                         break
                     f.write(chunk)

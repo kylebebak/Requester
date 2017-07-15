@@ -10,7 +10,7 @@ from .parsers import PREFIX
 
 
 Request = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session')
-Response = namedtuple('Response', 'request, response, error')
+Response = namedtuple('Response', 'req, res, err')
 
 methods = {
     'GET': requests.get,
@@ -34,41 +34,41 @@ class ResponseThreadPool:
     inspect instance's responses as they are returned.
     """
     def get_response(self, request, ordering):
-        """Evaluate `request` in context of `env`, which at the very least
-        includes the `requests` module. Return `response`.
+        """Calls request with specified args and kwargs parsed from request
+        string.
 
         Also sets "Response" key in env to `Response` object, to provide true
         "chaining" of requests. If two requests are run serially, the second
         request can reference the response returned by the previous request.
         """
-        request = prepare_request(request, self.env, ordering)
-        self.pending_requests.append(request)
+        req = prepare_request(request, self.env, ordering)
+        self.pending_requests.append(req)
 
-        response, error = None, ''
+        res, err = None, ''
         if self.is_done:  # prevents further requests from being made if pool is cancelled
-            return Response(request, response, error)  # check using: https://requestb.in/
+            return Response(req, res, err)  # check using: https://requestb.in/
 
         try:
-            if request.session:
-                session = self.env.get(request.session)
+            if req.session:
+                session = self.env.get(req.session)
                 if isinstance(session, requests.sessions.Session):
-                    response = getattr(session, request.method.lower())(*request.args, **request.kwargs)
+                    res = getattr(session, req.method.lower())(*req.args, **req.kwargs)
             else:
-                response = methods.get(request.method)(*request.args, **request.kwargs)
+                res = methods.get(req.method)(*req.args, **req.kwargs)
         except requests.Timeout:
-            error = 'Timeout Error: the request timed out'
+            err = 'Timeout Error: the request timed out'
         except requests.ConnectionError:
-            error = 'Connection Error: check your connection'
+            err = 'Connection Error: check your connection'
         except SyntaxError as e:
-            error = '{}: {}\n\n{}'.format('Syntax Error', e,
-                                          'Run "Requester: Show Syntax" to review properly formatted requests')
+            err = '{}: {}\n\n{}'.format('Syntax Error', e,
+                                        'Run "Requester: Show Syntax" to review properly formatted requests')
         except TypeError as e:
-            error = '{}: {}'.format('Type Error', e)
+            err = '{}: {}'.format('Type Error', e)
         except Exception as e:
-            error = '{}: {}'.format('Other Error', e)
+            err = '{}: {}'.format('Other Error', e)
 
-        self.env['Response'] = response  # to allow "chaining" of serially executed requests
-        return Response(request, response, error)
+        self.env['Response'] = res  # to allow "chaining" of serially executed requests
+        return Response(req, res, err)
 
     def __init__(self, requests, env, max_workers):
         self.is_done = False
@@ -94,7 +94,7 @@ class ResponseThreadPool:
                 # `responses` and `pending_requests` are instance properties, which means
                 # client code can inspect instance to read responses as they are completed
                 try:
-                    self.pending_requests.remove(result.request)
+                    self.pending_requests.remove(result.req)
                 except ValueError:
                     pass
                 self.responses.append(result)
@@ -103,15 +103,13 @@ class ResponseThreadPool:
 
 def prepare_request(request, env, ordering):
     """Parse and evaluate args and kwargs in request string under context of
-    env. These args and kwargs are later passed to call to requests in
-    `get_response`.
+    env.
 
-    Also, prepare request string: if request is not prefixed with
-    "{var_name}.", prefix request with "requests.", because this module is
-    guaranteed to be in the scope under which the request is evaluated.
-    Accepts a request string and returns a `Request` instance.
+    Also, prepare request string: if request is not prefixed with "{var_name}.",
+    prefix request with "requests." Accepts a request string and returns a
+    `Request` instance.
 
-    Also, ensure request can time out so it doesn't hang indefinitely.
+    Finally, ensure request can time out so it doesn't hang indefinitely.
     http://docs.python-requests.org/en/master/user/advanced/#timeouts
     """
     req = request.strip()

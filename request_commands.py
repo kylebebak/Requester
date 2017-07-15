@@ -16,7 +16,7 @@ Content = namedtuple('Content', 'content, point')
 platform = sublime.platform()
 
 
-def get_content(response):
+def get_content(res):
     """Efficiently decides if response content is binary. If this is the case,
     returns before `text` or `json` are invoked on response, because they are VERY
     SLOW when invoked on binary responses. See below:
@@ -28,60 +28,60 @@ def get_content(response):
     """
     config = sublime.load_settings('Requester.sublime-settings')
     max_len = 1000 * int(config.get('max_content_length_kb', 5000))
-    if len(response.content) > max_len:
+    if len(res.content) > max_len:
         return "Response is too big. This might be a binary file, or you might need to increase " +\
             "`max_content_length_kb` in Requester's settings."
 
-    if response.encoding is None:
+    if res.encoding is None:
         try:
-            response.content.decode('utf-8')
+            res.content.decode('utf-8')
         except UnicodeDecodeError:
             # content is almost certainly binary, and if it's not, requests won't know how to decode it anyway
             return "Response content is binary, so it can't be displayed. Try downloading this file instead."
         else:
-            response.encoding = 'utf-8'
+            res.encoding = 'utf-8'
 
     try:
-        json_dict = response.json()
+        json_dict = res.json()
     except:
-        return response.text
+        return res.text
     else:  # prettify json regardless of what raw response looks like
         return json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
 
 
-def get_response_view_content(request, response):
+def get_response_view_content(response):
     """Returns a response string that includes metadata, headers and content,
     and the index of the string at which response content begins.
     """
-    r = response
-    redirects = [res.url for res in r.history]  # URLs traversed due to redirects
-    redirects.append(r.url)  # final URL
+    req, res, err = response
+    redirects = [response.url for response in res.history]  # URLs traversed due to redirects
+    redirects.append(res.url)  # final URL
 
     header = '{} {}\n{}s, {}B\n{}'.format(
-        r.status_code, r.reason, r.elapsed.total_seconds(), len(r.content),
+        res.status_code, res.reason, res.elapsed.total_seconds(), len(res.content),
         ' -> '.join(redirects)
     )
     headers = '\n'.join(
-        ['{}: {}'.format(k, v) for k, v in sorted(r.headers.items())]
+        ['{}: {}'.format(k, v) for k, v in sorted(res.headers.items())]
     )
 
-    content = get_content(r)
+    content = get_content(res)
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [
-        request.request,
+        req.request,
         header,
-        'Request Headers: {}'.format(r.request.headers),
+        'Request Headers: {}'.format(res.request.headers),
         '{} replay request'.format(replay_binding) + ', ' + '{} pin/unpin tab'.format(pin_binding),
         headers
     ]
     try:
-        body = parse.parse_qs(r.request.body)
+        body = parse.parse_qs(res.request.body)
         body = {k: v[0] for k, v in body.items()}
     except:
-        body = r.request.body
+        body = res.request.body
 
-    cookies = r.cookies.get_dict()
+    cookies = res.cookies.get_dict()
     if cookies:
         before_content_items.insert(3, 'Response Cookies: {}'.format(cookies))
     if body:
@@ -91,14 +91,14 @@ def get_response_view_content(request, response):
     return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
 
-def set_response_view_name(view, response=None):
+def set_response_view_name(view, res=None):
     """Set name for `view` with content from `response`.
     """
     try:  # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
-        path = parse.urlparse(response.url).path
+        path = parse.urlparse(res.url).path
         if path and path[-1] == '/':
             path = path[:-1]
-        name = '{}: {}'.format(response.request.method, path)
+        name = '{}: {}'.format(res.request.method, path)
     except:
         name = view.settings().get('requester.name')
     else:
@@ -115,10 +115,10 @@ class RequestsMixin:
         """If there are already open response views waiting to display content from
         pending requests, show activity indicators in views.
         """
-        for request in requests:
+        for req in requests:
 
             for view in self.response_views_with_matching_request(
-                request.method, request.url
+                req.method, req.url
             ):
                 # view names set BEFORE view content is set, otherwise
                 # activity indicator in view names seems to lag a little
@@ -132,7 +132,7 @@ class RequestsMixin:
                     view.set_name(activity.ljust(len(name) + extra_spaces))
 
                 view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
-                    request.request, activity
+                    req.request, activity
                 )})
 
     def response_views_with_matching_request(self, method, url):
@@ -159,13 +159,13 @@ class RequestsMixin:
         return views
 
     @staticmethod
-    def set_request_setting_on_view(view, response):
+    def set_request_setting_on_view(view, res):
         """For reordering requests, showing pending activity for requests, and
         jumping to matching response tabs after requests return.
         """
-        url = response.response.url
+        url = res.url
         view.settings().set('requester.request', [
-            response.response.request.method, url.split('?')[0]
+            res.request.method, url.split('?')[0]
         ])
 
 
@@ -196,18 +196,18 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
                 sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
                 print(e)
             else:
-                for r in requests_:
-                    requests.append(r)
+                for request in requests_:
+                    requests.append(request)
         return requests
 
     def handle_errors(self, responses):
         """Handle errors which may not be errors, like file donwloads.
         """
-        downloads = [res for res in responses if 'filename' in res.request.kwargs]
-        errors = [res for res in responses if 'filename' not in res.request.kwargs]
-        for res in downloads:
+        downloads = [r for r in responses if 'filename' in r.req.kwargs]
+        errors = [r for r in responses if 'filename' not in r.req.kwargs]
+        for r in downloads:
             sublime.run_command('requester_download',
-                                {'args': res.request.args, 'kwargs': res.request.kwargs})
+                                {'args': r.req.args, 'kwargs': r.req.kwargs})
         super().handle_errors(errors)
 
     def handle_response(self, response):
@@ -217,10 +217,10 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         Don't create new response tab if a response tab matching request is open.
         """
         window = self.view.window()
-        r = response
-        if r.response is None or r.error:  # ignore responses with errors
+        req, res, err = response
+        if res is None or err:  # ignore responses with errors
             return
-        method, url = r.response.request.method, r.response.url
+        method, url = res.request.method, res.url
 
         requester_sheet = window.active_sheet()
 
@@ -248,17 +248,17 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             view.settings().set('requester.response_view', True)
             self.set_env_settings_on_view(view)
 
-            content = get_response_view_content(r.request, r.response)
+            content = get_response_view_content(response)
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
             view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
-            self.set_request_setting_on_view(view, r)
+            self.set_request_setting_on_view(view, res)
 
         # should response tabs be reordered after requests return?
         if self.config.get('reorder_tabs_after_requests', False):
             self.view.run_command('requester_reorder_response_tabs')
         for view in views:
-            set_response_view_name(view, r.response)
+            set_response_view_name(view, res)
 
     def handle_responses(self, responses):
         """Change focus after request returns?
@@ -267,7 +267,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             return
         if not self.config.get('change_focus_after_request', True):
             return
-        if not responses[0].error:
+        if not responses[0].err:
             self.view.window().focus_view(self._response_view)
 
 
@@ -292,18 +292,18 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         """Overwrites content in current view.
         """
         view = self.view
-        r = response
+        req, res, err = response
 
-        if r.error:  # ignore responses with errors
+        if err:  # ignore responses with errors
             return
 
-        content = get_response_view_content(r.request, r.response)
+        content = get_response_view_content(response)
         view.run_command('requester_replace_view_text',
                          {'text': content.content, 'point': content.point})
         view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
-        self.set_request_setting_on_view(view, r)
+        self.set_request_setting_on_view(view, res)
 
-        set_response_view_name(view, r.response)
+        set_response_view_name(view, res)
 
 
 class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
@@ -319,8 +319,8 @@ class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
                 if len(requests) > 100:
                     print('{} requests cancelled'.format(len(requests)))
                     return
-                for request in requests:
-                    print('Request cancelled: {}'.format(request.request))
+                for req in requests:
+                    print('Request cancelled: {}'.format(req.request))
 
 
 class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
@@ -355,8 +355,8 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
 
     def make_requests(self, *args, **kwargs):
         requests = []
-        for i, req in enumerate(self._requests):
-            requests.append(prepare_request(req, self._env, i))
+        for i, request in enumerate(self._requests):
+            requests.append(prepare_request(request, self._env, i))
 
         window = self.view.window()
         # cache all response views in current window

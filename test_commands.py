@@ -103,8 +103,8 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         assertion dict that don't correspond to a valid property or method of
         response.
         """
-        result = '{}\nassert {}\n'.format(response.request.request, assertion)
-        res = response.response
+        req, res, err = response
+        result = '{}\nassert {}\n'.format(req.request, assertion)
         errors = []
         count = 0
 
