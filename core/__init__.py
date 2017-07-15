@@ -98,7 +98,7 @@ class RequestCommandMixin:
         else:
             requests = self.get_requests()
             self.view.set_status('requester.activity', '')
-            self.make_requests(requests, self._env or {})
+            self.make_requests(requests, self._env)
 
     def is_requester_view(self):
         """Was this view opened by a Requester command? This is useful, e.g., to
@@ -189,7 +189,7 @@ class RequestCommandMixin:
             else:
                 env_dict_ = vars(env)
                 env_dict.update(env_dict_)  # env computed from `env_file` takes precedence
-        return env_dict or None
+        return env_dict
 
     def _get_env(self):
         """Wrapper calls `get_env` and assigns return value to instance property.

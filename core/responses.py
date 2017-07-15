@@ -53,6 +53,8 @@ class ResponseThreadPool:
                 session = self.env.get(req.session)
                 if isinstance(session, requests.sessions.Session):
                     res = getattr(session, req.method.lower())(*req.args, **req.kwargs)
+                else:
+                    err = 'Session Error: there is no session `{}` defined in your environment'.format(req.session)
             else:
                 res = methods.get(req.method)(*req.args, **req.kwargs)
         except requests.Timeout:

@@ -267,7 +267,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             return
         if not self.config.get('change_focus_after_request', True):
             return
-        if not responses[0].err:
+        if not responses[0].err and responses[0].res:
             self.view.window().focus_view(self._response_view)
 
 
@@ -379,9 +379,11 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
             match = False
             # iterate over requests parsed from requester file (which are in
             # parsing order), see if request in response view matches any of them
-            for r in requests:
-                if request[0] == r.method and clean_url(request[1]) == clean_url(r.url):
-                    views.append(View(view, r.ordering))
+            for req in requests:
+                if not req.method or not req.url:
+                    continue
+                if request[0] == req.method and clean_url(request[1]) == clean_url(req.url):
+                    views.append(View(view, req.ordering))
                     match = True
                     break
 
