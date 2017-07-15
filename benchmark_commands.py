@@ -105,7 +105,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         self.total = len(requests)
         return requests
 
-    def handle_response(self, response, num_requests):
+    def handle_response(self, response):
         """Update number of responses returned, and save response time and size
         metrics in bucket according to request URL and response status code.
         """

@@ -11,9 +11,6 @@
   // if a single request is executed, change focus to response tab after request returns
   "change_focus_after_request": true,
 
-  // if multiple requests are executed, change focus to final response tab after requests return
-  "change_focus_after_requests": false,
-
   // if multiple requests are executed, automatically reorder response tabs
   // based on requests in requester file after requests return
   "reorder_tabs_after_requests": false,

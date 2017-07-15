@@ -43,7 +43,7 @@ class RequestCommandMixin:
         """
         pass
 
-    def handle_response(self, response, num_requests):
+    def handle_response(self, response):
         """Override this method to handle a response from a single request. This
         method is called as each response is returned.
         """
@@ -239,7 +239,7 @@ class RequestCommandMixin:
         while len(pool.responses):  # remove completed responses from thread pool and display them
             r = pool.responses.pop(0)  # O(N) but who cares, this list will never have more than 10 elements
             responses.append(r)
-            self.handle_response(r, num_requests=len(pool.requests))
+            self.handle_response(r)
 
         if is_done:
             responses.sort(key=lambda response: response.request.ordering)  # parsing order is preserved
