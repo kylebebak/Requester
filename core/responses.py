@@ -51,7 +51,8 @@ class ResponseThreadPool:
         try:
             if request.session:
                 session = self.env.get(request.session)
-                response = getattr(session, request.method.lower())(*request.args, **request.kwargs)
+                if isinstance(session, requests.sessions.Session):
+                    response = getattr(session, request.method.lower())(*request.args, **request.kwargs)
             else:
                 response = methods.get(request.method)(*request.args, **request.kwargs)
         except requests.Timeout:

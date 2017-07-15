@@ -222,14 +222,14 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             return
         method, url = r.response.request.method, r.response.url
 
-        self.requester_sheet = window.active_sheet()
+        requester_sheet = window.active_sheet()
 
-        last_sheet = self.requester_sheet  # find last sheet (tab) with a response view
+        last_sheet = requester_sheet  # find last sheet (tab) with a response view
         for sheet in window.sheets():
             view = sheet.view()
             if view and view.settings().get('requester.response_view', False):
                 last_sheet = sheet
-        window.focus_sheet(last_sheet)
+        window.focus_sheet(last_sheet)  # make sure new tab is opened after last open response view
 
         views = self.response_views_with_matching_request(method, url)
         if not len(views):  # if there are no matching response tabs, create a new one
@@ -238,10 +238,10 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             if pinned:  # is this newly opened view pinned by default?
                 view.settings().set('requester.response_pinned', True)
             views = [view]
-        else:  # move focus to matching view after response is returned if match occurred
-            window.focus_view(views[0])
+        window.focus_sheet(requester_sheet)  # keep focus on requester view
 
         for view in views:
+            self._response_view = view  # cache this to change focus after all responses return
             view.set_scratch(True)
 
             # this setting allows keymap to target response views separately
@@ -263,10 +263,12 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
     def handle_responses(self, responses):
         """Change focus after request returns?
         """
-        window = self.view.window()
-        if len(responses) == 1:
-            if not self.config.get('change_focus_after_request', True):
-                window.focus_sheet(self.requester_sheet)
+        if len(responses) != 1:
+            return
+        if not self.config.get('change_focus_after_request', True):
+            return
+        if not responses[0].error:
+            self.view.window().focus_view(self._response_view)
 
 
 class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
@@ -286,7 +288,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         else:
             return requests
 
-    def handle_response(self, response, **kwargs):
+    def handle_response(self, response):
         """Overwrites content in current view.
         """
         view = self.view

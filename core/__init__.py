@@ -237,9 +237,9 @@ class RequestCommandMixin:
             responses = []
 
         while len(pool.responses):  # remove completed responses from thread pool and display them
-            r = pool.responses.pop(0)  # O(N) but who cares, this list will never have more than 10 elements
-            responses.append(r)
-            self.handle_response(r)
+            response = pool.responses.pop(0)  # O(N) but who cares, this list will never have more than 10 elements
+            responses.append(response)
+            self.handle_response(response)
 
         if is_done:
             responses.sort(key=lambda response: response.request.ordering)  # parsing order is preserved

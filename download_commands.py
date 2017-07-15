@@ -25,18 +25,18 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
 
     def run_initial_request(self, args, kwargs, filename, view):
         try:
-            r = requests.get(*args, stream=True, **kwargs)
+            req = requests.get(*args, stream=True, **kwargs)
         except Exception as e:
             sublime.error_message('Download Error: {}'.format(e))
             return
 
-        if r.status_code != 200:
+        if req.status_code != 200:
             sublime.error_message(
-                'Download Error: response status code is not 200\n\n{}'.format(truncate(r.text, 500))
+                'Download Error: response status code is not 200\n\n{}'.format(truncate(req.text, 500))
             )
             if sublime.load_settings('Requester.sublime-settings').get('only_download_for_200', True):
                 return
-        sublime.set_timeout_async(lambda: self.download_file(r, filename, view), 0)
+        sublime.set_timeout_async(lambda: self.download_file(req, filename, view), 0)
 
     def download_file(self, response, filename, view):
         length = int(response.headers.get('content-length') or 0)

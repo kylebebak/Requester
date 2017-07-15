@@ -97,8 +97,8 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
                 sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
                 print(e)
             else:
-                for r in requests_:
-                    requests.append(r)
+                for req in requests_:
+                    requests.append(req)
         if len(requests) * self.REPETITIONS > self.MAX_REQUESTS:  # avoid attempting to instantiate huge list
             self.REPETITIONS = ceil(self.MAX_REQUESTS / len(requests))
         requests = (requests * self.REPETITIONS)[:self.MAX_REQUESTS]
@@ -115,15 +115,15 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
                 self.get_progress_indicator(self.count, self.total)
             ))
 
-        r = response
-        key = '{}: {}'.format(r.request.method, r.request.url)
-        if r.response is None or r.error:
+        req, res, err = response
+        key = '{}: {}'.format(req.method, req.url)
+        if res is None or err:
             self.metrics[key].append(ResponseMetrics(0, 0, 0, None, False))
             return
 
-        sent, received = request_response_size_kb(r.response)
-        elapsed = r.response.elapsed.total_seconds()
-        self.metrics[key].append(ResponseMetrics(elapsed, sent, received, r.response.status_code, True))
+        sent, received = request_response_size_kb(res)
+        elapsed = res.elapsed.total_seconds()
+        self.metrics[key].append(ResponseMetrics(elapsed, sent, received, res.status_code, True))
 
     def handle_responses(self, responses):
         """Invoke the real function on a different thread to avoid blocking UI.

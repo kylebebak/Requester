@@ -31,22 +31,22 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
             list(rh.items())
         ))
 
-        entries = [self.get_entry_parts(r) for r in self.requests]
+        entries = [self.get_entry_parts(req) for req in self.requests]
         self.window.show_quick_panel(
             [e for e in entries if e is not None],  # in case, e.g., schema has changed
             self.on_done
         )
 
-    def get_entry_parts(self, r):
+    def get_entry_parts(self, req):
         """Display request and other properties for each entry.
         """
-        header = '{}, {}'.format(r[1]['method'].lower(), r[1]['url'])
+        header = '{}, {}'.format(req[1]['method'].lower(), req[1]['url'])
         try:  # in case, e.g., schema has changed
             return [
                 truncate(header, 100),
-                self.approximate_age(r[1]['ts']),
-                str(r[1]['code']),
-                r[1]['file'] or '?',
+                self.approximate_age(req[1]['ts']),
+                str(req[1]['code']),
+                req[1]['file'] or '?',
             ]
         except:
             return None

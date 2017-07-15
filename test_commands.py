@@ -59,10 +59,10 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             except Exception as e:
                 errors.append('{}: {}'.format('Assertion Error', e))
             else:
-                r = self.get_result(response, assertion)
-                count_assertions += r.assertions
-                count_errors += r.errors
-                results.append(r.result)
+                result = self.get_result(response, assertion)
+                count_assertions += result.assertions
+                count_errors += result.errors
+                results.append(result.result)
 
         if errors:
             sublime.error_message('\n\n'.join(errors))
@@ -104,7 +104,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         response.
         """
         result = '{}\nassert {}\n'.format(response.request.request, assertion)
-        r = response.response
+        res = response.response
         errors = []
         count = 0
 
@@ -117,11 +117,11 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                 from jsonschema import validate, ValidationError
 
                 if prop == 'cookies_schema':
-                    got = r.cookies.get_dict()
+                    got = res.cookies.get_dict()
                 if prop == 'json_schema':
-                    got = r.json()
+                    got = res.json()
                 if prop == 'headers_schema':
-                    got = r.headers
+                    got = res.headers
 
                 try:
                     validate(got, expected)
@@ -134,17 +134,17 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             elif prop in ('cookies', 'json'):  # method equality validtion
                 count += 1
                 if prop == 'cookies':
-                    got = r.cookies.get_dict()
+                    got = res.cookies.get_dict()
                 if prop == 'json':
-                    got = r.json()
+                    got = res.json()
                 if got != expected:
                     errors.append(Error(prop, expected, got, 'not equal'))
 
             else:  # prop equality validation
-                if not hasattr(r, prop):
+                if not hasattr(res, prop):
                     continue
                 count += 1
-                got = getattr(r, prop)
+                got = getattr(res, prop)
                 if got != expected:
                     errors.append(Error(prop, expected, got, 'not equal'))
 
