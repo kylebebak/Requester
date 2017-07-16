@@ -1,5 +1,4 @@
 # New Features
-
 Added command to __pin/unpin__ response tabs.
 
 Unpinned response tabs are overwritten by requests with the same method and URL. Pinned response tabs are not, which makes it possible to have multiple views open for the same request.
