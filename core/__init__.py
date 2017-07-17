@@ -237,7 +237,7 @@ class RequestCommandMixin:
             responses = []
 
         while len(pool.responses):  # remove completed responses from thread pool and display them
-            response = pool.responses.pop(0)  # O(N) but who cares, this list will never have more than 10 elements
+            response = pool.responses.popleft()
             responses.append(response)
             self.handle_response(response)
 

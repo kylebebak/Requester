@@ -2,7 +2,7 @@ import sublime
 
 import re
 from concurrent import futures
-from collections import namedtuple
+from collections import namedtuple, deque
 
 import requests
 
@@ -43,6 +43,7 @@ class ResponseThreadPool:
         """
         req = prepare_request(request, self.env, ordering)
         self.pending_requests.append(req)
+        print(' {} '.format(len(self.pending_requests)))
 
         res, err = None, ''
         if self.is_done:  # prevents further requests from being made if pool is cancelled
@@ -74,7 +75,7 @@ class ResponseThreadPool:
 
     def __init__(self, requests, env, max_workers):
         self.is_done = False
-        self.responses = []
+        self.responses = deque()
         self.requests = requests
         self.pending_requests = []
         self.env = env
