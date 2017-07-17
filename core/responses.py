@@ -96,6 +96,12 @@ class ResponseThreadPool:
         self.env = env
         self.max_workers = max_workers
 
+    def get_pending_requests(self):
+        """Getter for `self.pending_requests`. This is a `set` that's shared
+        between threads, which makes iterating over it unsafe.
+        """
+        return self.pending_requests.copy()
+
     def run(self):
         """Concurrently invoke `get_response` for all of instance's `requests`.
         """

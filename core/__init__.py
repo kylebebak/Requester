@@ -213,7 +213,8 @@ class RequestCommandMixin:
             old_pool = pools.get()
             old_pool.is_done = True  # don't display responses for a pool which has already been removed
         sublime.set_timeout_async(lambda: pool.run(), 0)  # run on an alternate thread
-        sublime.set_timeout(lambda: self.gather_responses(pool), 0)
+        sublime.set_timeout(lambda: self.gather_responses(pool), 15)
+        # small delay to show activity for requests that are returned in less than REFRESH_MS
 
     def _show_activity_for_pending_requests(self, requests, count):
         """Show activity indicator in status bar.
@@ -230,7 +231,7 @@ class RequestCommandMixin:
         completed, or as a group when they're all finished. Each response objects
         contains `request`, `response`, `error`, and `ordering` keys.
         """
-        self._show_activity_for_pending_requests(pool.pending_requests, count)
+        self._show_activity_for_pending_requests(pool.get_pending_requests(), count)
         is_done = pool.is_done  # cache `is_done` before removing responses from pool
 
         if responses is None:

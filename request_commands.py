@@ -116,7 +116,6 @@ class RequestsMixin:
         pending requests, show activity indicators in views.
         """
         for req in requests:
-
             for view in self.response_views_with_matching_request(
                 req.method, req.url
             ):
@@ -267,7 +266,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             return
         if not self.config.get('change_focus_after_request', True):
             return
-        if not responses[0].err and responses[0].res:
+        if not responses[0].err and responses[0].res is not None:
             self.view.window().focus_view(self._response_view)
 
 
@@ -315,7 +314,7 @@ class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
             pool = pools.get()
             if not pool.is_done:
                 pool.is_done = True
-                requests = pool.pending_requests
+                requests = pool.get_pending_requests()
                 if len(requests) > 100:
                     print('{} requests cancelled'.format(len(requests)))
                     return
