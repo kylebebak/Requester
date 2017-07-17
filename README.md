@@ -283,7 +283,7 @@ Assertions can be inserted seamlessly into a requester file; if you're not doing
 
 
 ## Benchmarking Tool
-Want to see how your staging or production servers hold up under load? Requester's benchmarking tool is like [ab](https://httpd.apache.org/docs/2.4/programs/ab.html) or [siege](https://www.joedog.org/siege-home/), but as usual it's easier to use. Highlight one or more requests, and call __Requester: Run Benchmarks__ from the command palette.
+Want to see how your staging or production servers hold up under load? Requester's benchmarking tool is like [ab](https://httpd.apache.org/docs/2.4/programs/ab.html) or [siege](https://www.joedog.org/siege-home/), but it's easier to use. Highlight one or more requests, and call __Requester: Run Benchmarks__ from the command palette.
 
 You'll be prompted for the number `N` of each request to run, and the concurrency `C`. In other words, if you highlight 5 requests, then input 100 for `N` and 20 for `C`, you'll send a total of 500 requests, 100 to each endpoint, in bunches of 20 at a time.
 
@@ -297,7 +297,9 @@ get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
 get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 ~~~
 
-It goes without saying, but please don't use this for DoS attacks on servers you don't own. Regardless what you pass for `N`, the total number of requests executed is capped at 1000000. `C` is capped at 1000, which translates to [tens of millions of requests per day](https://serverfault.com/questions/274253/apache-ab-choosing-number-of-concurrent-connections).
+It goes without saying, but please don't use this for DoS attacks on servers you don't own. Regardless what you pass for `N`, the total number of requests executed is capped at 100000. `C` is capped at 1000, which translates to [tens of millions of requests per day](https://serverfault.com/questions/274253/apache-ab-choosing-number-of-concurrent-connections).
+
+Warning: benchmarks runs with `C` above ~100 may slow down the UI while they are running.
 
 
 ## Commands

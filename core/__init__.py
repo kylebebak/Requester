@@ -236,12 +236,12 @@ class RequestCommandMixin:
         if responses is None:
             responses = []
 
-        while len(pool.responses):  # remove completed responses from thread pool and display them
+        for i in range(len(pool.responses)):  # remove completed responses from thread pool and display them
             response = pool.responses.popleft()
             responses.append(response)
             self.handle_response(response)
 
-        if is_done:
+        if is_done:  # return AFTER completed responses have been removed from thread pool
             responses.sort(key=lambda response: response.req.ordering)  # parsing order is preserved
             self.handle_responses(responses)
             self.handle_errors(responses)

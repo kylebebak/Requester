@@ -68,7 +68,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
     """Execute each selected request `num` times, with specified `concurrency`,
     and display response time metrics.
     """
-    MAX_REQUESTS = 1000000
+    MAX_REQUESTS = 100000
 
     def run(self, edit, num, concurrency):
         """Allow user to specify concurrency.
@@ -110,13 +110,16 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         """Update number of responses returned, and save response time and size
         metrics in bucket according to request URL and response status code.
         """
+        req, res, err = response
+        if res is None and err == '':  # this was a cancelled response, don't include it in metrics
+            return
+
         self.count += 1
         if floor(100 * (self.count - 1) / self.total) != floor(100 * self.count / self.total):
             self.view.set_status('requester.benchmarks', 'Requester Benchmarks: {}'.format(
                 self.get_progress_indicator(self.count, self.total)
             ))
 
-        req, res, err = response
         key = '{}: {}'.format(req.method, req.url)
         if res is None or err:
             self.metrics[key].append(ResponseMetrics(0, 0, 0, None, False))
@@ -164,6 +167,11 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
                          {'text': rates + '\n\n\n' + '\n\n\n'.join(profiles) + '\n', 'point': 0})
         view.set_name('Requester Benchmarks')
         view.set_syntax_file('Packages/Requester/requester-benchmarks.sublime-syntax')
+
+    def handle_errors(self, responses):
+        """Don't allow default error handler to run, don't display error messages.
+        """
+        pass
 
     @staticmethod
     def get_profile_string(metrics):
