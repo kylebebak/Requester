@@ -9,7 +9,7 @@ import requests
 from .parsers import PREFIX
 
 
-Request = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session')
+Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session')
 Response = namedtuple('Response', 'req, res, err')
 
 methods = {
@@ -21,6 +21,19 @@ methods = {
     'PATCH': requests.patch,
     'DELETE': requests.delete,
 }
+
+
+class Request(Request_):
+    """Hashable `Request` namedtuple.
+    """
+    def __hash__(self):
+        return hash(self.ordering)
+
+    def __eq__(self, other):
+        return self.ordering == other.ordering
+
+    def __ne__(self, other):
+        return not(self == other)
 
 
 def parse_args(*args, **kwargs):
@@ -42,8 +55,7 @@ class ResponseThreadPool:
         request can reference the response returned by the previous request.
         """
         req = prepare_request(request, self.env, ordering)
-        self.pending_requests.append(req)
-        print(' {} '.format(len(self.pending_requests)))
+        self.pending_requests.add(req)
 
         res, err = None, ''
         if self.is_done:  # prevents further requests from being made if pool is cancelled
@@ -77,7 +89,7 @@ class ResponseThreadPool:
         self.is_done = False
         self.responses = deque()
         self.requests = requests
-        self.pending_requests = []
+        self.pending_requests = set()
         self.env = env
         self.max_workers = max_workers
 
