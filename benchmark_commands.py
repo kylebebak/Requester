@@ -6,6 +6,7 @@ from time import time
 from collections import namedtuple, defaultdict
 
 from .core import RequestCommandMixin
+from .core.responses import prepare_request
 from .core.parsers import parse_requests
 
 
@@ -97,8 +98,8 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
                 sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
                 print(e)
             else:
-                for req in requests_:
-                    requests.append(req)
+                for i, request in enumerate(requests_):
+                    requests.append(prepare_request(request, self._env, i))
         if len(requests) * self.REPETITIONS > self.MAX_REQUESTS:  # avoid attempting to instantiate huge list
             self.REPETITIONS = ceil(self.MAX_REQUESTS / len(requests))
         requests = (requests * self.REPETITIONS)[:self.MAX_REQUESTS]

@@ -54,7 +54,10 @@ class ResponseThreadPool:
         "chaining" of requests. If two requests are run serially, the second
         request can reference the response returned by the previous request.
         """
-        req = prepare_request(request, self.env, ordering)
+        if isinstance(request, Request):  # no need to prepare request
+            req = request._replace(ordering=ordering)
+        else:
+            req = prepare_request(request, self.env, ordering)
         self.pending_requests.add(req)
 
         res, err = None, ''
@@ -110,8 +113,8 @@ class ResponseThreadPool:
                 # client code can inspect instance to read responses as they are completed
                 try:
                     self.pending_requests.remove(result.req)
-                except ValueError:
-                    pass
+                except KeyError:
+                    print('{} was not in pending requests, this is weird...'.format(result.req))
                 self.responses.append(result)
         self.is_done = True
 
