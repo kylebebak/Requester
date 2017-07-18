@@ -242,12 +242,12 @@ class RequestCommandMixin:
             responses.append(response)
             self.handle_response(response)
 
-        if is_done:  # return AFTER completed responses have been removed from thread pool
-            responses.sort(key=lambda response: response.req.ordering)  # parsing order is preserved
+        if is_done:
+            responses.sort(key=lambda response: response.req.ordering)
             self.handle_responses(responses)
             self.handle_errors(responses)
             self.persist_requests(responses)
-            self.view.set_status('requester.activity', '')  # remove activity indicator from status bar
+            self.view.set_status('requester.activity', '')
             return
 
         sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
@@ -284,7 +284,6 @@ class RequestCommandMixin:
             if res is None:
                 continue
             method, url = res.request.method, res.url
-            # uniqueness of request in history is determined by method and url/qs
             key = '{}: {}'.format(method, url)
             if key in rh:
                 rh.pop(key, None)  # remove duplicate requests
@@ -359,7 +358,7 @@ class RequestCommandMixin:
             else:
                 if line == delimeter:
                     in_block = True
-        if not len(env_lines) or in_block:  # env block must be closed
+        if not len(env_lines) or in_block:  # env block must be closed to take effect
             return None
         return '\n'.join(env_lines)
 

@@ -80,6 +80,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         )
         view.run_command('requester_replace_view_text',
                          {'text': header + '\n\n' + '\n\n'.join(results), 'point': 0})
+        view.set_read_only(True)
         view.set_name('Requester Test Run')
         view.set_syntax_file('Packages/Requester/requester-test.sublime-syntax')
 

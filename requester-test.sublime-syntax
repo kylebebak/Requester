@@ -13,9 +13,6 @@ contexts:
         3: constant.numeric.label.requester-test
         4: constant.language.errors.requester-test
 
-    - match: '^[\w_][\w\d_]*\.(get|options|head|post|put|patch|delete)\(.*'
-      scope: storage.type.replay-request.requester-test
-
     - match: '^(assert) (\{.*)'
       captures:
         1: keyword.other.assertion.requester-test
@@ -38,3 +35,19 @@ contexts:
         6: constant.numeric.value.requester-test
         7: constant.language.variable.requester-test
         8: constant.numeric.value.requester-test
+
+    - match: '^[\w_][\w\d_]*\.(get|options|head|post|put|patch|delete)\('
+      push: request
+
+  request:
+    - meta_scope: storage.type.replay-request.requester-test
+
+    - match: '#'
+      push: request-comment
+
+    - match: '\)$\n'
+      pop: true
+
+  request-comment:
+    - match: '\n'
+      pop: true

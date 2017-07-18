@@ -149,11 +149,11 @@ class RequestsMixin:
                 continue
 
             if view.settings().get('requester.response_view', False):
-                view_request = view.settings().get('requester.request', None)
-                if not view_request or not view_request[0] or not view_request[1]:
-                    # don't match only falsy method or url
+                view_method = view.settings().get('requester.request_method', None)
+                view_url = view.settings().get('requester.request_url', None)
+                if not view_method or not view_url:
                     continue
-                if view_request[0] == method and clean_url(url) == clean_url(view_request[1]):
+                if method == view_method and clean_url(url) == clean_url(view_url):
                     views.append(view)
         return views
 
@@ -162,10 +162,8 @@ class RequestsMixin:
         """For reordering requests, showing pending activity for requests, and
         jumping to matching response tabs after requests return.
         """
-        url = res.url
-        view.settings().set('requester.request', [
-            res.request.method, url.split('?')[0]
-        ])
+        view.settings().set('requester.request_method', res.request.method)
+        view.settings().set('requester.request_url', res.url.split('?')[0])
 
 
 class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
@@ -217,7 +215,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         """
         window = self.view.window()
         req, res, err = response
-        if res is None or err:  # ignore responses with errors
+        if res is None or err:
             return
         method, url = res.request.method, res.url
 
@@ -234,7 +232,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         if not len(views):  # if there are no matching response tabs, create a new one
             view = window.new_file()
             pinned = self.config.get('pin_tabs_by_default', False)
-            if pinned:  # is this newly opened view pinned by default?
+            if pinned:
                 view.settings().set('requester.response_pinned', True)
             views = [view]
         window.focus_sheet(requester_sheet)  # keep focus on requester view
@@ -293,7 +291,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         view = self.view
         req, res, err = response
 
-        if err:  # ignore responses with errors
+        if err:
             return
 
         content = get_response_view_content(response)
@@ -369,19 +367,18 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         views = []
         # add `ordering` property to cached response views, indicating at which ordering they appear in current view
         for view in response_views:
-            request = view.settings().get('requester.request', None)
-            if not request or not request[0] or not request[1]:
-                # don't match for falsy method or url
+            method = view.settings().get('requester.request_method', None)
+            url = view.settings().get('requester.request_url', None)
+            if not method or not url:
                 views.append(View(view, maxsize))
                 continue
 
             match = False
-            # iterate over requests parsed from requester file (which are in
-            # parsing order), see if request in response view matches any of them
+            # see if request in response view matches any request parsed from requester file
             for req in requests:
                 if not req.method or not req.url:
                     continue
-                if request[0] == req.method and clean_url(request[1]) == clean_url(req.url):
+                if method == req.method and clean_url(url) == clean_url(req.url):
                     views.append(View(view, req.ordering))
                     match = True
                     break
