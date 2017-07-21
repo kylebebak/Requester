@@ -4,7 +4,7 @@ requests.get('https://jsonplaceholder.typicode.com/albums')
 requests.post('https://jsonplaceholder.typicode.com/albums')
 
 get('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optional
-post('https://jsonplaceholder.typicode.com/posts')
+post('jsonplaceholder.typicode.com/posts')  # as is the URL scheme
 ~~~
 
 Place your cursor on one of the lines in the code block above and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r</kbd> on OSX). Or, look for __Requester: Run Requests__ in the command palette and hit Enter. A response tab will appear, with a name like __GET: /albums__.
@@ -26,9 +26,11 @@ get(
   'https://jsonplaceholder.typicode.com/posts'
 )
 post(
-  'https://jsonplaceholder.typicode.com/posts'
+  'jsonplaceholder.typicode.com/posts'
 )
 ~~~
+
+Notice that if a URL scheme isn't supplied, Requester sets is as `http` by default.
 
 If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
@@ -58,13 +60,13 @@ The __###env__ lines must have no leading or trailing spaces. Only the first env
 
 ### Request Body, Query Params, Custom Headers, Cookies
 ~~~py
-get('http://httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
+get('httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
 
-get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
+get('httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
 
-get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
+get('httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 
-get('http://httpbin.org/redirect-to?url=foo')
+get('httpbin.org/redirect-to?url=foo')
 # response tab shows redirects
 ~~~
 

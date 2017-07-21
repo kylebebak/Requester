@@ -149,17 +149,33 @@ def prepare_request(request, env, ordering):
         args, kwargs = eval('__parse_args__{}'.format(req[index:]), env)
     except:
         args, kwargs = [], {}
+    else:
+        args = list(args)
 
     method = req[:index].split('.')[1].strip().upper()
     url = kwargs.get('url', None)
-    if url is None:
+    if url is not None:
+        url = prepare_url(url)
+        kwargs['url'] = url
+    else:
         try:
             url = args[0]
         except:
             pass  # this method isn't responsible for raising exceptions
+        else:
+            url = prepare_url(url)
+            args[0] = url
 
     if 'timeout' not in kwargs:
         timeout = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
         kwargs['timeout'] = timeout
         req = req[:-1] + ', timeout={})'.format(timeout)  # put timeout kwarg into request string
     return Request(req, method, url, args, kwargs, ordering, session)
+
+
+def prepare_url(url):
+    """Prepend scheme to URL if necessary.
+    """
+    if type(url) is str and len(url.split('://')) == 1:
+        return 'http://' + url
+    return url

@@ -1,13 +1,10 @@
 # Contributing
 Please do! Possible improvements:
 
-- Improve test runner
-  + Run tests in a requester file from command line, so that they can be integrated into an arbitrary test suite
-  + Alternatively, create command to export requests and assertions in requester file to a runnable Python test script
-  + Better syntax highlighting for test run results view
-- Import from and export to common request formats (HTTP, cURL, etc)
-- Generate API documentation from JSON Schema
-- Create tutorial videos showing Requester in action
+- Export requests and assertions in requester file to a runnable Python test script
+- Import from and export to common formats
+  + cURL
+  + HTTPie
 - Better test coverage
   + Error messages
   + Proper parsing of env block and env files
@@ -16,6 +13,8 @@ Please do! Possible improvements:
   + Test runner
   + Request history
   + File downloads
+  + Benchmarking tool
+- Create tutorial videos showing Requester in action
 
 
 ## How Does It Work?
@@ -25,9 +24,9 @@ This mixin is the motor for parsing an env, executing requests in parallel in th
 
 The mixin uses the `ResponseThreadPool` class, which wraps a thread pool to execute requests in parallel. Default concurrency is determined by the mixin's `MAX_WORKERS` class property. The thread pool is inspected at regular intervals to remove completed responses and handle them, and show activity for pending requests.
 
-Command classes that use this mixin should override `handle_response` and/or `handle_responses`. This way they can handle responses one at a time as they are completed, or as a group when they're all finished. Each response object contains the parsed `request` string, the `response` (a __requests.Response__ object), an `error` string, and an `ordering`. Responses are sorted by request parsing order before they are passed to `handle_responses`.
+Command classes that use this mixin should override `handle_response` and/or `handle_responses`. This way they can handle responses one at a time as they are completed, or as a group when they're all finished. Each response object contains a `request` namedtuple with a bunch of useful properties, the `response` (a __requests.Response__ object), and an `error` string. Responses are sorted by request parsing order before they are passed to `handle_responses`.
 
-Command classes __must__ also override `get_requests`, which must return a list of request strings parsed from the current view. To simplify this, `core` has a `parsers` module. The important parser is `parse_requests`. It takes a string, such as a selection from a view, and returns a list of all requests in the string.
+Command classes __must__ also override `get_requests`, which must return a list of request strings, for example strings parsed from the current view. To simplify this, `core` has a `parsers` module. The important parser is `parse_requests`. It takes a string, such as a selection from a view, and returns a list of all requests in the string.
 
 
 ### Writing a New Command Class
