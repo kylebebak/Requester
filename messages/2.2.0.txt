@@ -1,0 +1,2 @@
+# New Features
+Requester supplies default `http` scheme if no scheme is specified in URL.

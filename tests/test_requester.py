@@ -25,6 +25,12 @@ class TestFunctions(DeferrableTestCase):
         req = core.responses.prepare_request(s, {}, 0)
         self.assertEqual(req.request, "_s.get('http://httpbin.org/get', timeout=15)")
 
+    def test_prepare_request_with_no_scheme(self):
+        s = "get('httpbin.org/get')"
+        req = core.responses.prepare_request(s, {}, 0)
+        self.assertEqual(req.url, 'http://httpbin.org/get')
+        self.assertEqual(req.args[0], 'http://httpbin.org/get')
+
 
 ####################
 # HELPER FUNCTIONS
@@ -101,16 +107,16 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
     def test_single_request(self):
         """Generic.
         """
-        select_line_beginnings(self.view, 5)
+        select_line_beginnings(self.view, 6)
         self.view.run_command('requester')
         yield self.WAIT_MS  # this use of yield CAN'T be moved into a helper, it needs to be part of a test method
-        self._test_url_in_view(self.window.active_view(), 'https://jsonplaceholder.typicode.com/albums')
+        self._test_url_in_view(self.window.active_view(), 'http://jsonplaceholder.typicode.com/albums')
         self._test_name_in_view(self.window.active_view(), 'POST: /albums')
 
     def test_single_request_no_prefix(self):
         """Without `requests.` prefix.
         """
-        select_line_beginnings(self.view, 6)
+        select_line_beginnings(self.view, 7)
         self.view.run_command('requester')
         yield self.WAIT_MS
         self._test_url_in_view(self.window.active_view(), 'https://jsonplaceholder.typicode.com/posts')
@@ -119,7 +125,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
     def test_single_request_with_env_block(self):
         """From env block.
         """
-        select_line_beginnings(self.view, 8)
+        select_line_beginnings(self.view, 9)
         self.view.run_command('requester')
         yield self.WAIT_MS
         self._test_url_in_view(self.window.active_view(), 'http://httpbin.org/get?key1=value1')
@@ -132,7 +138,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
             path.join(sublime.packages_path(), 'Requester', 'tests', 'requester_env_file.py')
         )
         yield 1000  # not waiting here causes a strange bug to happen
-        select_line_beginnings(view, 3)
+        select_line_beginnings(view, 4)
         view.run_command('requester')
         yield self.WAIT_MS
         view.close()
@@ -143,13 +149,13 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         """Test that re-executing request in requester file doesn't open response
         tab, but rather reuses already open response tab.
         """
-        select_line_beginnings(self.view, 5)
+        select_line_beginnings(self.view, 6)
         self.view.run_command('requester')
         yield self.WAIT_MS
         group, index = self.window.get_view_index(self.window.active_view())
         self.window.focus_view(self.view)
         yield 1000
-        select_line_beginnings(self.view, 5)
+        select_line_beginnings(self.view, 6)
         self.view.run_command('requester')
         yield self.WAIT_MS
         new_group, new_index = self.window.get_view_index(self.window.active_view())
@@ -168,7 +174,7 @@ class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
             - Focus doesn't change to any response tab after it appears
             - Reordering response tabs works correctly
         """
-        select_line_beginnings(self.view, [5, 6, 7, 8])
+        select_line_beginnings(self.view, [6, 7, 8, 9])
         self.view.run_command('requester')
         yield self.WAIT_MS
         self.assertEqual(self.window.active_view(), self.view)
@@ -192,7 +198,7 @@ class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
     def test_session(self):
         """Using session.
         """
-        select_line_beginnings(self.view, 9)
+        select_line_beginnings(self.view, 10)
         self.view.run_command('requester')
         yield self.WAIT_MS
         self._test_url_in_view(self.window.active_view(), 'http://httpbin.org/cookies/set?k1=v1')
