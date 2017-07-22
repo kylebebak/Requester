@@ -1,11 +1,57 @@
+import sublime
+
+import datetime
 import argparse
 import json
 import shlex
+from time import time
 from collections import OrderedDict
+from requests import Request
+
+from .core.responses import prepare_request
+from .request_commands import RequesterCommand
+
+
+class RequesterExportToCurlCommand(RequesterCommand):
+    """Re-execute request chosen from requester history in context of env under
+    which request was originally executed.
+    """
+    def make_requests(self, requests, env):
+        prepared_requests = []
+        errors = []
+        for i, request in enumerate(requests):
+            r = prepare_request(request, env, i)
+            r.args.insert(0, r.method)
+            r.kwargs.pop('timeout')
+            try:
+                prepared_requests.append(Request(*r.args, **r.kwargs))
+            except Exception as e:
+                errors.append(str(e))
+                print(e)
+
+        if errors:
+            sublime.error_message('\n\n'.join(errors))
+
+        curls = [request_to_curl(request) for request in prepared_requests]
+        if not curls:
+            return
+
+        view = self.view.window().new_file()
+
+        date = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
+        header = '# export to cURL\n# {}'.format(date)
+        view.run_command('requester_replace_view_text',
+                         {'text': header + '\n\n' + '\n\n'.join(curls) + '\n', 'point': 0})
+        view.set_syntax_file('Packages/ShellScript/Shell-Unix-Generic.sublime-syntax')
+        view.set_name('cURL')
+        view.set_scratch(True)
+
+    def handle_response(self, response):
+        return
 
 
 def request_to_curl(request):
-    """Lifted entirely from: https://github.com/oeegor/curlify
+    """Lifted from: https://github.com/oeegor/curlify
 
     Adding pip dependencies in Sublime isn't trivial, and adding a dependency for
     10 line function would be a little silly.
@@ -13,10 +59,11 @@ def request_to_curl(request):
     headers = ["'{0}: {1}'".format(k, v) for k, v in request.headers.items()]
     headers = " -H ".join(sorted(headers))
 
-    return "curl -X {method} -H {headers} -d '{data}' '{uri}'".format(
-        data=request.body or '',
-        headers=headers,
+    return "curl -X {method}{headers}{data} '{uri}'".format(
         method=request.method,
+        headers=' -H {}'.format(headers) if headers else '',
+        # data=" -d '{}'".format() if headers else '',
+        data='',
         uri=request.url,
     )
 

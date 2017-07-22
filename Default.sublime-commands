@@ -62,6 +62,16 @@
   },
 
   {
+    "caption": "Requester: Export To Curl",
+    "command": "requester_export_to_curl"
+  },
+
+  {
+    "caption": "Requester: Import From Curl",
+    "command": "requester_import_from_curl"
+  },
+
+  {
     "caption": "Requester: Show Tutorial",
     "command": "requester_show_tutorial"
   },

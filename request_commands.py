@@ -340,20 +340,17 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
     """Reorders open response tabs to match order of requests in current view.
     """
     def get_requests(self):
-        self._requests = []
         try:
-            self._requests = parse_requests(self.view.substr(
+            return parse_requests(self.view.substr(
                 sublime.Region(0, self.view.size())
             ))
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
             print(e)
-        return []  # these will show up again in `make_requests`, but we're only interested in selections
+            return []
 
-    def make_requests(self, *args, **kwargs):
-        requests = []
-        for i, request in enumerate(self._requests):
-            requests.append(prepare_request(request, self._env, i))
+    def make_requests(self, requests, env):
+        requests = [prepare_request(request, env, i) for i, request in enumerate(requests)]
 
         window = self.view.window()
         # cache all response views in current window

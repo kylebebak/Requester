@@ -99,6 +99,8 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
                 print(e)
             else:
                 for i, request in enumerate(requests_):
+                    # prepare base requests then copy them, instead of passing a
+                    # bunch of unprepared requestes to thread pool
                     requests.append(prepare_request(request, self._env, i))
         if len(requests) * self.REPETITIONS > self.MAX_REQUESTS:  # avoid attempting to instantiate huge list
             self.REPETITIONS = ceil(self.MAX_REQUESTS / len(requests))
