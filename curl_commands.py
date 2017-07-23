@@ -1,9 +1,11 @@
 import sublime
+import sublime_plugin
 
 import datetime
 import argparse
 import json
 import shlex
+import re
 from time import time
 from collections import OrderedDict
 from requests import Request
@@ -14,8 +16,7 @@ from .request_commands import RequesterCommand
 
 
 class RequesterExportToCurlCommand(RequesterCommand):
-    """Re-execute request chosen from requester history in context of env under
-    which request was originally executed.
+    """Export selected requester requests to equivalent cURL requests.
     """
     def make_requests(self, requests, env):
         errors = []
@@ -48,13 +49,76 @@ class RequesterExportToCurlCommand(RequesterCommand):
 
         view = self.view.window().new_file()
         view.run_command('requester_replace_view_text',
-                         {'text': header + '\n\n' + '\n\n'.join(curls) + '\n', 'point': 0})
+                         {'text': header + '\n\n\n' + '\n\n\n'.join(curls) + '\n', 'point': 0})
         view.set_syntax_file('Packages/ShellScript/Shell-Unix-Generic.sublime-syntax')
         view.set_name('cURL')
         view.set_scratch(True)
 
     def handle_response(self, response):
         return
+
+
+class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
+    """Import cURL requests to Python requests.
+    """
+    def run(self, edit):
+        curls = self.get_curls()
+        requests = []
+        for curl in curls:
+            try:
+                requests.append(curl_to_request(curl))
+            except Exception as e:
+                sublime.error_message('Conversion Error: {}'.format(e))
+                print(e)
+
+        if not requests:
+            return
+
+        header = '# import from cURL'
+        view = self.view.window().new_file()
+        view.run_command('requester_replace_view_text',
+                         {'text': header + '\n\n\n' + '\n\n\n'.join(requests) + '\n', 'point': 0})
+        view.set_syntax_file('Packages/ShellScript/Shell-Unix-Generic.sublime-syntax')
+        view.set_name('requests')
+        view.set_scratch(True)
+
+    def get_curls(self):
+        """Parses curls from multiple selections. If nothing is highlighted,
+        cursor's current line is taken as selection.
+        """
+        view = self.view
+        curls = []
+        for region in view.sel():
+            if not region.empty():
+                selection = view.substr(region)
+            else:
+                selection = view.substr(view.line(region))
+            try:
+                curls_ = self.parse_curls(selection)
+            except Exception as e:
+                sublime.error_message('Parse Error: {}'.format(e))
+                print(e)
+            else:
+                for curl in curls_:
+                    curls.append(curl)
+        return curls
+
+    @staticmethod
+    def parse_curls(s):
+        """Rudimentary parser for calls to `curl`. These calls can't be intermixed
+        with calls to any other functions, but parser correctly ignores comments.
+        """
+        curls = []
+        curl = None
+        for line in s.splitlines(True):
+            line = line.split('#')[0]  # remove everything after comment in each line
+            if re.match('curl ', line):
+                if curl is not None:
+                    curls.append(curl)
+                curl = ''
+            curl += line + '\n'
+        curls.append(curl)
+        return curls
 
 
 def request_to_curl(request):
