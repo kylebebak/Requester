@@ -62,23 +62,23 @@
   },
 
   {
-    "caption": "Requester: Export To Curl",
+    "caption": "Requester: Run Benchmarks",
+    "command": "requester_prompt_benchmarks"
+  },
+
+  {
+    "caption": "Requester: Export To cURL",
     "command": "requester_export_to_curl"
   },
 
   {
-    "caption": "Requester: Import From Curl",
+    "caption": "Requester: Import From cURL",
     "command": "requester_import_from_curl"
   },
 
   {
     "caption": "Requester: Show Tutorial",
     "command": "requester_show_tutorial"
-  },
-
-  {
-    "caption": "Requester: Run Benchmarks",
-    "command": "requester_prompt_benchmarks"
   },
 
   {

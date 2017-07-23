@@ -18,6 +18,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
   + Clear error handling and error messages
 - Perfect for teams
   + Version and share requests however you want (Git, GitHub, etc)
+  + Export requests to cURL, import requests from cURL
   + Lightweight, integrated test runner with support for JSON Schema
   + [AB-style](https://httpd.apache.org/docs/2.4/programs/ab.html) benchmarking tool
   + Runs on Linux, Windows and macOS/OS X
@@ -307,6 +308,14 @@ It goes without saying, but please don't use this for DoS attacks on servers you
 Warning: benchmarks runs with `C` above ~100 may slow down the UI while they are running.
 
 
+## Export to/Import from cURL
+Need your requests in a more portable format? Requester lets you export to and import from the ubiquitous [cURL](https://curl.haxx.se/) format.
+
+This makes it trivial to share requests with teammates who don't use Requester, or execute your requests on any server you like.
+
+Exporting works seamlessly with env vars. Just highlight a group of requests and look for __Requester: Export To cURL__ in the command palette. For importing it's __Requester: Import From cURL__.
+
+
 ## Commands
 Commands defined by this package, in case you want to add or change key bindings.
 
@@ -321,6 +330,8 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_new_requester_file__: create empty requester file
 - __requester_run_tests__
 - __requester_prompt_benchmarks__
+- __requester_export_to_curl__: export selected requests to cURL
+- __requester_import_from_curl__: import selected cURL requests to requests
 - __requester_show_tutorial__
 - __requester_show_documentation__
 - __requester_show_syntax__
