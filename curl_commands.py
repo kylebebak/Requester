@@ -6,6 +6,8 @@ import argparse
 import json
 import shlex
 import re
+import sys
+import traceback
 from time import time
 from collections import OrderedDict
 from requests import Request
@@ -29,7 +31,7 @@ class RequesterExportToCurlCommand(RequesterCommand):
                 prepared_requests.append(Request(*r.args, **r.kwargs))
             except Exception as e:
                 errors.append(str(e))
-                print(e)
+                traceback.print_exc()
 
         curls = []
         for request in prepared_requests:
@@ -37,7 +39,7 @@ class RequesterExportToCurlCommand(RequesterCommand):
                 curls.append(request_to_curl(request))
             except Exception as e:
                 errors.append(str(e))
-                print(e)
+                traceback.print_exc()
 
         if errors:
             sublime.error_message('\n\n'.join(errors))
@@ -69,7 +71,7 @@ class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
                 requests.append(curl_to_request(curl))
             except Exception as e:
                 sublime.error_message('Conversion Error: {}'.format(e))
-                print(e)
+                traceback.print_exc()
 
         if not requests:
             return
@@ -78,7 +80,7 @@ class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
         view = self.view.window().new_file()
         view.run_command('requester_replace_view_text',
                          {'text': header + '\n\n\n' + '\n\n\n'.join(requests) + '\n', 'point': 0})
-        view.set_syntax_file('Packages/ShellScript/Shell-Unix-Generic.sublime-syntax')
+        view.set_syntax_file('Packages/Python/Python.sublime-syntax')
         view.set_name('requests')
         view.set_scratch(True)
 
@@ -97,7 +99,7 @@ class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
                 curls_ = self.parse_curls(selection)
             except Exception as e:
                 sublime.error_message('Parse Error: {}'.format(e))
-                print(e)
+                traceback.print_exc()
             else:
                 for curl in curls_:
                     curls.append(curl)
@@ -116,7 +118,8 @@ class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
                 if curl is not None:
                     curls.append(curl)
                 curl = ''
-            curl += line + '\n'
+            if curl is not None:
+                curl += line + '\n'
         curls.append(curl)
         return curls
 
@@ -159,6 +162,8 @@ def curl_to_request(curl):
     Rewritten slightly to remove `six` and `xerox` dependencies, and add parsing
     of cookies passed in `-b` or `--cookies` named argument.
     """
+    curl = curl.replace('\\\n', '').replace('\\', '')
+    sys.argv = ['__requester__']
     parser = argparse.ArgumentParser()
     parser.add_argument('command')
     parser.add_argument('url')
@@ -198,7 +203,7 @@ def curl_to_request(curl):
     cookie_dict = OrderedDict()
 
     if parsed_args.cookie:
-        cookies = parsed_args.split(';')
+        cookies = parsed_args.cookie.split(';')
         for cookie in cookies:
             key, value = cookie.strip().split('=')
             cookie_dict[key] = value
@@ -216,7 +221,7 @@ def curl_to_request(curl):
             quoted_headers[key] = value.strip()
 
     result = """requests.{method}('{url}',\n{data_token}{headers_token},\n{cookies_token},\n)""".format(
-        method=method,
+        method=method.lower(),
         url=parsed_args.url,
         data_token=data_token,
         headers_token='{}headers={}'.format(base_indent, dict_to_pretty_string(quoted_headers)),

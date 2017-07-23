@@ -167,9 +167,7 @@ def prepare_request(request, env, ordering):
             args[0] = url
 
     if 'timeout' not in kwargs:
-        timeout = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
-        kwargs['timeout'] = timeout
-        req = req[:-1] + ', timeout={})'.format(timeout)  # put timeout kwarg into request string
+        kwargs['timeout'] = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
     return Request(req, method, url, args, kwargs, ordering, session)
 
 

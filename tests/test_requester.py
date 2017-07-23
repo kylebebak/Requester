@@ -18,12 +18,12 @@ class TestFunctions(DeferrableTestCase):
     def test_prepare_request(self):
         s = "get('http://httpbin.org/get')"
         req = core.responses.prepare_request(s, {}, 0)
-        self.assertEqual(req.request, "requests.get('http://httpbin.org/get', timeout=15)")
+        self.assertEqual(req.request, "requests.get('http://httpbin.org/get')")
 
     def test_prepare_request_with_prefix(self):
         s = "_s.get('http://httpbin.org/get')"
         req = core.responses.prepare_request(s, {}, 0)
-        self.assertEqual(req.request, "_s.get('http://httpbin.org/get', timeout=15)")
+        self.assertEqual(req.request, "_s.get('http://httpbin.org/get')")
 
     def test_prepare_request_with_no_scheme(self):
         s = "get('httpbin.org/get')"
