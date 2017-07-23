@@ -7,6 +7,7 @@ import shlex
 from time import time
 from collections import OrderedDict
 from requests import Request
+from urllib.parse import urlencode
 
 from .core.responses import prepare_request
 from .request_commands import RequesterCommand
@@ -17,8 +18,8 @@ class RequesterExportToCurlCommand(RequesterCommand):
     which request was originally executed.
     """
     def make_requests(self, requests, env):
-        prepared_requests = []
         errors = []
+        prepared_requests = []
         for i, request in enumerate(requests):
             r = prepare_request(request, env, i)
             r.args.insert(0, r.method)
@@ -29,17 +30,23 @@ class RequesterExportToCurlCommand(RequesterCommand):
                 errors.append(str(e))
                 print(e)
 
+        curls = []
+        for request in prepared_requests:
+            try:
+                curls.append(request_to_curl(request))
+            except Exception as e:
+                errors.append(str(e))
+                print(e)
+
         if errors:
             sublime.error_message('\n\n'.join(errors))
-
-        curls = [request_to_curl(request) for request in prepared_requests]
         if not curls:
             return
 
-        view = self.view.window().new_file()
-
         date = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
         header = '# export to cURL\n# {}'.format(date)
+
+        view = self.view.window().new_file()
         view.run_command('requester_replace_view_text',
                          {'text': header + '\n\n' + '\n\n'.join(curls) + '\n', 'point': 0})
         view.set_syntax_file('Packages/ShellScript/Shell-Unix-Generic.sublime-syntax')
@@ -51,52 +58,72 @@ class RequesterExportToCurlCommand(RequesterCommand):
 
 
 def request_to_curl(request):
-    """Lifted from: https://github.com/oeegor/curlify
+    """Inspired by: https://github.com/oeegor/curlify
 
-    Adding pip dependencies in Sublime isn't trivial, and adding a dependency for
-    10 line function would be a little silly.
+    Modified to accept a prepared request instance, intead of the `request`
+    property on a response intance, which requests don't have to be sent to
+    convert them to cURL, and also extraneous headers aren't added.
     """
-    headers = ["'{0}: {1}'".format(k, v) for k, v in request.headers.items()]
+    data = ''
+    if request.data:
+        data = urlencode(request.data)
+    elif request.json:
+        data = json.dumps(request.json)
+        request.headers['Content-Type'] = 'application/json'
+
+    cookies = ''
+    if request.cookies:
+        cookies = ['{}={}'.format(k, v) for k, v in request.cookies.items()]
+        cookies = ';'.join(sorted(cookies))
+
+    headers = ["'{}: {}'".format(k, v) for k, v in request.headers.items()]
     headers = " -H ".join(sorted(headers))
 
-    return "curl -X {method}{headers}{data} '{uri}'".format(
+    return "curl -X {method}{headers}{cookies}{data} '{uri}{qs}'".format(
         method=request.method,
         headers=' -H {}'.format(headers) if headers else '',
-        # data=" -d '{}'".format() if headers else '',
-        data='',
+        cookies=" -b '{}'".format(cookies) if cookies else '',
+        data=" -d '{}'".format(data) if data else '',
         uri=request.url,
+        qs='?{}'.format(urlencode(request.params)) if request.params else '',
     )
 
 
 def curl_to_request(curl):
     """Lifted from: https://github.com/spulec/uncurl
 
-    Rewritten slightly to remove `six` and `xerox` dependencies.
+    Rewritten slightly to remove `six` and `xerox` dependencies, and add parsing
+    of cookies passed in `-b` or `--cookies` named argument.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument('command')
     parser.add_argument('url')
+    parser.add_argument('-X', '--request', default=None)
     parser.add_argument('-d', '--data')
-    parser.add_argument('-b', '--data-binary', default=None)
+    parser.add_argument('-b', '--cookie', default=None)
     parser.add_argument('-H', '--header', action='append', default=[])
+    parser.add_argument('--data-binary', default=None)
     parser.add_argument('--compressed', action='store_true')
-
-    method = 'get'
 
     tokens = shlex.split(curl)
     parsed_args = parser.parse_args(tokens)
+
+    method = 'get'
+    if parsed_args.request:
+        method = parsed_args.request
 
     base_indent = ' ' * 4
     data_token = ''
     post_data = parsed_args.data or parsed_args.data_binary
     if post_data:
-        method = 'post'
+        if not parsed_args.request:
+            method = 'post'
         try:
             post_data_json = json.loads(post_data)
         except ValueError:
             post_data_json = None
 
-        # If we found JSON and it is a dict, pull it apart. Otherwise, just leave as a string
+        # if we found JSON and it's a dict, pull it apart; otherwise, leave it as a string
         if post_data_json and isinstance(post_data_json, dict):
             post_data = dict_to_pretty_string(post_data_json)
         else:
@@ -105,22 +132,26 @@ def curl_to_request(curl):
         data_token = '{}data={},\n'.format(base_indent, post_data)
 
     cookie_dict = OrderedDict()
-    quoted_headers = OrderedDict()
-    for curl_header in parsed_args.header:
-        header_key, header_value = curl_header.split(':', 1)
 
-        if header_key.lower() == 'cookie':
-            cookies = header_value.split(';')
+    if parsed_args.cookie:
+        cookies = parsed_args.split(';')
+        for cookie in cookies:
+            key, value = cookie.strip().split('=')
+            cookie_dict[key] = value
+
+    quoted_headers = OrderedDict()
+    for header in parsed_args.header:
+        key, value = header.split(':', 1)
+
+        if key.lower() == 'cookie':
+            cookies = value.split(';')
             for cookie in cookies:
                 key, value = cookie.strip().split('=')
                 cookie_dict[key] = value
         else:
-            quoted_headers[header_key] = header_value.strip()
+            quoted_headers[key] = value.strip()
 
-    result = """requests.{method}('{url}',
-{data_token}{headers_token},
-{cookies_token},
-)""".format(
+    result = """requests.{method}('{url}',\n{data_token}{headers_token},\n{cookies_token},\n)""".format(
         method=method,
         url=parsed_args.url,
         data_token=data_token,

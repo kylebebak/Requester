@@ -60,9 +60,12 @@ The __###env__ lines must have no leading or trailing spaces. Only the first env
 
 ### Request Body, Query Params, Custom Headers, Cookies
 ~~~py
-get('httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
+post("httpbin.org/post", data={'key1': 'value1', 'key2': 'value2'})
+post("httpbin.org/post", json={'key1': 'value1', 'key2': 'value2'})
 
 get('httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
+
+get('httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
 
 get('httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 
