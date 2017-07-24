@@ -17,33 +17,41 @@ from .core.responses import prepare_request
 from .request_commands import RequesterCommand
 
 
+def get_exports(requests, env, exporter):
+    """Takes list of request strings and prepares them in context of `env`, then
+    converts them to list of requests in a new syntax using `exporter` function.
+    """
+    errors = []
+    prepared_requests = []
+    for i, request in enumerate(requests):
+        r = prepare_request(request, env, i)
+        r.args.insert(0, r.method)
+        r.kwargs.pop('timeout')
+        try:
+            prepared_requests.append(Request(*r.args, **r.kwargs))
+        except Exception as e:
+            errors.append(str(e))
+            traceback.print_exc()
+
+    exports = []
+    for request in prepared_requests:
+        try:
+            exports.append(exporter(request))
+        except Exception as e:
+            errors.append(str(e))
+            traceback.print_exc()
+
+    if errors:
+        sublime.error_message('\n\n'.join(errors))
+    return exports
+
+
 class RequesterExportToCurlCommand(RequesterCommand):
     """Export selected requester requests to equivalent cURL requests.
     """
     def make_requests(self, requests, env):
-        errors = []
-        prepared_requests = []
-        for i, request in enumerate(requests):
-            r = prepare_request(request, env, i)
-            r.args.insert(0, r.method)
-            r.kwargs.pop('timeout')
-            try:
-                prepared_requests.append(Request(*r.args, **r.kwargs))
-            except Exception as e:
-                errors.append(str(e))
-                traceback.print_exc()
-
-        curls = []
-        for request in prepared_requests:
-            try:
-                curls.append(request_to_curl(request))
-            except Exception as e:
-                errors.append(str(e))
-                traceback.print_exc()
-
-        if errors:
-            sublime.error_message('\n\n'.join(errors))
-        if not curls:
+        exports = get_exports(requests, env, request_to_curl)
+        if not exports:
             return
 
         date = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
@@ -51,9 +59,31 @@ class RequesterExportToCurlCommand(RequesterCommand):
 
         view = self.view.window().new_file()
         view.run_command('requester_replace_view_text',
-                         {'text': header + '\n\n\n' + '\n\n\n'.join(curls) + '\n', 'point': 0})
+                         {'text': header + '\n\n\n' + '\n\n\n'.join(exports) + '\n', 'point': 0})
         view.set_syntax_file('Packages/ShellScript/Shell-Unix-Generic.sublime-syntax')
         view.set_name('cURL')
+        view.set_scratch(True)
+
+    def handle_response(self, response):
+        return
+
+
+class RequesterExportToHttpieCommand(RequesterCommand):
+    """Export selected requester requests to equivalent cURL requests.
+    """
+    def make_requests(self, requests, env):
+        exports = get_exports(requests, env, request_to_httpie)
+        if not exports:
+            return
+
+        date = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
+        header = '# export to HTTPie\n# {}'.format(date)
+
+        view = self.view.window().new_file()
+        view.run_command('requester_replace_view_text',
+                         {'text': header + '\n\n\n' + '\n\n\n'.join(exports) + '\n', 'point': 0})
+        view.set_syntax_file('Packages/ShellScript/Shell-Unix-Generic.sublime-syntax')
+        view.set_name('HTTPie')
         view.set_scratch(True)
 
     def handle_response(self, response):
@@ -127,9 +157,37 @@ class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
 def request_to_curl(request):
     """Inspired by: https://github.com/oeegor/curlify
 
-    Modified to accept a prepared request instance, intead of the `request`
-    property on a response intance, which requests don't have to be sent to
-    convert them to cURL, and also extraneous headers aren't added.
+    Modified to accept a prepared request instance, instead of the `request`
+    property on a response intance, which means requests don't have to be sent
+    before converting them to cURL, and also extraneous headers aren't added.
+    """
+    data = ''
+    if request.data:
+        data = urlencode(request.data)
+    elif request.json:
+        data = json.dumps(request.json)
+        request.headers['Content-Type'] = 'application/json'
+
+    cookies = ''
+    if request.cookies:
+        cookies = ['{}={}'.format(k, v) for k, v in request.cookies.items()]
+        cookies = ';'.join(sorted(cookies))
+
+    headers = ["'{}: {}'".format(k, v) for k, v in request.headers.items()]
+    headers = " -H ".join(sorted(headers))
+
+    return "curl -X {method}{headers}{cookies}{data} '{uri}{qs}'".format(
+        method=request.method,
+        headers=' -H {}'.format(headers) if headers else '',
+        cookies=" -b '{}'".format(cookies) if cookies else '',
+        data=" -d '{}'".format(data) if data else '',
+        uri=request.url,
+        qs='?{}'.format(urlencode(request.params)) if request.params else '',
+    )
+
+
+def request_to_httpie(request):
+    """Converts prepared request instance to a string that calls HTTPie.
     """
     data = ''
     if request.data:
