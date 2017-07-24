@@ -18,7 +18,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
   + Clear error handling and error messages
 - Perfect for teams
   + Version and share requests however you want (Git, GitHub, etc)
-  + Export requests to cURL, import requests from cURL
+  + Export requests to cURL or HTTPie, import requests from cURL
   + Lightweight, integrated test runner with support for JSON Schema
   + [AB-style](https://httpd.apache.org/docs/2.4/programs/ab.html) benchmarking tool
   + Runs on Linux, Windows and macOS/OS X
@@ -308,12 +308,14 @@ It goes without saying, but please don't use this for DoS attacks on servers you
 Warning: benchmarks runs with `C` above ~100 may slow down the UI while they are running.
 
 
-## Export to/Import from cURL
+## Export/Import with cURL, HTTPie
 Need your requests in a more portable format? Requester lets you export to and import from the ubiquitous [cURL](https://curl.haxx.se/) format.
 
 This makes it trivial to share requests with teammates who don't use Requester, or execute your requests on any server you like.
 
-Exporting works seamlessly with env vars. Just highlight a group of requests and look for __Requester: Export To cURL__ in the command palette. For importing it's __Requester: Import From cURL__.
+Prefer [HTTPie](https://httpie.org/) instead of cURL? You can also export requests to HTTPie!
+
+Exporting works seamlessly with env vars. Just highlight a group of requests and look for __Requester: Export To cURL__ or __Requester: Export To HTTPie__ in the command palette. For importing it's __Requester: Import From cURL__.
 
 
 ## Commands
@@ -331,23 +333,26 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_run_tests__
 - __requester_prompt_benchmarks__
 - __requester_export_to_curl__: export selected requests to cURL
-- __requester_import_from_curl__: import selected cURL requests to requests
+- __requester_export_to_httpie__: export selected requests to HTTPie
+- __requester_import_from_curl__: import selected cURL requests
 - __requester_show_tutorial__
 - __requester_show_documentation__
 - __requester_show_syntax__
 
 
 ## Settings
-- __timeout__: default timeout in seconds for all requests
-- __timeout_env__: default timeout in seconds for executing env block/env file
-- __max_content_length_kb__: don't render responses whose content length (kilobytes) exceeds this value
-- __change_focus_after_request__: if a single request is executed, change focus to response tab after request returns
-- __reorder_tabs_after_requests__: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
-- __pin_tabs_by_default__: pin newly opened response tabs by default, so they aren't overwritten by requests with the same method and URL
-- __history_file__: name of request history file, stored in User directory
-- __history_max_entries__: max number of requests in history file
-- __chunk_size__: chunk size for file downloads (bytes)
-- __only_download_for_200__: only perform file download if response status code is 200
+Requester's modifiable settings, and their default values. You can override any of these settings by creating a `Requester.sublime-settings` file in Sublime's `Packages/User` directory. The easiest way to do this is go to __Preferences > Package Settings > Requester > Settings__ from the menu bar.
+
+- __timeout__, `15`: default timeout in seconds for all requests
+- __timeout_env__, `15`: default timeout in seconds for executing env block/env file
+- __max_content_length_kb__, `5000`: don't render responses whose content length (kilobytes) exceeds this value
+- __change_focus_after_request__, `true`: if a single request is executed, change focus to response tab after request returns
+- __reorder_tabs_after_requests__, `false`: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
+- __pin_tabs_by_default__, `false`: pin newly opened response tabs by default, so they aren't overwritten by requests with the same method and URL
+- __history_file__, `"Requester`: name of request history file, stored in User directory
+- __history_max_entries__, `250`: max number of requests in history file
+- __chunk_size__, `1024`: chunk size for file downloads (bytes)
+- __only_download_for_200__, `true`: only perform file download if response status code is 200
 
 
 ## Contributing and Tests
@@ -365,6 +370,8 @@ Apart from being feature-rich, __Requester is built for speed and simplicity__. 
 
 [![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester")
 
-The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control. Need to share requests with someone who doesn't use Requester? Exporting all of your requests to cURL takes a few seconds.
+The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control.
+
+Need to share requests with someone who doesn't use Requester? Exporting all of your requests to cURL or HTTPie takes a few seconds.
 
 Requester is cross-platform and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use =)

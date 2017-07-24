@@ -237,7 +237,7 @@ class RequestCommandMixin:
         if responses is None:
             responses = []
 
-        for i in range(len(pool.responses)):  # remove completed responses from thread pool and display them
+        for i in range(len(pool.responses)):
             response = pool.responses.popleft()
             responses.append(response)
             self.handle_response(response)

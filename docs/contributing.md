@@ -1,13 +1,7 @@
 # Contributing
 Please do! Possible improvements:
 
-- Export requests and assertions in requester file to a runnable Python test script
-- Import from and export to HTTPie
-- Add simple auth plugins
-  + API auth
-  + JWT auth
-  + OAuth
-- Better test coverage
+- __Better test coverage__
   + Error messages
   + Proper parsing of env block and env files
   + Activity indicators
@@ -16,7 +10,13 @@ Please do! Possible improvements:
   + Request history
   + File downloads
   + Benchmarking tool
-- Create tutorial videos showing Requester in action
+  + Export/import functions
+- Export requests and assertions in requester file to a runnable Python test script
+- Add simple auth plugins
+  + API auth
+  + JWT auth
+  + OAuth
+- Create Requester tutorial videos
 
 
 ## How Does It Work?
