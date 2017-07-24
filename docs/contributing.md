@@ -2,9 +2,11 @@
 Please do! Possible improvements:
 
 - Export requests and assertions in requester file to a runnable Python test script
-- Import from and export to common formats
-  + cURL
-  + HTTPie
+- Import from and export to HTTPie
+- Add simple auth plugins
+  + API auth
+  + JWT auth
+  + OAuth
 - Better test coverage
   + Error messages
   + Proper parsing of env block and env files
