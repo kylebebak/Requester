@@ -13,6 +13,8 @@ from collections import namedtuple, OrderedDict
 from requests import Request
 from urllib.parse import urlencode
 
+from requests.auth import HTTPDigestAuth
+
 from .core.responses import prepare_request
 from .request_commands import RequesterCommand
 
@@ -31,12 +33,8 @@ def get_exports(requests, env, exporter):
         r.args.insert(0, r.method)
 
         kwargs = r.kwargs.copy()
-        timeout = r.kwargs.pop('timeout', None)
-        filename = r.kwargs.pop('filename', None)
-        if filename:
-            kwargs['filename'] = filename
-        if timeout:
-            kwargs['timeout'] = timeout
+        r.kwargs.pop('timeout', None)
+        r.kwargs.pop('filename', None)
 
         try:
             prepared_requests.append(PreparedRequest(Request(*r.args, **r.kwargs), r.args, kwargs))
@@ -189,12 +187,12 @@ def request_to_curl(request):
     headers = ["'{}: {}'".format(k, v) for k, v in req.headers.items()]
     headers = " -H ".join(sorted(headers))
 
-    return "curl -X {method}{headers}{cookies}{data} '{uri}{qs}'".format(
+    return "curl -X {method}{headers}{cookies}{data} '{url}{qs}'".format(
         method=req.method,
         headers=' -H {}'.format(headers) if headers else '',
         cookies=" -b '{}'".format(cookies) if cookies else '',
         data=" -d '{}'".format(data) if data else '',
-        uri=req.url,
+        url=req.url,
         qs='?{}'.format(urlencode(req.params)) if req.params else '',
     )
 
@@ -204,28 +202,68 @@ def request_to_httpie(request):
     """
     req, args, kwargs = request
 
-    data = ''
-    if req.data:
-        data = urlencode(req.data)
-    elif req.json:
-        data = json.dumps(req.json)
-        req.headers['Content-Type'] = 'application/json'
-
     cookies = ''
     if req.cookies:
         cookies = ['{}={}'.format(k, v) for k, v in req.cookies.items()]
-        cookies = ';'.join(sorted(cookies))
+        cookies = " 'Cookie:{}'".format(
+            ';'.join(sorted(cookies))
+        )
 
-    headers = ["'{}: {}'".format(k, v) for k, v in req.headers.items()]
-    headers = " -H ".join(sorted(headers))
+    headers = ''
+    if req.headers:
+        headers = ['{}:{}'.format(k, v) for k, v in req.headers.items()]
+        headers = ' {}'.format(' '.join(headers))
 
-    return "curl -X {method}{headers}{cookies}{data} '{uri}{qs}'".format(
-        method=req.method,
-        headers=' -H {}'.format(headers) if headers else '',
-        cookies=" -b '{}'".format(cookies) if cookies else '',
+    method = req.method.upper()
+    timeout = kwargs.get('timeout', None)
+    filename = kwargs.get('filename', None)
+
+    auth_string = ''
+    auth = kwargs.get('auth', None)
+    if auth:
+        if isinstance(auth, tuple):
+            username, password = auth
+            auth_string = ' -a {}:{}'.format(username, password)
+        elif isinstance(auth, HTTPDigestAuth):
+            auth_string = ' -A digest -a {}:{}'.format(auth.username, auth.password)
+
+    qs = ''
+    params = kwargs.get('params', {})
+    for k, v in params.items():
+        qs += " {}=='{}'".format(k, v)
+
+    data = ''
+    form = ''
+    stdin = ''
+    if req.data:
+        kvs = req.data.split('&')
+        data = ["{}='{}'".format(kv[0], kv[1]) for kv in kvs]
+        data = ' {}'.format(' '.join(data))
+        form = ' -f'
+    elif req.json:
+        if isinstance(req.json, dict):
+            for k, v in req.json.items():
+                if isinstance(v, str):
+                    data += ' {}={}'.format(k, v)
+                elif isinstance(v, (list, dict)):
+                    data += " {}:='{}'".format(k, json.dumps(v))
+                else:  # boolean, number
+                    data += ' {}:={}'.format(k, v)
+        else:
+            stdin = "echo '{}' | ".format(json.dumps(req.json))
+
+    return '{stdin}http{form}{auth}{timeout}{method} {url}{qs}{headers}{cookies}{data}{filename}'.format(
+        stdin=stdin,
+        form=form,
+        auth=auth_string,
+        timeout=' --timeout={}'.format(timeout) if timeout else '',
+        method=' {}'.format(method) if method != 'GET' else '',
+        url=req.url,
+        qs=qs,
+        headers=headers,
+        cookies=cookies,
         data=" -d '{}'".format(data) if data else '',
-        uri=req.url,
-        qs='?{}'.format(urlencode(req.params)) if req.params else '',
+        filename=' > {}'.format(filename) if filename else '',
     )
 
 

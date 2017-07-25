@@ -72,6 +72,11 @@
   },
 
   {
+    "caption": "Requester: Export To HTTPie",
+    "command": "requester_export_to_httpie"
+  },
+
+  {
     "caption": "Requester: Import From cURL",
     "command": "requester_import_from_curl"
   },
