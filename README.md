@@ -133,8 +133,10 @@ Dynamic env vars, like a `base_url` that might point to staging one minute and p
 ### Request Body, Query Params, Custom Headers, Cookies
 ~~~py
 post('httpbin.org/post', data={'key1': 'value1', 'key2': 'value2'})
+
 post('httpbin.org/post', json={'key1': 'value1', 'key2': 'value2'})
 post('httpbin.org/post', json=[1, 2, 3])
+post('httpbin.org/post', json={'name': 'Jimbo', 'age': 35, 'married': False, 'hobbies': ['wiki', 'pedia']})
 
 get('httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
 

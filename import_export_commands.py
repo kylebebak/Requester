@@ -13,7 +13,7 @@ from collections import namedtuple, OrderedDict
 from requests import Request
 from urllib.parse import urlencode
 
-from requests.auth import HTTPDigestAuth
+from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
 from .core.responses import prepare_request
 from .request_commands import RequesterCommand
@@ -30,14 +30,29 @@ def get_exports(requests, env, exporter):
     prepared_requests = []
     for i, request in enumerate(requests):
         r = prepare_request(request, env, i)
-        r.args.insert(0, r.method)
 
+        args = r.args.copy()
         kwargs = r.kwargs.copy()
         r.kwargs.pop('timeout', None)
         r.kwargs.pop('filename', None)
 
+        # not pretty, but it makes sure calls to requests.(get|post|put|patch)
+        # match up with `requests.Request` method signature
+        if r.method == 'GET':
+            if len(r.args) == 2:
+                r.kwargs['params'] = r.args.pop()
+        if r.method in ('PUT', 'PATCH'):
+            if len(r.args) == 2:
+                r.kwargs['data'] = r.args.pop()
+        if r.method in ('POST'):
+            if len(r.args) == 3:
+                r.kwargs['json'] = r.args.pop()
+            if len(r.args) == 2:
+                r.kwargs['data'] = r.args.pop()
+        r.args.insert(0, r.method)
+
         try:
-            prepared_requests.append(PreparedRequest(Request(*r.args, **r.kwargs), r.args, kwargs))
+            prepared_requests.append(PreparedRequest(Request(*r.args, **r.kwargs), args, kwargs))
         except Exception as e:
             errors.append(str(e))
             traceback.print_exc()
@@ -222,22 +237,21 @@ def request_to_httpie(request):
     auth = kwargs.get('auth', None)
     if auth:
         if isinstance(auth, tuple):
-            username, password = auth
-            auth_string = ' -a {}:{}'.format(username, password)
+            auth_string = ' -a {}:{}'.format(auth[0], auth[1])
+        elif isinstance(auth, HTTPBasicAuth):
+            auth_string = ' -a {}:{}'.format(auth.username, auth.password)
         elif isinstance(auth, HTTPDigestAuth):
             auth_string = ' -A digest -a {}:{}'.format(auth.username, auth.password)
 
     qs = ''
-    params = kwargs.get('params', {})
-    for k, v in params.items():
+    for k, v in req.params.items():
         qs += " {}=='{}'".format(k, v)
 
     data = ''
     form = ''
     stdin = ''
     if req.data:
-        kvs = req.data.split('&')
-        data = ["{}='{}'".format(kv[0], kv[1]) for kv in kvs]
+        data = ["{}='{}'".format(k, v) for k, v in req.data.items()]
         data = ' {}'.format(' '.join(data))
         form = ' -f'
     elif req.json:
@@ -248,7 +262,7 @@ def request_to_httpie(request):
                 elif isinstance(v, (list, dict)):
                     data += " {}:='{}'".format(k, json.dumps(v))
                 else:  # boolean, number
-                    data += ' {}:={}'.format(k, v)
+                    data += ' {}:={}'.format(k, str(v).lower())
         else:
             stdin = "echo '{}' | ".format(json.dumps(req.json))
 
@@ -262,7 +276,7 @@ def request_to_httpie(request):
         qs=qs,
         headers=headers,
         cookies=cookies,
-        data=" -d '{}'".format(data) if data else '',
+        data=data,
         filename=' > {}'.format(filename) if filename else '',
     )
 
