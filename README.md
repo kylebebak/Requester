@@ -348,11 +348,12 @@ Requester's modifiable settings, and their default values. You can override any 
 
 - __timeout__, `15`: default timeout in seconds for all requests
 - __timeout_env__, `15`: default timeout in seconds for executing env block/env file
+- __scheme__, `"http"`: scheme prepended to URLs in case no scheme is specified
 - __max_content_length_kb__, `5000`: don't render responses whose content length (kilobytes) exceeds this value
 - __change_focus_after_request__, `true`: if a single request is executed, change focus to response tab after request returns
 - __reorder_tabs_after_requests__, `false`: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
 - __pin_tabs_by_default__, `false`: pin newly opened response tabs by default, so they aren't overwritten by requests with the same method and URL
-- __history_file__, `"Requester`: name of request history file, stored in User directory
+- __history_file__, `"Requester.history.json"`: name of request history file, stored in User directory
 - __history_max_entries__, `250`: max number of requests in history file
 - __chunk_size__, `1024`: chunk size for file downloads (bytes)
 - __only_download_for_200__, `true`: only perform file download if response status code is 200

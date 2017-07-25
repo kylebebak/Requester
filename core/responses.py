@@ -175,5 +175,6 @@ def prepare_url(url):
     """Prepend scheme to URL if necessary.
     """
     if type(url) is str and len(url.split('://')) == 1:
-        return 'http://' + url
+        scheme = sublime.load_settings('Requester.sublime-settings').get('scheme', 'http')
+        return scheme + '://' + url
     return url

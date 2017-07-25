@@ -5,6 +5,9 @@
   // display error if env hasn't been executed after this many seconds
   "timeout_env": 15,
 
+  // scheme prepended to URLs in case no scheme is specified
+  "scheme": "http",
+
   // don't render responses whose content length (kilobytes) exceeds this value
   "max_content_length_kb": 5000,
 
