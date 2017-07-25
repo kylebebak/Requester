@@ -9,7 +9,7 @@ import re
 import sys
 import traceback
 from time import time
-from collections import namedtuple, OrderedDict
+from collections import namedtuple
 from requests import Request
 from urllib.parse import urlencode
 
@@ -285,7 +285,8 @@ def curl_to_request(curl):
     """Lifted from: https://github.com/spulec/uncurl
 
     Rewritten slightly to remove `six` and `xerox` dependencies, and add parsing
-    of cookies passed in `-b` or `--cookies` named argument.
+    of cookies passed in `-b` or `--cookies` named argument. Also removed some
+    bugs.
     """
     curl = curl.replace('\\\n', '').replace('\\', '')
     sys.argv = ['__requester__']
@@ -319,13 +320,13 @@ def curl_to_request(curl):
 
         # if we found JSON and it's a dict, pull it apart; otherwise, leave it as a string
         if post_data_json and isinstance(post_data_json, dict):
-            post_data = dict_to_pretty_string(post_data_json)
+            post_data = post_data_json
         else:
             post_data = "'{}'".format(post_data)
 
         data_token = '{}data={},\n'.format(base_indent, post_data)
 
-    cookie_dict = OrderedDict()
+    cookie_dict = {}
 
     if parsed_args.cookie:
         cookies = parsed_args.cookie.split(';')
@@ -333,7 +334,7 @@ def curl_to_request(curl):
             key, value = cookie.strip().split('=')
             cookie_dict[key] = value
 
-    quoted_headers = OrderedDict()
+    quoted_headers = {}
     for header in parsed_args.header:
         key, value = header.split(':', 1)
 
@@ -349,16 +350,7 @@ def curl_to_request(curl):
         method=method.lower(),
         url=parsed_args.url,
         data_token=data_token,
-        headers_token='{}headers={}'.format(base_indent, dict_to_pretty_string(quoted_headers)),
-        cookies_token='{}cookies={}'.format(base_indent, dict_to_pretty_string(cookie_dict)),
+        headers_token='{}headers={}'.format(base_indent, quoted_headers),
+        cookies_token='{}cookies={}'.format(base_indent, cookie_dict),
     )
     return result
-
-
-def dict_to_pretty_string(the_dict, indent=4):
-    if not the_dict:
-        return '{}'
-
-    return ('\n' + ' ' * indent).join(
-        json.dumps(the_dict, sort_keys=True, indent=indent, separators=(',', ': ')).splitlines()
-    )
