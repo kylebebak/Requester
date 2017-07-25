@@ -1,0 +1,4 @@
+# New Features
+
+# Code
+Fixed regression that broke chaining requests by reference.

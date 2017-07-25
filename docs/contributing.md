@@ -2,7 +2,7 @@
 Please do! Possible improvements:
 
 - __Better test coverage__
-  + Error messages
+  + Error messages for bad requests, etc
   + Proper parsing of env block and env files
   + Activity indicators
   + Syntax files
@@ -11,8 +11,8 @@ Please do! Possible improvements:
   + File downloads
   + Benchmarking tool
   + Export/import functions
-- Export requests and assertions in requester file to a runnable Python test script
-- Add simple auth plugins
+  + Execute requests serially
+- Add snippets and docs for common auth schemes
   + API auth
   + JWT auth
   + OAuth

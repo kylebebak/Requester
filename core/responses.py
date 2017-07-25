@@ -7,6 +7,7 @@ from collections import namedtuple, deque
 import requests
 
 from .parsers import PREFIX
+from .helpers import truncate
 
 
 Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session, error')
@@ -46,7 +47,7 @@ class ResponseThreadPool:
     """Allows requests to be invoked concurrently, and allows client code to
     inspect instance's responses as they are returned.
     """
-    def get_response(self, req):
+    def get_response(self, request, ordering):
         """Calls request with specified args and kwargs parsed from request
         string.
 
@@ -54,6 +55,12 @@ class ResponseThreadPool:
         "chaining" of requests. If two requests are run serially, the second
         request can reference the response returned by the previous request.
         """
+        if isinstance(request, Request):  # no need to prepare request
+            req = request._replace(ordering=ordering)
+        else:
+            req = prepare_request(request, self.env, ordering)
+        if req.error is not None:
+            return Response(req, None, None)
         self.pending_requests.add(req)
 
         res, err = None, ''
@@ -106,18 +113,15 @@ class ResponseThreadPool:
         ) as executor:
             to_do = []
             for i, request in enumerate(self.requests):
-                if isinstance(request, Request):  # no need to prepare request
-                    req = request._replace(ordering=i)
-                else:
-                    req = prepare_request(request, self.env, i)
-                if req.error is None:
-                    future = executor.submit(self.get_response, req)
-                    to_do.append(future)
+                future = executor.submit(self.get_response, request, i)
+                to_do.append(future)
 
             for future in futures.as_completed(to_do):
                 result = future.result()
                 # `responses` and `pending_requests` are instance properties, which means
                 # client code can inspect instance to read responses as they are completed
+                if result.req.error is not None:
+                    continue
                 try:
                     self.pending_requests.remove(result.req)
                 except KeyError:
@@ -138,7 +142,6 @@ def prepare_request(request, env, ordering):
     http://docs.python-requests.org/en/master/user/advanced/#timeouts
     """
     req = request.strip()
-    url = None
     if not re.match(PREFIX, req):
         req = 'requests.' + req
     session = None
@@ -152,12 +155,14 @@ def prepare_request(request, env, ordering):
     try:
         args, kwargs = eval('__parse_args__{}'.format(req[index:]), env)
     except Exception as e:
-        sublime.error_message('PrepareRequest Error: {}'.format(e))
-        return Request(req, method, url, [], {}, ordering, session, error=str(e))
+        sublime.error_message('PrepareRequest Error: {}\n{}'.format(
+            e, truncate(req, 150)
+        ))
+        return Request(req, method, None, [], {}, ordering, session, error=str(e))
     else:
         args = list(args)
 
-    url = kwargs.get('url')
+    url = kwargs.get('url', None)
     if url is not None:
         url = prepare_url(url)
         kwargs['url'] = url
@@ -165,7 +170,9 @@ def prepare_request(request, env, ordering):
         try:
             url = args[0]
         except Exception as e:
-            sublime.error_message('PrepareRequest Error: {}'.format(e))
+            sublime.error_message('PrepareRequest Error: {}\n{}'.format(
+                e, truncate(req, 150)
+            ))
             return Request(req, method, url, args, kwargs, ordering, session, error=str(e))
         else:
             url = prepare_url(url)
