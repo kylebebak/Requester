@@ -9,12 +9,15 @@ import re
 import sys
 import traceback
 from time import time
-from collections import OrderedDict
+from collections import namedtuple, OrderedDict
 from requests import Request
 from urllib.parse import urlencode
 
 from .core.responses import prepare_request
 from .request_commands import RequesterCommand
+
+
+PreparedRequest = namedtuple('PreparedRequest', 'request, args, kwargs')
 
 
 def get_exports(requests, env, exporter):
@@ -26,9 +29,17 @@ def get_exports(requests, env, exporter):
     for i, request in enumerate(requests):
         r = prepare_request(request, env, i)
         r.args.insert(0, r.method)
-        r.kwargs.pop('timeout')
+
+        kwargs = r.kwargs.copy()
+        timeout = r.kwargs.pop('timeout', None)
+        filename = r.kwargs.pop('filename', None)
+        if filename:
+            kwargs['filename'] = filename
+        if timeout:
+            kwargs['timeout'] = timeout
+
         try:
-            prepared_requests.append(Request(*r.args, **r.kwargs))
+            prepared_requests.append(PreparedRequest(Request(*r.args, **r.kwargs), r.args, kwargs))
         except Exception as e:
             errors.append(str(e))
             traceback.print_exc()
@@ -161,56 +172,60 @@ def request_to_curl(request):
     property on a response intance, which means requests don't have to be sent
     before converting them to cURL, and also extraneous headers aren't added.
     """
+    req, args, kwargs = request
+
     data = ''
-    if request.data:
-        data = urlencode(request.data)
-    elif request.json:
-        data = json.dumps(request.json)
-        request.headers['Content-Type'] = 'application/json'
+    if req.data:
+        data = urlencode(req.data)
+    elif req.json:
+        data = json.dumps(req.json)
+        req.headers['Content-Type'] = 'application/json'
 
     cookies = ''
-    if request.cookies:
-        cookies = ['{}={}'.format(k, v) for k, v in request.cookies.items()]
+    if req.cookies:
+        cookies = ['{}={}'.format(k, v) for k, v in req.cookies.items()]
         cookies = ';'.join(sorted(cookies))
 
-    headers = ["'{}: {}'".format(k, v) for k, v in request.headers.items()]
+    headers = ["'{}: {}'".format(k, v) for k, v in req.headers.items()]
     headers = " -H ".join(sorted(headers))
 
     return "curl -X {method}{headers}{cookies}{data} '{uri}{qs}'".format(
-        method=request.method,
+        method=req.method,
         headers=' -H {}'.format(headers) if headers else '',
         cookies=" -b '{}'".format(cookies) if cookies else '',
         data=" -d '{}'".format(data) if data else '',
-        uri=request.url,
-        qs='?{}'.format(urlencode(request.params)) if request.params else '',
+        uri=req.url,
+        qs='?{}'.format(urlencode(req.params)) if req.params else '',
     )
 
 
 def request_to_httpie(request):
     """Converts prepared request instance to a string that calls HTTPie.
     """
+    req, args, kwargs = request
+
     data = ''
-    if request.data:
-        data = urlencode(request.data)
-    elif request.json:
-        data = json.dumps(request.json)
-        request.headers['Content-Type'] = 'application/json'
+    if req.data:
+        data = urlencode(req.data)
+    elif req.json:
+        data = json.dumps(req.json)
+        req.headers['Content-Type'] = 'application/json'
 
     cookies = ''
-    if request.cookies:
-        cookies = ['{}={}'.format(k, v) for k, v in request.cookies.items()]
+    if req.cookies:
+        cookies = ['{}={}'.format(k, v) for k, v in req.cookies.items()]
         cookies = ';'.join(sorted(cookies))
 
-    headers = ["'{}: {}'".format(k, v) for k, v in request.headers.items()]
+    headers = ["'{}: {}'".format(k, v) for k, v in req.headers.items()]
     headers = " -H ".join(sorted(headers))
 
     return "curl -X {method}{headers}{cookies}{data} '{uri}{qs}'".format(
-        method=request.method,
+        method=req.method,
         headers=' -H {}'.format(headers) if headers else '',
         cookies=" -b '{}'".format(cookies) if cookies else '',
         data=" -d '{}'".format(data) if data else '',
-        uri=request.url,
-        qs='?{}'.format(urlencode(request.params)) if request.params else '',
+        uri=req.url,
+        qs='?{}'.format(urlencode(req.params)) if req.params else '',
     )
 
 
