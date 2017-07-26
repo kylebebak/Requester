@@ -318,7 +318,7 @@ This makes it trivial to share requests with teammates who don't use Requester, 
 
 Prefer [HTTPie](https://httpie.org/) instead of cURL? You can also export requests to HTTPie!
 
-Exporting works seamlessly with env vars. Just highlight a group of requests and look for __Requester: Export To cURL__ or __Requester: Export To HTTPie__ in the command palette. For importing it's __Requester: Import From cURL__.
+Exporting works seamlessly with env vars. Just highlight a group of requests and look for __Requester: Export To cURL__ or __Requester: Export To HTTPie__ in the command palette. For importing it's __Requester: Import From cURL__. Exporting to HTTPie supports a bunch of features, including basic and digest authentication, file downloads, and even sessions. For sessions, just highlight your env block along with the requests you want to export.
 
 
 ## Commands

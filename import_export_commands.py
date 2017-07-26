@@ -19,7 +19,7 @@ from .core.responses import prepare_request
 from .request_commands import RequesterCommand
 
 
-PreparedRequest = namedtuple('PreparedRequest', 'request, args, kwargs')
+PreparedRequest = namedtuple('PreparedRequest', 'request, args, kwargs, session')
 
 
 def get_exports(requests, env, exporter):
@@ -29,30 +29,32 @@ def get_exports(requests, env, exporter):
     errors = []
     prepared_requests = []
     for i, request in enumerate(requests):
-        r = prepare_request(request, env, i)
+        req = prepare_request(request, env, i)
 
-        args = r.args.copy()
-        kwargs = r.kwargs.copy()
-        r.kwargs.pop('timeout', None)
-        r.kwargs.pop('filename', None)
+        args = req.args.copy()
+        kwargs = req.kwargs.copy()
+        req.kwargs.pop('timeout', None)
+        req.kwargs.pop('filename', None)
 
         # not pretty, but it makes sure calls to requests.(get|post|put|patch)
         # match up with `requests.Request` method signature
-        if r.method == 'GET':
-            if len(r.args) == 2:
-                r.kwargs['params'] = r.args.pop()
-        if r.method in ('PUT', 'PATCH'):
-            if len(r.args) == 2:
-                r.kwargs['data'] = r.args.pop()
-        if r.method in ('POST'):
-            if len(r.args) == 3:
-                r.kwargs['json'] = r.args.pop()
-            if len(r.args) == 2:
-                r.kwargs['data'] = r.args.pop()
-        r.args.insert(0, r.method)
+        if req.method == 'GET':
+            if len(req.args) == 2:
+                req.kwargs['params'] = req.args.pop()
+        if req.method in ('PUT', 'PATCH'):
+            if len(req.args) == 2:
+                req.kwargs['data'] = req.args.pop()
+        if req.method in ('POST'):
+            if len(req.args) == 3:
+                req.kwargs['json'] = req.args.pop()
+            if len(req.args) == 2:
+                req.kwargs['data'] = req.args.pop()
+        req.args.insert(0, req.method)
 
         try:
-            prepared_requests.append(PreparedRequest(Request(*r.args, **r.kwargs), args, kwargs))
+            prepared_requests.append(PreparedRequest(
+                Request(*req.args, **req.kwargs), args, kwargs, req.session
+            ))
         except Exception as e:
             errors.append(str(e))
             traceback.print_exc()
@@ -185,7 +187,7 @@ def request_to_curl(request):
     property on a response intance, which means requests don't have to be sent
     before converting them to cURL, and also extraneous headers aren't added.
     """
-    req, args, kwargs = request
+    req, args, kwargs, session = request
 
     data = ''
     if req.data:
@@ -215,7 +217,7 @@ def request_to_curl(request):
 def request_to_httpie(request):
     """Converts prepared request instance to a string that calls HTTPie.
     """
-    req, args, kwargs = request
+    req, args, kwargs, session = request
 
     cookies = ''
     if req.cookies:
@@ -266,8 +268,9 @@ def request_to_httpie(request):
         else:
             stdin = "echo '{}' | ".format(json.dumps(req.json))
 
-    return '{stdin}http{form}{auth}{timeout}{method} {url}{qs}{headers}{cookies}{data}{filename}'.format(
+    return '{stdin}http{session}{form}{auth}{timeout}{method} {url}{qs}{headers}{cookies}{data}{filename}'.format(
         stdin=stdin,
+        session=' --session={}'.format(session) if session else '',
         form=form,
         auth=auth_string,
         timeout=' --timeout={}'.format(timeout) if timeout else '',
