@@ -17,7 +17,6 @@ Please do! Possible improvements:
   + JWT auth
   + OAuth
 - More export/import formats
-  + Wget
   + HTTP
 - Create Requester tutorial videos
 

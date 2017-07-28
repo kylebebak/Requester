@@ -2,4 +2,4 @@
 Added function to export selected request/assertion pairs to a runnable test script that can be integrated into a test routine. Also, exporting to HTTPie now supports sessions.
 
 # Code
-Simplified code that handles building environment dictionary.
+Simplified code in `RequestCommandMixin.get_env` that handles building environment dictionary.

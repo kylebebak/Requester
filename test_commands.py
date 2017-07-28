@@ -5,26 +5,15 @@ from collections import namedtuple
 
 from .core import RequestCommandMixin
 from .core.parsers import parse_tests
+from .core.responses import prepare_request
 
 
 Error = namedtuple('Error', 'prop, expected, got, error')
 Result = namedtuple('Result', 'result, assertions, errors')
+RequestAssertion = namedtuple('RequestAssertion', 'request, assertion')
 
 
-class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
-    """Execute requests from requester file concurrently. For each request with a
-    corresponding assertions dictionary, compare response with assertions and
-    display all results in new tab.
-
-    Doesn't work for multiple selections, because absolute order of (request,
-    assertion) test pairs is preserved in results tab.
-    """
-    def run(self, edit, concurrency=10):
-        """Allow user to specify concurrency.
-        """
-        self.MAX_WORKERS = max(1, concurrency)
-        super().run(edit)
-
+class TestParserMixin:
     def get_requests(self):
         """Parses only first highlighted selection.
         """
@@ -42,6 +31,36 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
             break  # only parse first selection
 
         return [test.request for test in self._tests]
+
+    def eval_assertion(self, s):
+        """Includes `env` that was parsed by `RequestCommandMixin`. Raises an
+        exception that should be caught by client code if assertion can't be
+        eval'ed or there's anything wrong with assertion.
+        """
+        dict_string = s.split('assert', 1)[1]
+        try:
+            assertion = eval(dict_string, self._env)
+        except Exception as e:
+            raise Exception('{}, {}'.format(dict_string.strip(), e))
+
+        if not isinstance(assertion, dict):
+            raise TypeError('assertion {} is not a dictionary'.format(assertion))
+        return assertion
+
+
+class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plugin.TextCommand):
+    """Execute requests from requester file concurrently. For each request with a
+    corresponding assertions dictionary, compare response with assertions and
+    display all results in new tab.
+
+    Doesn't work for multiple selections, because absolute order of (request,
+    assertion) test pairs is preserved in results tab.
+    """
+    def run(self, edit, concurrency=10):
+        """Allow user to specify concurrency.
+        """
+        self.MAX_WORKERS = max(1, concurrency)
+        super().run(edit)
 
     def handle_responses(self, responses):
         """Compares response objects with assertions dictionaries and displays a
@@ -84,21 +103,6 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         view.set_name('Requester Test Run')
         view.set_syntax_file('Packages/Requester/requester-test.sublime-syntax')
 
-    def eval_assertion(self, s):
-        """Includes `env` that was parsed by `RequestCommandMixin`. Raises an
-        exception that should be caught by client code if assertion can't be
-        eval'ed or there's anything wrong with assertion.
-        """
-        dict_string = s.split('assert', 1)[1]
-        try:
-            assertion = eval(dict_string, self._env)
-        except Exception as e:
-            raise Exception('{}, {}'.format(dict_string.strip(), e))
-
-        if not isinstance(assertion, dict):
-            raise TypeError('assertion {} is not a dictionary'.format(assertion))
-        return assertion
-
     def get_result(self, response, assertion):
         """Get result of comparing response with assertion dict. Ignores keys in
         assertion dict that don't correspond to a valid property or method of
@@ -132,7 +136,7 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
                     sublime.error_message('Schema Error: {}'.format(e))
                     continue
 
-            elif prop in ('cookies', 'json'):  # method equality validtion
+            elif prop in ('cookies', 'json'):  # method equality validation
                 count += 1
                 if prop == 'cookies':
                     got = res.cookies.get_dict()
@@ -173,3 +177,25 @@ class RequesterRunTestsCommand(RequestCommandMixin, sublime_plugin.TextCommand):
         """Requests shouldn't be persisted for test runs.
         """
         pass
+
+
+class RequesterExportTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plugin.TextCommand):
+    """Parses selected (request, assertion) test pairs and exports them to a
+    runnable test script that includes the combined env string built from the env
+    file and the env block.
+    """
+
+    def make_requests(self, requests, env):
+        tests = []
+        for i, test in enumerate(self._tests):
+            req = prepare_request(test.request, self._env, i)
+            if req.error:
+                sublime.error_message('Export Tests Request Error: {}'.format(req.error))
+                continue
+            try:
+                assertion = self.eval_assertion(test.assertion)
+            except Exception as e:
+                sublime.error_message('Export Tests Assertion Error: {}'.format(e))
+                continue
+            tests.append(RequestAssertion(req.request, assertion))
+        print(tests)

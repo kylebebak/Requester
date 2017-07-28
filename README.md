@@ -294,8 +294,12 @@ Assertions can be inserted seamlessly into a requester file; if you're not doing
 ### Export Tests to Runnable Script
 Want to integrate your Requester tests into your app's test routine? Requester lets you export request/assertion pairs to a runnable test script! Highlight the requests and assertions you want to export and look for __Requester: Export Tests To Runnable Script__ in the command palette.
 
-This test script depends only on the Python `requests` and `json-schema` packages. To run it from the command line you just call `FILL ME IN HERE`.
+This test script depends only on the Python `requests` and `jsonschema` packages. To run it from the command line you just call `python -m unittest <test_module_name>`. The default test module name is __requester_tests__.
 
+The test export command lacks two conveniences available to all other Requester commands:
+
+- it doesn't automatically include the timeout argument in calls to `requests`
+- it doesn't automatically add a scheme to URLs with no scheme
 
 
 ## Benchmarking Tool
@@ -313,7 +317,7 @@ get('http://httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
 get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 ~~~
 
-It goes without saying, but please don't use this for DoS attacks on servers you don't own. Regardless what you pass for `N`, the total number of requests executed is capped at 100000. `C` is capped at 1000, which translates to [tens of millions of requests per day](https://serverfault.com/questions/274253/apache-ab-choosing-number-of-concurrent-connections).
+It goes without saying, but please don't use this for DoS attacks on servers you don't own. Regardless of what you pass for `N`, the total number of requests executed is capped at 100000. `C` is capped at 1000, which translates to [tens of millions of requests per day](https://serverfault.com/questions/274253/apache-ab-choosing-number-of-concurrent-connections).
 
 Warning: benchmarks runs with `C` above ~100 may slow down the UI while they are running.
 
