@@ -160,13 +160,12 @@ class RequestCommandMixin:
 
     def get_env(self):
         """Computes an env from various settings: `requester.env_string`,
-        `requester.file`, `requester.env_file`, settings. Returns an env
-        dictionary.
+        `requester.file`, `requester.env_file` settings. Returns a tuple
+        containing an env dictionary and a combined env string.
 
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
-        env_string = self.view.settings().get('requester.env_string', None)
-        env_dict = self.get_env_dict_from_string(env_string)
+        env_strings = [self.view.settings().get('requester.env_string', None)]
 
         file = self.view.settings().get('requester.file', None)
         if file:
@@ -176,25 +175,23 @@ class RequestCommandMixin:
             except Exception as e:
                 self.add_error_status_bar(str(e))
             else:
-                env_block = self.parse_env_block(text)
-                # env computed from `file` takes precedence over `env_string`
-                env_dict.update(self.get_env_dict_from_string(env_block))
+                env_strings.append(self.parse_env_block(text))
 
         env_file = self.view.settings().get('requester.env_file', None)
         if env_file:
             try:
-                env = imp.load_source('requester.env', env_file)
+                with open(env_file, 'r') as f:
+                    env_strings.append(f.read())
             except Exception as e:
                 self.add_error_status_bar(str(e))
-            else:
-                env_dict_ = vars(env)
-                env_dict.update(env_dict_)  # env computed from `env_file` takes precedence
-        return env_dict
+
+        env_string = '\n\n'.join(s for s in env_strings if s)
+        return self.get_env_dict_from_string(env_string), env_string
 
     def _get_env(self):
-        """Wrapper calls `get_env` and assigns return value to instance property.
+        """Wrapper calls `get_env`, assigns return values to instance properties.
         """
-        self._env = self.get_env()
+        self._env, self._env_string = self.get_env()
 
     def set_env_settings_on_view(self, view):
         """Convenience method that copies env settings from this view to `view`.

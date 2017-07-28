@@ -176,6 +176,11 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         """
         pass
 
+    def persist_requests(self, requests):
+        """Requests shouldn't be persisted for benchmark runs.
+        """
+        pass
+
     @staticmethod
     def get_profile_string(metrics):
         """Builds the profile string for a given group of metrics.

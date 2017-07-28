@@ -62,10 +62,10 @@ If you want to define requests over multiple lines, just make sure you fully hig
 
 ~~~py
 get(
-  'https://jsonplaceholder.typicode.com/posts'
+    'https://jsonplaceholder.typicode.com/posts'
 )
 post(
-  'jsonplaceholder.typicode.com/posts'
+    'jsonplaceholder.typicode.com/posts'
 )
 ~~~
 
@@ -237,7 +237,7 @@ prop = 'status_code'
 
 # first request
 get(
-  base_url + '/posts'
+    base_url + '/posts'
 )
 assert {prop: 200, 'encoding': 'utf-8'}
 
@@ -248,7 +248,7 @@ get(base_url + '/profile')
 get(base_url + '/comments')
 
 assert {
-  'status_code': 500
+    'status_code': 500
 }
 ~~~
 
@@ -289,6 +289,13 @@ The test runner was built for convenience:
 - the order of requests is preserved in the results tab
 
 Assertions can be inserted seamlessly into a requester file; if you're not doing a test run they're simply ignored.
+
+
+### Export Tests to Runnable Script
+Want to integrate your Requester tests into your app's test routine? Requester lets you export request/assertion pairs to a runnable test script! Highlight the requests and assertions you want to export and look for __Requester: Export Tests To Runnable Script__ in the command palette.
+
+This test script depends only on the Python `requests` and `json-schema` packages. To run it from the command line you just call `FILL ME IN HERE`.
+
 
 
 ## Benchmarking Tool
@@ -334,6 +341,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file
 - __requester_new_requester_file__: create empty requester file
 - __requester_run_tests__
+- __requester_export_tests__: export tests to runnable script
 - __requester_prompt_benchmarks__
 - __requester_export_to_curl__: export selected requests to cURL
 - __requester_export_to_httpie__: export selected requests to HTTPie

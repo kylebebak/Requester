@@ -23,10 +23,10 @@ If you want to define requests over multiple lines, just make sure you fully hig
 
 ~~~py
 get(
-  'https://jsonplaceholder.typicode.com/posts'
+    'https://jsonplaceholder.typicode.com/posts'
 )
 post(
-  'jsonplaceholder.typicode.com/posts'
+    'jsonplaceholder.typicode.com/posts'
 )
 ~~~
 
