@@ -1,6 +1,10 @@
 import sublime
 import sublime_plugin
 
+import re
+import datetime
+from time import time
+from urllib import parse
 from collections import namedtuple
 
 from .core import RequestCommandMixin
@@ -115,8 +119,6 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
 
         assertion = {str(k): v for k, v in assertion.items()}  # make sure keys can be ordered
         for prop, expected in sorted(assertion.items()):
-            prop = str(prop)  # so lookup with hasattr doesn't explode
-
             if prop in ('cookies_schema', 'json_schema', 'headers_schema'):  # jsonschema validation
                 count += 1
                 from jsonschema import validate, ValidationError
@@ -179,13 +181,37 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
         pass
 
 
+TEST_MODULE = """# RUN TESTS: `python -m unittest requester_tests`
+# MORE INFO: https://docs.python.org/3/library/unittest.html#command-line-interface
+# {date}
+import unittest
+
+import requests
+{imp}
+
+# --- ENV --- #
+{env}
+# --- ENV --- #
+
+
+class TestResponses(unittest.TestCase):
+{body}
+
+
+if __name__ == '__main__':
+    unittest.main()
+"""
+
+INDENT = ' ' * 4
+
+
 class RequesterExportTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Parses selected (request, assertion) test pairs and exports them to a
     runnable test script that includes the combined env string built from the env
     file and the env block.
     """
-
     def make_requests(self, requests, env):
+        self.jsi = False  # jsonschema imports necessary?
         tests = []
         for i, test in enumerate(self._tests):
             req = prepare_request(test.request, self._env, i)
@@ -197,5 +223,83 @@ class RequesterExportTestsCommand(TestParserMixin, RequestCommandMixin, sublime_
             except Exception as e:
                 sublime.error_message('Export Tests Assertion Error: {}'.format(e))
                 continue
-            tests.append(RequestAssertion(req.request, assertion))
-        print(tests)
+            tests.append(RequestAssertion(req, assertion))
+
+        names = set()
+        methods = []
+        for test in tests:
+            name = self.get_test_name(test, names)
+            names.add(name)
+            methods.append(self.get_test_method(test, name))
+        body = '\n\n'.join(methods)
+        body = '\n'.join('{}{}'.format(INDENT, line) for line in body.split('\n'))
+        body = '\n'.join('' if line.isspace() else line for line in body.split('\n'))
+
+        date = datetime.datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
+        jsonschema_import = 'from jsonschema import validate, ValidationError\n'
+
+        view = self.view.window().new_file()
+        view.run_command('requester_replace_view_text', {
+            'text': TEST_MODULE.format(
+                date=date, imp=jsonschema_import if self.jsi else '', env=self._env_string.strip(), body=body
+            ), 'point': 0
+        })
+        view.set_syntax_file('Packages/Python/Python.sublime-syntax')
+        view.set_name('requester_tests.py')
+        view.set_scratch(True)
+
+    def get_test_method(self, test, name):
+        """Return a unittest method string that starts with "def"...
+        """
+        req, assertion = test
+        method = ['def {}(self):'.format(name), 'res = {}'.format(req.request)]
+        assertion = {str(k): v for k, v in test.assertion.items()}  # make sure keys can be ordered
+        for prop, expected in sorted(assertion.items()):
+            if prop in ('cookies_schema', 'json_schema', 'headers_schema'):  # jsonschema validation
+                self.jsi = True
+                if prop == 'cookies_schema':
+                    got = 'res.cookies.get_dict()'
+                if prop == 'json_schema':
+                    got = 'res.json()'
+                if prop == 'headers_schema':
+                    got = 'res.headers'
+                s = """try:\n{indent}validate({}, {!r})
+except ValidationError as e:\n{indent}self.fail(str(e))""".format(
+                    got, expected, indent=INDENT
+                )
+
+            elif prop in ('cookies', 'json'):  # method equality validation
+                if prop == 'cookies':
+                    s = 'self.assertEqual(res.cookies.get_dict(), {!r})'.format(expected)
+                if prop == 'json':
+                    s = 'self.assertEqual(res.json(), {!r})'.format(expected)
+
+            else:  # prop equality validation
+                s = 'self.assertEqual(res.{}, {!r})'.format(prop, expected)
+            method.append(s)
+        return '\n{}'.format(INDENT).join(line for s in method for line in s.split('\n'))
+
+    @staticmethod
+    def get_test_name(test, names):
+        """Get a unique name for a test method, passing in an iterable of all
+        names that have been assigned so far.
+        """
+        req, assertion = test
+        path = parse.urlparse(req.url).path.replace('/', '_')
+        method = req.method.lower()
+        count = 0
+        while True:
+            name = 'test_{}{}{}'.format(
+                method, clean_var_name(path.replace('/', '_')), '_{}'.format(count) if count else ''
+            )
+            if name not in names:
+                return name
+            count += 1
+
+
+def clean_var_name(s):
+    """Clean `s` so that it's a valid Python variable name.
+    """
+    s = re.sub('[^0-9a-zA-Z_]', '', s)
+    s = re.sub('^[^a-zA-Z_]+', '', s)
+    return s

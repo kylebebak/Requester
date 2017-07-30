@@ -300,6 +300,7 @@ def curl_to_request(curl):
     parser.add_argument('-d', '--data')
     parser.add_argument('-b', '--cookie', default=None)
     parser.add_argument('-H', '--header', action='append', default=[])
+    parser.add_argument('-A', '--user-agent', default=None)
     parser.add_argument('--data-binary', default=None)
     parser.add_argument('--compressed', action='store_true')
 
@@ -348,6 +349,8 @@ def curl_to_request(curl):
                 cookie_dict[key] = value
         else:
             quoted_headers[key] = value.strip()
+    if parsed_args.user_agent:
+        quoted_headers['User-Agent'] = parsed_args.user_agent
 
     result = """requests.{method}('{url}',\n{data_token}{headers_token},\n{cookies_token},\n)""".format(
         method=method.lower(),
