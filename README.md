@@ -176,8 +176,9 @@ s.get('http://httpbin.org/get') # run me
 ### Authentication
 Requests has [excellent support for authentication](http://docs.python-requests.org/en/master/user/authentication/). __Basic Authentication__ and __Digest Authentication__ are built in, and implementing custom auth schemes is easy.
 
-Here's how you would implement 
-__Requester: Authentication Options__
+To use a custom auth scheme with Requester you define the auth class in your env block or env file, then pass an instance of this class to the `auth` argument of a request.
+
+Requester comes with a few pre-written auth classes you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
 
 
 ### Forms and File Uploads

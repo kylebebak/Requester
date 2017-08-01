@@ -18,18 +18,18 @@ class RequesterAuthOptionsCommand(sublime_plugin.WindowCommand):
         view = self.window.new_file()
         view.set_scratch(True)
         view.run_command('requester_replace_view_text', {'text': content, 'point': 0})
-        view.set_name('Requester {}'.format(name))
+        view.set_name('Requester {} Auth'.format(name))
         view.set_syntax_file('Packages/Python/Python.sublime-syntax')
 
 
 snippets = [
     (
-        'Basic Auth',
-        """requests.get('https://api.github.com/user', auth=('user', 'pass'))
+        'Basic',
+        """requests.get('http://httpbin.org/basic-auth/user/pass', auth=('user', 'pass'))
 """
     ),
     (
-        'Digest Auth',
+        'Digest',
         """###env
 from requests.auth import HTTPDigestAuth
 ###env
@@ -38,21 +38,19 @@ requests.get('http://httpbin.org/digest-auth/auth/user/pass', auth=HTTPDigestAut
 """
     ),
     (
-        'API Auth',
+        'Token',
         """###env
-from requests.auth import HTTPDigestAuth
+class TokenAuth:
+    def __init__(self, auth_prefix, token):
+        self.auth_prefix = auth_prefix  # e.g. 'Bearer'
+        self.token = token
+
+    def __call__(self, r):
+        r.headers['Authorization'] = '{0} {1}'.format(self.auth_prefix, self.token).strip()
+        return r
 ###env
 
-requests.get('http://httpbin.org/digest-auth/auth/user/pass', auth=HTTPDigestAuth('user', 'pass'))
-"""
-    ),
-    (
-        'JWT Auth',
-        """###env
-from requests.auth import HTTPDigestAuth
-###env
-
-requests.get('http://httpbin.org/digest-auth/auth/user/pass', auth=HTTPDigestAuth('user', 'pass'))
+requests.get('http://httpbin.org/headers', auth=TokenAuth('Bearer', 'big_auth_token'))
 """
     ),
 ]
