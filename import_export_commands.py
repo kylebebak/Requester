@@ -22,6 +22,14 @@ from .request_commands import RequesterCommand
 PreparedRequest = namedtuple('PreparedRequest', 'request, args, kwargs, session')
 
 
+class ArgumentParserErrorRaisesException(argparse.ArgumentParser):
+    def error(self, message):
+        """This ensures `sys.exit` isn't called if there's a parsing error,
+        because this causes Sublime Text to hang forever.
+        """
+        raise Exception(str(message))
+
+
 def get_exports(requests, env, exporter):
     """Takes list of request strings and prepares them in context of `env`, then
     converts them to list of requests in a new syntax using `exporter` function.
@@ -124,10 +132,12 @@ class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
         requests = []
         for curl in curls:
             try:
-                requests.append(curl_to_request(curl))
+                request = curl_to_request(curl)
             except Exception as e:
                 sublime.error_message('Conversion Error: {}'.format(e))
                 traceback.print_exc()
+            else:
+                requests.append(request)
 
         if not requests:
             return
@@ -292,12 +302,15 @@ def curl_to_request(curl):
     bugs.
     """
     curl = curl.replace('\\\n', '').replace('\\', '')
-    sys.argv = ['__requester__']
-    parser = argparse.ArgumentParser()
+    if not hasattr(sys, 'argv'):
+        sys.argv = ['']
+
+    parser = ArgumentParserErrorRaisesException()
     parser.add_argument('command')
     parser.add_argument('url')
     parser.add_argument('-X', '--request', default=None)
-    parser.add_argument('-d', '--data')
+    parser.add_argument('-d', '--data', default=None)
+    parser.add_argument('-G', '--get', action='store_true', default=False)
     parser.add_argument('-b', '--cookie', default=None)
     parser.add_argument('-H', '--header', action='append', default=[])
     parser.add_argument('-A', '--user-agent', default=None)
@@ -312,7 +325,7 @@ def curl_to_request(curl):
         method = parsed_args.request
 
     base_indent = ' ' * 4
-    data_token = ''
+    data = ''
     post_data = parsed_args.data or parsed_args.data_binary
     if post_data:
         if not parsed_args.request:
@@ -328,17 +341,17 @@ def curl_to_request(curl):
         else:
             post_data = "'{}'".format(post_data)
 
-        data_token = '{}data={},\n'.format(base_indent, post_data)
+        data = '{}data={},\n'.format(base_indent, post_data)
 
-    cookie_dict = {}
+    cookies_dict = {}
 
     if parsed_args.cookie:
         cookies = parsed_args.cookie.split(';')
         for cookie in cookies:
             key, value = cookie.strip().split('=')
-            cookie_dict[key] = value
+            cookies_dict[key] = value
 
-    quoted_headers = {}
+    headers_dict = {}
     for header in parsed_args.header:
         key, value = header.split(':', 1)
 
@@ -346,17 +359,17 @@ def curl_to_request(curl):
             cookies = value.split(';')
             for cookie in cookies:
                 key, value = cookie.strip().split('=')
-                cookie_dict[key] = value
+                cookies_dict[key] = value
         else:
-            quoted_headers[key] = value.strip()
+            headers_dict[key] = value.strip()
     if parsed_args.user_agent:
-        quoted_headers['User-Agent'] = parsed_args.user_agent
+        headers_dict['User-Agent'] = parsed_args.user_agent
 
-    result = """requests.{method}('{url}',\n{data_token}{headers_token},\n{cookies_token},\n)""".format(
+    result = """requests.{method}('{url}',\n{data}{headers},\n{cookies},\n)""".format(
         method=method.lower(),
         url=parsed_args.url,
-        data_token=data_token,
-        headers_token='{}headers={}'.format(base_indent, quoted_headers),
-        cookies_token='{}cookies={}'.format(base_indent, cookie_dict),
+        data=data,
+        headers='{}headers={}'.format(base_indent, headers_dict),
+        cookies='{}cookies={}'.format(base_indent, cookies_dict),
     )
     return result
