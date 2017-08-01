@@ -1,0 +1,5 @@
+# New Features
+Added __Requester: Authentication Options__ command, which contains a reference for common auth schemes to use in requests. Added some support for more cURL options when importing requests from cURL. Added __Requester: Settings__ command to command palette.
+
+# Code
+Bug fixes for importing requests from cURL, including a bug that caused Sublime Text to hang indefinitely.

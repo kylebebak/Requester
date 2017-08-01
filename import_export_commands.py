@@ -11,7 +11,7 @@ import traceback
 from time import time
 from collections import namedtuple
 from requests import Request
-from urllib.parse import urlencode
+from urllib.parse import urlencode, parse_qsl
 
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
@@ -330,12 +330,12 @@ def curl_to_request(curl):
         if not parsed_args.request:
             method = 'post'
         try:
-            post_data_json = json.loads(post_data)
+            post_data = json.loads(post_data)
         except ValueError:
-            post_data = "'{}'".format(post_data)
-        else:
-            if post_data_json and isinstance(post_data_json, dict):
-                post_data = post_data_json
+            try:
+                post_data = dict(parse_qsl(post_data))
+            except:
+                pass
 
     cookies_dict = {}
 
@@ -345,9 +345,12 @@ def curl_to_request(curl):
             key, value = cookie.strip().split('=')
             cookies_dict[key] = value
 
+    data_arg = 'data'
     headers_dict = {}
     for header in parsed_args.header:
         key, value = header.split(':', 1)
+        if key.lower().strip() == 'content-type' and value.lower().strip() == 'application/json':
+            data_arg = 'json'
 
         if key.lower() == 'cookie':
             cookies = value.split(';')
@@ -373,7 +376,7 @@ def curl_to_request(curl):
         method=method.lower(),
         url=parsed_args.url,
         qs=qs,
-        data='\n{}data={},'.format(base_indent, post_data) if post_data else '',
+        data='\n{}{}={},'.format(base_indent, data_arg, post_data) if post_data else '',
         headers='{}headers={}'.format(base_indent, headers_dict),
         cookies='{}cookies={}'.format(base_indent, cookies_dict),
     )
