@@ -173,6 +173,13 @@ s.get('http://httpbin.org/get') # run me
 ~~~
 
 
+### Authentication
+Requests has [excellent support for authentication](http://docs.python-requests.org/en/master/user/authentication/). __Basic Authentication__ and __Digest Authentication__ are built in, and implementing custom auth schemes is easy.
+
+Here's how you would implement 
+__Requester: Authentication Options__
+
+
 ### Forms and File Uploads
 Requests makes both of these tasks trivial. See how in the Requests Quickstart:
 
@@ -347,6 +354,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_run_tests__
 - __requester_export_tests__: export tests to runnable script
 - __requester_prompt_benchmarks__
+- __requester_auth_options__
 - __requester_export_to_curl__: export selected requests to cURL
 - __requester_export_to_httpie__: export selected requests to HTTPie
 - __requester_import_from_curl__: import selected cURL requests
@@ -356,7 +364,7 @@ Commands defined by this package, in case you want to add or change key bindings
 
 
 ## Settings
-Requester's modifiable settings, and their default values. You can override any of these settings by creating a `Requester.sublime-settings` file in Sublime's `Packages/User` directory. The easiest way to do this is go to __Preferences > Package Settings > Requester > Settings__ from the menu bar.
+Requester's modifiable settings, and their default values. You can override any of these settings by creating a `Requester.sublime-settings` file in Sublime's `Packages/User` directory. The easiest way to do this is go to __Preferences > Package Settings > Requester > Settings__ from the menu bar, or look for __Requester: Settings__ in the command palette.
 
 - __timeout__, `15`: default timeout in seconds for all requests
 - __timeout_env__, `15`: default timeout in seconds for executing env block/env file

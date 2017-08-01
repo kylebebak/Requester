@@ -13,7 +13,8 @@ Please do! Possible improvements:
   + Export/import functions
   + Execute requests serially
 - Add snippets and docs for more auth schemes
-  + OAuth
+  + OAuth 1
+  + OAuth 2
 - More export/import formats
   + HTTP
   + Downloads to Wget
