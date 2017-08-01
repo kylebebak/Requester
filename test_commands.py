@@ -181,9 +181,11 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
         pass
 
 
-TEST_MODULE = """# RUN TESTS: `python -m unittest requester_tests`
-# MORE INFO: https://docs.python.org/3/library/unittest.html#command-line-interface
-# {date}
+TEST_MODULE = """\"\"\"
+RUN TESTS: `python -m unittest requester_tests`
+MORE INFO: https://docs.python.org/3/library/unittest.html#command-line-interface
+{date}
+\"\"\"
 import unittest
 
 import requests

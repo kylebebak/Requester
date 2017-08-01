@@ -1,5 +1,13 @@
 [
   {
+    "caption": "Requester: Settings",
+    "command": "edit_settings",
+    "args": {
+      "base_file": "${packages}/Requester/Requester.sublime-settings",
+      "default": "// settings in here override those in \"Requester/Requester.sublime-settings\",\n\n{\n\t$0\n}\n"
+    }
+  },
+  {
     "caption": "Requester: Run Requests",
     "command": "requester"
   },
@@ -69,6 +77,11 @@
   {
     "caption": "Requester: Run Benchmarks",
     "command": "requester_prompt_benchmarks"
+  },
+
+  {
+    "caption": "Requester: Authentication Options",
+    "command": "requester_auth_options"
   },
 
   {

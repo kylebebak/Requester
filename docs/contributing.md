@@ -12,13 +12,12 @@ Please do! Possible improvements:
   + Benchmarking tool
   + Export/import functions
   + Execute requests serially
-- Add snippets and docs for common auth schemes
-  + API auth
-  + JWT auth
+- Add snippets and docs for more auth schemes
   + OAuth
 - More export/import formats
   + HTTP
-- Create Requester tutorial videos
+  + Downloads to Wget
+- Tell your friends about Requester!
 
 
 ## How Does It Work?
@@ -28,7 +27,7 @@ This mixin is the motor for parsing an env, executing requests in parallel in th
 
 The mixin uses the `ResponseThreadPool` class, which wraps a thread pool to execute requests in parallel. Default concurrency is determined by the mixin's `MAX_WORKERS` class property. The thread pool is inspected at regular intervals to remove completed responses and handle them, and show activity for pending requests.
 
-Command classes that use this mixin should override `handle_response` and/or `handle_responses`. This way they can handle responses one at a time as they are completed, or as a group when they're all finished. Each response object contains a `request` namedtuple with a bunch of useful properties, the `response` (a __requests.Response__ object), and an `error` string. Responses are sorted by request parsing order before they are passed to `handle_responses`.
+Command classes that use this mixin can override `handle_response` and/or `handle_responses`. This way they can handle responses one at a time as they are completed, or as a group when they're all finished. Each response object contains a `req` namedtuple with a bunch of useful properties, the `res` (a __requests.Response__ object), and an `err` string. Responses are sorted by request parsing order.
 
 Command classes __must__ also override `get_requests`, which must return a list of request strings, for example strings parsed from the current view. To simplify this, `core` has a `parsers` module. The important parser is `parse_requests`. It takes a string, such as a selection from a view, and returns a list of all requests in the string.
 
@@ -42,7 +41,7 @@ If you want a better understanding of the details, dive into `core` directory. T
 ## Python Linting and Code Style
 Uses __flake8__. First, install __flake8__ with `pip3 install flake8`.
 
-Read how set up pre-commit hook [here](http://flake8.pycqa.org/en/latest/user/using-hooks.html), or just keep reading.
+Read how to set up a pre-commit hook [here](http://flake8.pycqa.org/en/latest/user/using-hooks.html), or just keep reading.
 
 Run `flake8 --install-hook git`, and check that `.git/hooks/pre-commit` was created. Then run `git config --bool flake8.strict true`, and check that this worked by running `git config --get --bool flake8.strict`. It should return __true__.
 
