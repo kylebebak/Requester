@@ -1,6 +1,8 @@
 # Contributing
 Please do! Possible improvements:
 
+- Use [httpbin](http://httpbin.org/) running on localhost
+  + Add a `requirements-dev.txt` file for `httpbin` and `gunicorn`
 - __Better test coverage__
   + Error messages for bad requests, etc
   + Proper parsing of env block and env files

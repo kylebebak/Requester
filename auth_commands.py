@@ -2,14 +2,13 @@ import sublime_plugin
 
 
 class RequesterAuthOptionsCommand(sublime_plugin.WindowCommand):
-    """Parse `num` and `concurrency` from user input and pass them to
-    `RequesterBenchmarksCommand`.
+    """Allow user to choose an auth snippet and display it in a new view.
     """
     def run(self, fmt=None):
         self.window.show_quick_panel([s[0] for s in snippets], self.on_done)
 
     def on_done(self, index):
-        """Callback for invokes request chosen from quick panel.
+        """Create a view with chosen snippet.
         """
         if index < 0:  # e.g. user presses escape
             return

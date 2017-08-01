@@ -5,6 +5,9 @@
   // display error if env hasn't been executed after this many seconds
   "timeout_env": 15,
 
+  // are redirects allowed by default?
+  "allow_redirects": true,
+
   // scheme prepended to URLs in case no scheme is specified
   "scheme": "http",
 

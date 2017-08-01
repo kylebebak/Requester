@@ -369,6 +369,7 @@ Requester's modifiable settings, and their default values. You can override any 
 
 - __timeout__, `15`: default timeout in seconds for all requests
 - __timeout_env__, `15`: default timeout in seconds for executing env block/env file
+- __allow_redirects__, `true`: are redirects allowed by default?
 - __scheme__, `"http"`: scheme prepended to URLs in case no scheme is specified
 - __max_content_length_kb__, `5000`: don't render responses whose content length (kilobytes) exceeds this value
 - __change_focus_after_request__, `true`: if a single request is executed, change focus to response tab after request returns

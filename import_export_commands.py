@@ -25,7 +25,7 @@ PreparedRequest = namedtuple('PreparedRequest', 'request, args, kwargs, session'
 class ArgumentParserErrorRaisesException(argparse.ArgumentParser):
     def error(self, message):
         """This ensures `sys.exit` isn't called if there's a parsing error,
-        because this causes Sublime Text to hang forever.
+        because this causes Sublime Text to hang indefinitely.
         """
         raise Exception(str(message))
 
@@ -43,6 +43,7 @@ def get_exports(requests, env, exporter):
         kwargs = req.kwargs.copy()
         req.kwargs.pop('timeout', None)
         req.kwargs.pop('filename', None)
+        req.kwargs.pop('allow_redirects', None)
 
         # not pretty, but it makes sure calls to requests.(get|post|put|patch)
         # match up with `requests.Request` method signature
@@ -194,7 +195,7 @@ def request_to_curl(request):
     """Inspired by: https://github.com/oeegor/curlify
 
     Modified to accept a prepared request instance, instead of the `request`
-    property on a response intance, which means requests don't have to be sent
+    property on a response instance, which means requests don't have to be sent
     before converting them to cURL, and also extraneous headers aren't added.
     """
     req, args, kwargs, session = request
@@ -295,11 +296,11 @@ def request_to_httpie(request):
 
 
 def curl_to_request(curl):
-    """Lifted from: https://github.com/spulec/uncurl
+    """Lifted from: https://github.com/spulec/uncurl, but with many improvements.
 
-    Rewritten slightly to remove `six` and `xerox` dependencies, and add parsing
-    of cookies passed in `-b` or `--cookies` named argument. Also removed some
-    bugs.
+    Rewritten to remove `six` and `xerox` dependencies, and add parsing of cookies
+    passed in `-b` or `--cookies` named argument Also added support for `-A` and
+    `-G` args. Removed various bugs.
     """
     curl = curl.replace('\\\n', '').replace('\\', '')
     if not hasattr(sys, 'argv'):

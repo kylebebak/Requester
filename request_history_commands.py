@@ -52,7 +52,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
             return None
 
     def on_done(self, index):
-        """Callback for invokes request chosen from quick panel.
+        """Callback invokes request chosen from quick panel.
         """
         if index < 0:  # e.g. user presses escape
             return

@@ -178,8 +178,12 @@ def prepare_request(request, env, ordering):
             url = prepare_url(url)
             args[0] = url
 
-    if 'timeout' not in kwargs:
-        kwargs['timeout'] = sublime.load_settings('Requester.sublime-settings').get('timeout', None)
+    if 'timeout' not in kwargs or 'allow_redirects' not in kwargs:
+        settings = sublime.load_settings('Requester.sublime-settings')
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = settings.get('timeout', None)
+        if 'allow_redirects' not in kwargs:
+            kwargs['allow_redirects'] = settings.get('allow_redirects', True)
     return Request(req, method, url, args, kwargs, ordering, session, error=None)
 
 
