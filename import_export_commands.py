@@ -325,23 +325,17 @@ def curl_to_request(curl):
         method = parsed_args.request
 
     base_indent = ' ' * 4
-    data = ''
-    post_data = parsed_args.data or parsed_args.data_binary
+    post_data = parsed_args.data or parsed_args.data_binary or ''
     if post_data:
         if not parsed_args.request:
             method = 'post'
         try:
             post_data_json = json.loads(post_data)
         except ValueError:
-            post_data_json = None
-
-        # if we found JSON and it's a dict, pull it apart; otherwise, leave it as a string
-        if post_data_json and isinstance(post_data_json, dict):
-            post_data = post_data_json
-        else:
             post_data = "'{}'".format(post_data)
-
-        data = '{}data={},\n'.format(base_indent, post_data)
+        else:
+            if post_data_json and isinstance(post_data_json, dict):
+                post_data = post_data_json
 
     cookies_dict = {}
 
@@ -365,10 +359,21 @@ def curl_to_request(curl):
     if parsed_args.user_agent:
         headers_dict['User-Agent'] = parsed_args.user_agent
 
-    result = """requests.{method}('{url}',\n{data}{headers},\n{cookies},\n)""".format(
+    qs = ''
+    if parsed_args.get:
+        method = 'get'
+        try:
+            qs = '?{}'.format(urlencode(post_data))
+        except:
+            qs = '?{}'.format(str(post_data))
+        print(post_data)
+        post_data = {}
+
+    result = """requests.{method}('{url}{qs}',{data}\n{headers},\n{cookies},\n)""".format(
         method=method.lower(),
         url=parsed_args.url,
-        data=data,
+        qs=qs,
+        data='\n{}data={},'.format(base_indent, post_data) if post_data else '',
         headers='{}headers={}'.format(base_indent, headers_dict),
         cookies='{}cookies={}'.format(base_indent, cookies_dict),
     )
