@@ -30,7 +30,7 @@ post(
 )
 ~~~
 
-Notice that if a URL scheme isn't supplied, Requester sets is as `http` by default.
+Notice that if a URL scheme isn't supplied, Requester sets it as `http` by default.
 
 If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 

@@ -10,7 +10,7 @@ import sys
 import traceback
 from time import time
 from collections import namedtuple
-from requests import Request
+from requests import Request as Request
 from urllib.parse import urlencode, parse_qsl
 
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
@@ -20,6 +20,14 @@ from .request_commands import RequesterCommand
 
 
 PreparedRequest = namedtuple('PreparedRequest', 'request, args, kwargs, session')
+
+
+class RequestAcceptsAllArgs(Request):
+    """Ensures that invalid args and kwargs are not passed to `requests.Request`.
+    """
+    def __init__(self, method=None, url=None, headers=None, files=None, data=None, params=None,
+                 auth=None, cookies=None, hooks=None, json=None, *args, **kwargs):
+        super().__init__(method, url, headers, files, data, params, auth, cookies, hooks, json)
 
 
 class ArgumentParserErrorRaisesException(argparse.ArgumentParser):
@@ -41,9 +49,6 @@ def get_exports(requests, env, exporter):
 
         args = req.args.copy()
         kwargs = req.kwargs.copy()
-        req.kwargs.pop('timeout', None)
-        req.kwargs.pop('filename', None)
-        req.kwargs.pop('allow_redirects', None)
 
         # not pretty, but it makes sure calls to requests.(get|post|put|patch)
         # match up with `requests.Request` method signature
@@ -62,7 +67,7 @@ def get_exports(requests, env, exporter):
 
         try:
             prepared_requests.append(PreparedRequest(
-                Request(*req.args, **req.kwargs), args, kwargs, req.session
+                RequestAcceptsAllArgs(*req.args, **req.kwargs), args, kwargs, req.session
             ))
         except Exception as e:
             errors.append(str(e))
