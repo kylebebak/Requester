@@ -5,7 +5,7 @@ import os
 
 import requests
 
-from .core.helpers import truncate
+from ..core.helpers import truncate
 
 
 class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):

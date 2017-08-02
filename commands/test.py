@@ -7,9 +7,9 @@ from time import time
 from urllib import parse
 from collections import namedtuple
 
-from .core import RequestCommandMixin
-from .core.parsers import parse_tests
-from .core.responses import prepare_request
+from ..core import RequestCommandMixin
+from ..core.parsers import parse_tests
+from ..core.responses import prepare_request
 
 
 Error = namedtuple('Error', 'prop, expected, got, error')
@@ -105,7 +105,7 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
                          {'text': header + '\n\n' + '\n\n'.join(results), 'point': 0})
         view.set_read_only(True)
         view.set_name('Requester Test Run')
-        view.set_syntax_file('Packages/Requester/requester-test.sublime-syntax')
+        view.set_syntax_file('Packages/Requester/syntax/requester-test.sublime-syntax')
 
     def get_result(self, response, assertion):
         """Get result of comparing response with assertion dict. Ignores keys in

@@ -6,9 +6,9 @@ import json
 from time import time
 from collections import OrderedDict
 
-from .request_commands import RequesterCommand
-from .core import RequestCommandMixin
-from .core.helpers import truncate
+from .request import RequesterCommand
+from ..core import RequestCommandMixin
+from ..core.helpers import truncate
 
 
 class RequesterHistoryCommand(sublime_plugin.WindowCommand):

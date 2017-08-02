@@ -60,8 +60,10 @@ The __###env__ lines must have no leading or trailing spaces. Only the first env
 
 ### Request Body, Query Params, Custom Headers, Cookies
 ~~~py
-post("httpbin.org/post", data={'key1': 'value1', 'key2': 'value2'})
-post("httpbin.org/post", json={'key1': 'value1', 'key2': 'value2'})
+post('httpbin.org/post', data={'key1': 'value1', 'key2': 'value2'})
+
+post('httpbin.org/post', json=[1, 2, 3])
+post('httpbin.org/post', json={'name': 'Jimbo', 'age': 35, 'married': False, 'hobbies': ['wiki', 'pedia']})
 
 get('httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
 
@@ -75,7 +77,7 @@ get('httpbin.org/redirect-to?url=foo')
 
 Body, Query Params, Headers and Cookies can be passed to __requests__ as dictionaries.
 
-If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
+If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser. If you want to disallow redirects by default, simply change Requester's `allow_redirects` setting to `false`.
 
 __Requester's syntax is Requests syntax__. If you don't know how to do something, just have a look at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
 

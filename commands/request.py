@@ -6,10 +6,10 @@ from sys import maxsize
 from urllib import parse
 from collections import namedtuple
 
-from .core import RequestCommandMixin
-from .core.parsers import parse_requests
-from .core.responses import prepare_request
-from .core.helpers import clean_url
+from ..core import RequestCommandMixin
+from ..core.parsers import parse_requests
+from ..core.responses import prepare_request
+from ..core.helpers import clean_url
 
 
 Content = namedtuple('Content', 'content, point')
@@ -248,7 +248,7 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             content = get_response_view_content(response)
             view.run_command('requester_replace_view_text',
                              {'text': content.content, 'point': content.point})
-            view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
+            view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
             self.set_request_setting_on_view(view, res)
 
         # should response tabs be reordered after requests return?
@@ -297,7 +297,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         content = get_response_view_content(response)
         view.run_command('requester_replace_view_text',
                          {'text': content.content, 'point': content.point})
-        view.set_syntax_file('Packages/Requester/requester-response.sublime-syntax')
+        view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
 
         set_response_view_name(view, res)

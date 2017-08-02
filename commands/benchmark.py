@@ -5,9 +5,9 @@ from math import floor, ceil
 from time import time
 from collections import namedtuple, defaultdict
 
-from .core import RequestCommandMixin
-from .core.responses import prepare_request
-from .core.parsers import parse_requests
+from ..core import RequestCommandMixin
+from ..core.responses import prepare_request
+from ..core.parsers import parse_requests
 
 
 ResponseMetrics = namedtuple('ResponseMetrics', 'elapsed, sent, received, code, success')
@@ -169,7 +169,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
                          {'text': rates + '\n\n\n' + '\n\n\n'.join(profiles) + '\n', 'point': 0})
         view.set_read_only(True)
         view.set_name('Requester Benchmarks')
-        view.set_syntax_file('Packages/Requester/requester-benchmarks.sublime-syntax')
+        view.set_syntax_file('Packages/Requester/syntax/requester-benchmarks.sublime-syntax')
 
     def handle_errors(self, responses):
         """Don't allow default error handler to run, don't display error messages.

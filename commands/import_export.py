@@ -15,8 +15,8 @@ from urllib.parse import urlencode, parse_qsl
 
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
-from .core.responses import prepare_request
-from .request_commands import RequesterCommand
+from .request import RequesterCommand
+from ..core.responses import prepare_request
 
 
 PreparedRequest = namedtuple('PreparedRequest', 'request, args, kwargs, session')
@@ -109,7 +109,7 @@ class RequesterExportToCurlCommand(RequesterCommand):
 
 
 class RequesterExportToHttpieCommand(RequesterCommand):
-    """Export selected requester requests to equivalent cURL requests.
+    """Export selected requester requests to equivalent HTTPie requests.
     """
     def make_requests(self, requests, env):
         exports = get_exports(requests, env, request_to_httpie)

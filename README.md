@@ -134,7 +134,6 @@ Dynamic env vars, like a `base_url` that might point to staging one minute and p
 ~~~py
 post('httpbin.org/post', data={'key1': 'value1', 'key2': 'value2'})
 
-post('httpbin.org/post', json={'key1': 'value1', 'key2': 'value2'})
 post('httpbin.org/post', json=[1, 2, 3])
 post('httpbin.org/post', json={'name': 'Jimbo', 'age': 35, 'married': False, 'hobbies': ['wiki', 'pedia']})
 
@@ -150,7 +149,7 @@ get('httpbin.org/redirect-to?url=foo')
 
 Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`.
 
-If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
+If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser. If you want to disallow redirects by default, simply change Requester's `allow_redirects` setting to `false`.
 
 
 ### New Requester File
@@ -231,7 +230,7 @@ get('http://httpbin.org/get')
 get('http://httpbin.org/cookies', cookies={'url': Response.json()['url']})
 ~~~
 
-If you don't run requests serially, the second request fails, because it's executed before the first request returns.
+If you don't run requests serially, the second request fails, because it's executed before the first request returns. By the way, this means you shouldn't name an env var "Response", because if you execute requests serially, this env var will be overwritten by the `Response` object.
 
 
 ## Test Runner
