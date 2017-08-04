@@ -39,7 +39,7 @@ contexts:
 
   url:
     - match: ^.*$\n
-      scope: entity.name.tag.requester-response # hack to make URL bold
+      scope: entity.name.tag.requester-response  # hack to make URL bold
       set: headers-body-cookies
 
   headers-body-cookies:
@@ -47,7 +47,7 @@ contexts:
       captures:
         1: constant.numeric.label.requester-response
         2: constant.language.headers-body-cookies.requester-response
-    - match: ^(?=\[) # use look-ahead to not include bracket in match
+    - match: ^(?=\[)  # use look-ahead to not include bracket in match
       set: replay-request
 
   replay-request:
@@ -65,6 +65,8 @@ contexts:
       set: [response-type-xml, content-type-suffix]
     - match: (application/xhtml+xml|text/html){{content_type_sep}}
       set: [response-type-html, content-type-suffix]
+    - match: (.*){{content_type_sep}}  # default syntax is json if no valid content type in headers
+      set: [response-type-json, content-type-suffix]
 
   content-type-suffix:
     - match: .*$

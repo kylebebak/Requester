@@ -37,7 +37,7 @@ def get_content(res):
             res.content.decode('utf-8')
         except UnicodeDecodeError:
             # content is almost certainly binary, and if it's not, requests won't know how to decode it anyway
-            return "Response content is binary, so it can't be displayed. Try downloading this file instead."
+            return "Response content is binary, so it won't be displayed. Try downloading this file instead."
         else:
             res.encoding = 'utf-8'
 

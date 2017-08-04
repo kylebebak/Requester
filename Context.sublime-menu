@@ -1,0 +1,41 @@
+[
+  {
+    "id": "requester",
+    "caption": "Requester",
+    "children":
+    [
+      {
+        "command": "requester",
+        "caption": "Run Requests"
+      },
+      {
+        "command": "requester_history",
+        "caption": "Request History"
+      },
+      {
+        "command": "requester_run_tests",
+        "caption": "Run Tests"
+      },
+      {
+        "command": "requester_export_tests",
+        "caption": "Export Tests To Runnable Script"
+      },
+      {
+        "command": "requester_prompt_benchmarks",
+        "caption": "Run Benchmarks"
+      },
+      {
+        "command": "requester_export_to_curl",
+        "caption": "Export To cURL"
+      },
+      {
+        "command": "requester_export_to_httpie",
+        "caption": "Export To HTTPie"
+      },
+      {
+        "command": "requester_import_from_curl",
+        "caption": "Import From cURL"
+      }
+    ]
+  }
+]
