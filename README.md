@@ -222,7 +222,7 @@ Note: code inside your __env block/env file__ is always run serially, which incl
 
 
 #### Chaining By Reference
-If you need __true__ request chaining, such that a request can reference the `Response` object returned by the previous request, that's easy too. Requester lets you reference the most recently returned response using the `Response` variable. Copy the following code to a new view, highlight it, and run __Requester: Run Requests Serially__.
+If you need __true__ request chaining, such that a request can reference the `Response` object returned by the previous request, that's easy too. Requester lets you reference the most recently returned response using the `Response` variable, and also lets you __name__ your responses. Copy the following code to a new view, highlight it, and run __Requester: Run Requests Serially__.
 
 ~~~py
 get('http://httpbin.org/get')
@@ -230,7 +230,15 @@ get('http://httpbin.org/get')
 get('http://httpbin.org/cookies', cookies={'url': Response.json()['url']})
 ~~~
 
-If you don't run requests serially, the second request fails, because it's executed before the first request returns. By the way, this means you shouldn't name an env var "Response", because if you execute requests serially, this env var will be overwritten by the `Response` object.
+If you don't run requests serially, the second request fails, because it's executed before the first request returns. Now try __naming__ the response from a request using the `name` argument.
+
+~~~py
+get('httpbin.org/get', name='first_response')
+get('google.com', allow_redirects=False)
+get('httpbin.org/cookies', cookies={'url': first_response.json()['url']})
+~~~
+
+By the way, this means you shouldn't name an env var "Response", or with the same name that you pass to a request's `name` argument, because these env vars will be overwritten.
 
 
 ## Test Runner
