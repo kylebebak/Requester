@@ -11,6 +11,9 @@
   // scheme prepended to URLs in case no scheme is specified
   "scheme": "http",
 
+  // JSON response formatting, one of ("raw", "indent", "indent_sort")
+  "fmt": "indent_sort",
+
   // don't render responses whose content length (kilobytes) exceeds this value
   "max_content_length_kb": 5000,
 

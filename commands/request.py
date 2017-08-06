@@ -16,7 +16,7 @@ Content = namedtuple('Content', 'content, point')
 platform = sublime.platform()
 
 
-def get_content(res):
+def get_content(res, fmt):
     """Efficiently decides if response content is binary. If this is the case,
     returns before `text` or `json` are invoked on response, because they are VERY
     SLOW when invoked on binary responses. See below:
@@ -45,8 +45,12 @@ def get_content(res):
         json_dict = res.json()
     except:
         return res.text
-    else:  # prettify json regardless of what raw response looks like
-        return json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
+    else:
+        if fmt == 'indent_sort':
+            return json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
+        if fmt == 'indent':
+            return json.dumps(json_dict, indent=2, separators=(',', ': '))
+        return res.text
 
 
 def get_response_view_content(response):
@@ -65,7 +69,7 @@ def get_response_view_content(response):
         ['{}: {}'.format(k, v) for k, v in sorted(res.headers.items())]
     )
 
-    content = get_content(res)
+    content = get_content(res, req.fmt)
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [

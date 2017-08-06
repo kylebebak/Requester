@@ -10,7 +10,7 @@ from .parsers import PREFIX
 from .helpers import truncate
 
 
-Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session, name, error')
+Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session, fmt, name, error')
 Response = namedtuple('Response', 'req, res, err')
 
 methods = {
@@ -146,6 +146,8 @@ def prepare_request(request, env, ordering):
     Finally, ensure request can time out so it doesn't hang indefinitely.
     http://docs.python-requests.org/en/master/user/advanced/#timeouts
     """
+    settings = sublime.load_settings('Requester.sublime-settings')
+
     req = request.strip()
     if not re.match(PREFIX, req):
         req = 'requests.' + req
@@ -163,11 +165,10 @@ def prepare_request(request, env, ordering):
         sublime.error_message('PrepareRequest Error: {}\n{}'.format(
             e, truncate(req, 150)
         ))
-        return Request(req, method, None, [], {}, ordering, session, None, error=str(e))
+        return Request(req, method, None, [], {}, ordering, session, None, None, error=str(e))
     else:
         args = list(args)
 
-    name = kwargs.pop('name', None)  # cache response to "chain" requests
     url = kwargs.get('url', None)
     if url is not None:
         url = prepare_url(url)
@@ -179,18 +180,22 @@ def prepare_request(request, env, ordering):
             sublime.error_message('PrepareRequest Error: {}\n{}'.format(
                 e, truncate(req, 150)
             ))
-            return Request(req, method, url, args, kwargs, ordering, session, name, error=str(e))
+            return Request(req, method, url, args, kwargs, ordering, session, None, None, error=str(e))
         else:
             url = prepare_url(url)
             args[0] = url
 
-    if 'timeout' not in kwargs or 'allow_redirects' not in kwargs:
-        settings = sublime.load_settings('Requester.sublime-settings')
-        if 'timeout' not in kwargs:
-            kwargs['timeout'] = settings.get('timeout', None)
-        if 'allow_redirects' not in kwargs:
-            kwargs['allow_redirects'] = settings.get('allow_redirects', True)
-    return Request(req, method, url, args, kwargs, ordering, session, name, error=None)
+    error = None
+    name = kwargs.pop('name', None)  # cache response to "chain" requests
+    fmt = kwargs.pop('fmt', settings.get('fmt', None))
+    if fmt not in ('raw', 'indent', 'indent_sort'):
+        error = 'invalid `fmt`, must be one of ("raw", "indent", "indent_sort")'
+        sublime.error_message('PrepareRequest Error: {}\n{}'.format(error, truncate(req, 150)))
+    if 'timeout' not in kwargs:
+        kwargs['timeout'] = settings.get('timeout', None)
+    if 'allow_redirects' not in kwargs:
+        kwargs['allow_redirects'] = settings.get('allow_redirects', True)
+    return Request(req, method, url, args, kwargs, ordering, session, fmt, name, error)
 
 
 def prepare_url(url):

@@ -74,6 +74,16 @@ Notice that if a URL scheme isn't supplied, Requester sets it as `http` by defau
 If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
 
 
+### JSON Response Formatting
+Requester supports 3 options for JSON response formatting, `indent_sort`, `indent`, and `raw`. The default value for all requests, which can be changed in Requester's settings, is `indent_sort`. If you don't want keys in objects sorted alphabetically, use `indent` or `raw`.
+
+~~~py
+get('http://headers.jsontest.com/', fmt='indent_sort')
+get('http://headers.jsontest.com/', fmt='indent')
+get('http://headers.jsontest.com/', fmt='raw')
+~~~
+
+
 ### Pinned Response Tabs
 When you execute a request, Requester overwrites response tabs that have the same request method and URL as the request you're executing. Hmmm... Does this mean you can't open multiple response tabs for the same request?
 
@@ -378,6 +388,7 @@ Requester's modifiable settings, and their default values. You can override any 
 - __timeout_env__, `15`: default timeout in seconds for executing env block/env file
 - __allow_redirects__, `true`: are redirects allowed by default?
 - __scheme__, `"http"`: scheme prepended to URLs in case no scheme is specified
+- __fmt__, `"indent_sort"`: JSON response formatting, one of ("raw", "indent", "indent_sort")
 - __max_content_length_kb__, `5000`: don't render responses whose content length (kilobytes) exceeds this value
 - __change_focus_after_request__, `true`: if a single request is executed, change focus to response tab after request returns
 - __reorder_tabs_after_requests__, `false`: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
