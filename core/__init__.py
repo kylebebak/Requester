@@ -268,7 +268,7 @@ class RequestCommandMixin:
             with open(history_path, 'r') as f:
                 text = f.read() or '{}'
         except FileNotFoundError:
-            open(history_path, 'w').close()  # create history file if it didn't exist
+            open(history_path, 'w').close()  # create history file if it doesn't exist
             text = '{}'
         except Exception as e:
             sublime.error_message('HistoryFile Error:\n{}'.format(e))

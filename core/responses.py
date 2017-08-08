@@ -10,7 +10,7 @@ from .parsers import PREFIX
 from .helpers import truncate
 
 
-Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session, fmt, name, error')
+Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session, skwargs, error')
 Response = namedtuple('Response', 'req, res, err')
 
 methods = {
@@ -66,6 +66,9 @@ class ResponseThreadPool:
         res, err = None, ''
         if self.is_done:  # prevents further requests from being made if pool is cancelled
             return Response(req, res, err)  # check using: https://requestb.in/
+        for skwarg in ('filename', 'streamed', 'chunked'):
+            if req.skwargs.get(skwarg):
+                return Response(req, res, 'skwarg_{}'.format(skwarg))
 
         try:
             if req.session:
@@ -89,9 +92,9 @@ class ResponseThreadPool:
             err = '{}: {}'.format('Other Error', e)
 
         self.env['Response'] = res  # to allow "chaining" of serially executed requests
-        if req.name:
+        if req.skwargs.get('name'):
             try:
-                self.env[str(req.name)] = res  # calling str could raise exception...
+                self.env[str(req.skwargs.get('name'))] = res  # calling str could raise exception...
             except Exception as e:
                 print('Name Error: {}'.format(e))
         return Response(req, res, err)
@@ -165,7 +168,7 @@ def prepare_request(request, env, ordering):
         sublime.error_message('PrepareRequest Error: {}\n{}'.format(
             e, truncate(req, 150)
         ))
-        return Request(req, method, None, [], {}, ordering, session, None, None, error=str(e))
+        return Request(req, method, None, [], {}, ordering, session, {}, error=str(e))
     else:
         args = list(args)
 
@@ -180,14 +183,25 @@ def prepare_request(request, env, ordering):
             sublime.error_message('PrepareRequest Error: {}\n{}'.format(
                 e, truncate(req, 150)
             ))
-            return Request(req, method, url, args, kwargs, ordering, session, None, None, error=str(e))
+            return Request(req, method, url, args, kwargs, ordering, session, {}, error=str(e))
         else:
             url = prepare_url(url)
             args[0] = url
 
     error = None
-    name = kwargs.pop('name', None)  # cache response to "chain" requests
     fmt = kwargs.pop('fmt', settings.get('fmt', None))
+    name = kwargs.pop('name', None)  # cache response to "chain" requests
+    filename = kwargs.pop('filename', None)
+    streamed = kwargs.pop('streamed', None)
+    chunked = kwargs.pop('chunked', None)
+    skwargs = {
+        'fmt': fmt,
+        'name': name,
+        'filename': filename,
+        'streamed': streamed,
+        'chunked': chunked,
+    }
+
     if fmt not in ('raw', 'indent', 'indent_sort'):
         error = 'invalid `fmt`, must be one of ("raw", "indent", "indent_sort")'
         sublime.error_message('PrepareRequest Error: {}\n{}'.format(error, truncate(req, 150)))
@@ -195,7 +209,7 @@ def prepare_request(request, env, ordering):
         kwargs['timeout'] = settings.get('timeout', None)
     if 'allow_redirects' not in kwargs:
         kwargs['allow_redirects'] = settings.get('allow_redirects', True)
-    return Request(req, method, url, args, kwargs, ordering, session, fmt, name, error)
+    return Request(req, method, url, args, kwargs, ordering, session, skwargs, error)
 
 
 def prepare_url(url):

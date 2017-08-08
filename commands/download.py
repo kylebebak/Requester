@@ -13,12 +13,11 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
     """
     CANCELLED = False
 
-    def run(self, args, kwargs):
+    def run(self, args, kwargs, filename):
         # cache for setting status on this view later, in case focus changes to
         # different view while env is executed and initial request is run
         RequesterDownloadCommand.CANCELLED = False
         view = sublime.active_window().active_view()
-        filename = kwargs.pop('filename')
         sublime.set_timeout_async(
             lambda: self.run_initial_request(args, kwargs, filename, view), 0
         )

@@ -69,7 +69,7 @@ def get_response_view_content(response):
         ['{}: {}'.format(k, v) for k, v in sorted(res.headers.items())]
     )
 
-    content = get_content(res, req.fmt)
+    content = get_content(res, req.skwargs.get('fmt'))
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [
@@ -202,13 +202,26 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         return requests
 
     def handle_errors(self, responses):
-        """Handle errors which may not be errors, like file donwloads.
+        """Handle errors which may not be errors, like file downloads.
         """
-        downloads = [r for r in responses if 'filename' in r.req.kwargs]
-        errors = [r for r in responses if 'filename' not in r.req.kwargs]
-        for r in downloads:
-            sublime.run_command('requester_download',
-                                {'args': r.req.args, 'kwargs': r.req.kwargs})
+        special = [r for r in responses if r.err.startswith('skwarg_')]
+        errors = [r for r in responses if not r.err.startswith('skwarg_')]
+        for r in special:
+            if r.err == 'skwarg_filename':
+                sublime.run_command(
+                    'requester_download',
+                    {'args': r.req.args, 'kwargs': r.req.kwargs, 'filename': r.req.skwargs.get('filename')}
+                )
+            if r.err == 'skwarg_streamed':
+                sublime.run_command(
+                    'requester_upload',
+                    {'args': r.req.args, 'kwargs': r.req.kwargs, 'method': r.req.skwargs.get('streamed')}
+                )
+            if r.err == 'skwarg_chunked':
+                sublime.run_command(
+                    'requester_upload',
+                    {'args': r.req.args, 'kwargs': r.req.kwargs, 'method': r.req.skwargs.get('chunked')}
+                )
         super().handle_errors(errors)
 
     def handle_response(self, response):
