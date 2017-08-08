@@ -1,8 +1,16 @@
 def truncate(s, l, ellipsis='...'):
     """Truncates string to length `l` if need be and adds `ellipsis`.
     """
-    if len(s) > l:
-        return s[:l] + ellipsis
+    try:
+        _l = len(s)
+    except:
+        return s
+
+    if _l > l:
+        try:
+            return s[:l] + ellipsis  # in case s is a byte string
+        except:
+            return s[:l]
     return s
 
 

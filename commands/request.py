@@ -9,7 +9,7 @@ from collections import namedtuple
 from ..core import RequestCommandMixin
 from ..core.parsers import parse_requests
 from ..core.responses import prepare_request
-from ..core.helpers import clean_url
+from ..core.helpers import clean_url, truncate
 
 
 Content = namedtuple('Content', 'content, point')
@@ -89,7 +89,7 @@ def get_response_view_content(response):
     if cookies:
         before_content_items.insert(3, 'Response Cookies: {}'.format(cookies))
     if body:
-        before_content_items.insert(3, 'Request Body: {}'.format(body))
+        before_content_items.insert(3, 'Request Body: {}'.format(truncate(body, 1000)))
     before_content = '\n\n'.join(before_content_items)
 
     return Content(before_content + '\n\n' + content, len(before_content) + 2)
