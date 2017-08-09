@@ -191,10 +191,16 @@ Requester comes with a few pre-written auth classes you can use in your code, or
 
 
 ### Forms and File Uploads
-Requests makes both of these tasks trivial. See how in the Requests Quickstart:
+Requests makes posting forms and uploading files fairly easy. See how in the Requests documentation.
 
 - Forms: <http://docs.python-requests.org/en/latest/user/quickstart/#more-complicated-post-requests>
 - File uploads: <http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file>
+- Multiple file uploads: <http://docs.python-requests.org/en/master/user/advanced/#post-multiple-multipart-encoded-files>
+
+Requests also supports streaming and chunked file uploads. Requester has the special `streamed` and `chunked` arguments to make these uploads trivial.
+
+~~~py
+~~~
 
 
 ### Downloads
@@ -365,6 +371,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_history__: search and re-execute past requests
 - __requester_cancel_requests__: cancel all outstanding requests
 - __requester_cancel_downloads__: cancel outstanding file downloads
+- __requester_cancel_uploads__: cancel outstanding file uploads
 - __requester_response_tab_toggle_pinned__: pin (or unpin) a response tab so that it isn't overwritten by requests with its same method and URL
 - __requester_close_response_tabs__
 - __requester_reorder_response_tabs__: reorders response tabs to match order of requests in requester file

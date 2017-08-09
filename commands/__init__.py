@@ -7,3 +7,4 @@ from .other import *
 from .request import *
 from .request_history import *
 from .test import *
+from .upload import *

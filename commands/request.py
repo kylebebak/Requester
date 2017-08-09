@@ -208,20 +208,14 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
         errors = [r for r in responses if not r.err.startswith('skwarg_')]
         for r in special:
             if r.err == 'skwarg_filename':
-                sublime.run_command(
-                    'requester_download',
-                    {'args': r.req.args, 'kwargs': r.req.kwargs, 'filename': r.req.skwargs.get('filename')}
-                )
-            if r.err == 'skwarg_streamed':
-                sublime.run_command(
-                    'requester_upload',
-                    {'args': r.req.args, 'kwargs': r.req.kwargs, 'method': r.req.skwargs.get('streamed')}
-                )
-            if r.err == 'skwarg_chunked':
-                sublime.run_command(
-                    'requester_upload',
-                    {'args': r.req.args, 'kwargs': r.req.kwargs, 'method': r.req.skwargs.get('chunked')}
-                )
+                sublime.run_command('requester_download', {'args': r.req.args, 'kwargs': r.req.kwargs,
+                                    'filename': r.req.skwargs.get('filename')})
+            elif r.err == 'skwarg_streamed':
+                sublime.run_command('requester_upload', {'args': r.req.args, 'kwargs': r.req.kwargs,
+                                    'filename': r.req.skwargs.get('streamed'), 'method': 'streamed'})
+            elif r.err == 'skwarg_chunked':
+                sublime.run_command('requester_upload', {'args': r.req.args, 'kwargs': r.req.kwargs,
+                                    'filename': r.req.skwargs.get('chunked'), 'method': 'chunked'})
         super().handle_errors(errors)
 
     def handle_response(self, response):
