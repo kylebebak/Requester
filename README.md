@@ -197,10 +197,14 @@ Requests makes posting forms and uploading files fairly easy. See how in the Req
 - File uploads: <http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file>
 - Multiple file uploads: <http://docs.python-requests.org/en/master/user/advanced/#post-multiple-multipart-encoded-files>
 
-Requests also supports streaming and chunked file uploads. Requester has the special `streamed` and `chunked` arguments to make these uploads trivial.
+Requests also supports streaming and chunked file uploads, which is great (and necessary) if the file you're uploading doesn't fit in memory, but the API is a bit complicated. Requester has the special `streamed` and `chunked` arguments to make these uploads trivial.
 
 ~~~py
+post('https://requestb.in/<your_request_bin>', streamed='/path/to/file')
+post('https://requestb.in/1ia1c0t1', chunked='/path/to/file')
 ~~~
+
+If you use pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header will be added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress indicator and they can be cancelled. 
 
 
 ### Downloads

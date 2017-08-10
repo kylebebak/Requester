@@ -161,6 +161,28 @@ class RequestsMixin:
                     views.append(view)
         return views
 
+    def handle_errors(self, responses):
+        """Handle errors which may not be errors, like file downloads.
+        """
+        special = [r for r in responses if r.err.startswith('skwarg_')]
+        errors = [r for r in responses if not r.err.startswith('skwarg_')]
+        for r in special:
+            req = r.req
+            if r.err == 'skwarg_filename':
+                sublime.run_command('requester_download', {'args': req.args, 'kwargs': req.kwargs,
+                                    'filename': req.skwargs.get('filename')})
+            elif r.err == 'skwarg_streamed':
+                self.view.run_command('requester_upload', {
+                    'request': req.request, 'args': req.args, 'kwargs': req.kwargs,
+                    'filename': req.skwargs.get('streamed'), 'method': 'streamed'
+                })
+            elif r.err == 'skwarg_chunked':
+                self.view.run_command('requester_upload', {
+                    'request': req.request, 'args': req.args, 'kwargs': req.kwargs,
+                    'filename': req.skwargs.get('chunked'), 'method': 'chunked'
+                })
+        super().handle_errors(errors)
+
     @staticmethod
     def set_request_setting_on_view(view, res):
         """For reordering requests, showing pending activity for requests, and
@@ -200,23 +222,6 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
                 for request in requests_:
                     requests.append(request)
         return requests
-
-    def handle_errors(self, responses):
-        """Handle errors which may not be errors, like file downloads.
-        """
-        special = [r for r in responses if r.err.startswith('skwarg_')]
-        errors = [r for r in responses if not r.err.startswith('skwarg_')]
-        for r in special:
-            if r.err == 'skwarg_filename':
-                sublime.run_command('requester_download', {'args': r.req.args, 'kwargs': r.req.kwargs,
-                                    'filename': r.req.skwargs.get('filename')})
-            elif r.err == 'skwarg_streamed':
-                sublime.run_command('requester_upload', {'args': r.req.args, 'kwargs': r.req.kwargs,
-                                    'filename': r.req.skwargs.get('streamed'), 'method': 'streamed'})
-            elif r.err == 'skwarg_chunked':
-                sublime.run_command('requester_upload', {'args': r.req.args, 'kwargs': r.req.kwargs,
-                                    'filename': r.req.skwargs.get('chunked'), 'method': 'chunked'})
-        super().handle_errors(errors)
 
     def handle_response(self, response):
         """Create a response view and insert response content into it. Ensure that

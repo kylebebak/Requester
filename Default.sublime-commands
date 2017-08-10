@@ -39,6 +39,11 @@
   },
 
   {
+    "caption": "Requester: Cancel Uploads",
+    "command": "requester_cancel_uploads"
+  },
+
+  {
     "caption": "Requester: Close All Response Tabs",
     "command": "requester_close_response_tabs"
   },

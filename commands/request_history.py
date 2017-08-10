@@ -40,7 +40,12 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
     def get_entry_parts(self, req):
         """Display request and other properties for each entry.
         """
-        header = '{}, {}'.format(req[1]['method'].lower(), req[1]['url'])
+        meta = req[1].get('meta', None)
+        header = '{}{}, {}'.format(
+            req[1]['method'].lower(),
+            ' ({})'.format(meta) if meta else '',
+            req[1]['url']
+        )
         try:  # in case, e.g., schema has changed
             return [
                 truncate(header, 100),

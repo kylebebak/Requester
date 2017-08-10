@@ -5,10 +5,12 @@ import os
 
 import requests
 
+from .request import RequesterCommand
 from ..core.helpers import absolute_path, get_transfer_indicator
+from ..core.responses import Response, prepare_request
 
 
-def read_in_chunks(f, chunk_size=1024*10, handle_read=None):
+def read_in_chunks(f, chunk_size=1024, handle_read=None):
     """Lazy function (generator) to read a file piece by piece.
     """
     chunk_count = 0
@@ -24,19 +26,22 @@ def read_in_chunks(f, chunk_size=1024*10, handle_read=None):
         yield data
 
 
-class RequesterUploadCommand(sublime_plugin.ApplicationCommand):
+class RequesterUploadCommand(RequesterCommand):
     """Upload a file using streaming, i.e. without reading the file into memory.
     Optionally used chunked transfer encoding.
     """
     CANCELLED = False
 
-    def run(self, args, kwargs, filename, method):
+    def run(self, edit, request, args, kwargs, filename, method):
         RequesterUploadCommand.CANCELLED = False
-        view = sublime.active_window().active_view()
-        sublime.set_timeout_async(lambda: self.upload_file(args, kwargs, filename, method, view), 0)
+        super().run(edit)
+        sublime.set_timeout_async(lambda: self.upload_file(request, args, kwargs, filename, method), 0)
 
-    def upload_file(self, args, kwargs, filename, method, view):
-        filename = absolute_path(filename, view)
+    def make_requests(self, requests, env=None):
+        pass
+
+    def upload_file(self, request, args, kwargs, filename, method):
+        filename = absolute_path(filename, self.view)
         if filename is None:
             sublime.error_message('Upload Error: requester file must be saved to use relative path')
             return
@@ -51,7 +56,7 @@ class RequesterUploadCommand(sublime_plugin.ApplicationCommand):
         def handle_read(chunk_count, chunk_size):
             nonlocal uploaded
             uploaded = chunk_count * chunk_size
-            view.set_status('requester.upload', 'Requester Upload: {}'.format(
+            self.view.set_status('requester.upload', 'Requester Upload: {}'.format(
                 get_transfer_indicator(basename, uploaded, filesize)
             ))
 
@@ -59,20 +64,27 @@ class RequesterUploadCommand(sublime_plugin.ApplicationCommand):
             with open(filename, 'rb') as f:
                 if method == 'streamed':
                     uploaded = filesize
+                    self.view.set_status('requester.upload', 'Requester Upload: Streaming.....')
                     res = requests.get(*args, data=f, **kwargs)
                 elif method == 'chunked':
                     res = requests.get(*args, data=read_in_chunks(f, handle_read=handle_read), **kwargs)
         except Exception as e:
             sublime.error_message('Upload Error: {}'.format(e))
             return
+        finally:
+            self.view.set_status('requester.upload', '')
 
         if self.CANCELLED and method == 'chunked':  # streamed uploads can't be cancelled
-            view.set_status('requester.upload', 'Requester Upload Cancelled: {}, {}kB uploaded'.format(
+            self.view.set_status('requester.upload', 'Requester Upload Cancelled: {}, {}kB uploaded'.format(
                 filename, uploaded//1024))
         else:
-            view.set_status('requester.upload', 'Requester Upload Completed: {}, {}kB uploaded'.format(
+            self.view.set_status('requester.upload', 'Requester Upload Completed: {}, {}kB uploaded'.format(
                 filename, uploaded//1024))
-        print(res)
+        req = prepare_request(request, self._env, 0)
+        response = Response(req, res, None)
+        self.handle_response(response)
+        self.handle_responses([response])
+        self.persist_requests([response], meta=method)
 
 
 class RequesterCancelUploadsCommand(sublime_plugin.ApplicationCommand):

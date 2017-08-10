@@ -249,7 +249,7 @@ class RequestCommandMixin:
 
         sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
 
-    def persist_requests(self, responses):
+    def persist_requests(self, responses, meta=None):
         """Persist up to N requests to a history file, along with the context
         needed to rebuild the env for these requests. One entry per unique
         request. Old requests are removed when requests exceed file capacity.
@@ -290,6 +290,7 @@ class RequestCommandMixin:
                 'file': self.view.settings().get('requester.file', None),
                 'env_file': self.view.settings().get('requester.env_file', None),
                 'method': method,
+                'meta': meta,
                 'url': url,
                 'code': res.status_code,
                 'request': req.request
