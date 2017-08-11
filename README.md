@@ -11,7 +11,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
   + HTTPS, proxies, redirects, and more
 - Intuitive, modern UX
   + Environment variables
-  + Execute requests and display responses in parallel, or chain requests
+  + Execute requests and display responses in parallel, [__or chain requests__](#chaining-by-reference)
   + Edit and replay requests from individual response tabs
   + Replay requests from fuzzy searchable request history
   + Formatted, colorized output with automatic syntax highlighting
