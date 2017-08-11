@@ -173,13 +173,13 @@ class RequestsMixin:
                                     'filename': req.skwargs.get('filename')})
             elif r.err == 'skwarg_streamed':
                 self.view.run_command('requester_upload', {
-                    'request': req.request, 'args': req.args, 'kwargs': req.kwargs,
-                    'filename': req.skwargs.get('streamed'), 'method': 'streamed'
+                    'request': req.request, 'method': req.method, 'args': req.args, 'kwargs': req.kwargs,
+                    'filename': req.skwargs.get('streamed'), 'upload': 'streamed'
                 })
             elif r.err == 'skwarg_chunked':
                 self.view.run_command('requester_upload', {
-                    'request': req.request, 'args': req.args, 'kwargs': req.kwargs,
-                    'filename': req.skwargs.get('chunked'), 'method': 'chunked'
+                    'request': req.request, 'method': req.method, 'args': req.args, 'kwargs': req.kwargs,
+                    'filename': req.skwargs.get('chunked'), 'upload': 'chunked'
                 })
         super().handle_errors(errors)
 

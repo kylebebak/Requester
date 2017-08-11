@@ -201,10 +201,10 @@ Requests also supports streaming and chunked file uploads, which is great (and n
 
 ~~~py
 post('https://requestb.in/<your_request_bin>', streamed='/path/to/file')
-post('https://requestb.in/1ia1c0t1', chunked='/path/to/file')
+post('https://requestb.in/<your_request_bin>', chunked='/path/to/file')
 ~~~
 
-If you use pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header will be added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress indicator and they can be cancelled. 
+If you use pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header will be added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled. 
 
 
 ### Downloads
@@ -214,7 +214,7 @@ Requester also provides Wget-style downloads. Just add the `filename` keyword ar
 get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='image.jpg')
 ~~~
 
-`filename` can be an absolute path, or a path relative to your requester file. Downloads can be cancelled. They come with a nice progress bar.
+As with streamed and chunked uploads, `filename` can be an absolute path, or a path relative to your requester file. Downloads can be cancelled. They come with a nice progress bar.
 
 
 ### Cancel Outstanding Requests

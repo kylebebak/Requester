@@ -32,15 +32,16 @@ class RequesterUploadCommand(RequesterCommand):
     """
     CANCELLED = False
 
-    def run(self, edit, request, args, kwargs, filename, method):
+    def run(self, edit, request, method, args, kwargs, filename, upload):
         RequesterUploadCommand.CANCELLED = False
         super().run(edit)
-        sublime.set_timeout_async(lambda: self.upload_file(request, args, kwargs, filename, method), 0)
+        sublime.set_timeout_async(
+            lambda: self.upload_file(request, method, args, kwargs, filename, upload), 0)
 
     def make_requests(self, requests, env=None):
         pass
 
-    def upload_file(self, request, args, kwargs, filename, method):
+    def upload_file(self, request, method, args, kwargs, filename, upload):
         filename = absolute_path(filename, self.view)
         if filename is None:
             sublime.error_message('Upload Error: requester file must be saved to use relative path')
@@ -62,19 +63,20 @@ class RequesterUploadCommand(RequesterCommand):
 
         try:
             with open(filename, 'rb') as f:
-                if method == 'streamed':
+                requests_method = getattr(requests, method.lower())
+                if upload == 'streamed':
                     uploaded = filesize
                     self.view.set_status('requester.upload', 'Requester Upload: Streaming.....')
-                    res = requests.get(*args, data=f, **kwargs)
-                elif method == 'chunked':
-                    res = requests.get(*args, data=read_in_chunks(f, handle_read=handle_read), **kwargs)
+                    res = requests_method(*args, data=f, **kwargs)
+                elif upload == 'chunked':
+                    res = requests_method(*args, data=read_in_chunks(f, handle_read=handle_read), **kwargs)
         except Exception as e:
             sublime.error_message('Upload Error: {}'.format(e))
             return
         finally:
             self.view.set_status('requester.upload', '')
 
-        if self.CANCELLED and method == 'chunked':  # streamed uploads can't be cancelled
+        if self.CANCELLED and upload == 'chunked':  # streamed uploads can't be cancelled
             self.view.set_status('requester.upload', 'Requester Upload Cancelled: {}, {}kB uploaded'.format(
                 filename, uploaded//1024))
         else:
@@ -84,7 +86,7 @@ class RequesterUploadCommand(RequesterCommand):
         response = Response(req, res, None)
         self.handle_response(response)
         self.handle_responses([response])
-        self.persist_requests([response], meta=method)
+        self.persist_requests([response], meta=upload)
 
 
 class RequesterCancelUploadsCommand(sublime_plugin.ApplicationCommand):
