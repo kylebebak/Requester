@@ -86,7 +86,7 @@ class RequesterUploadCommand(RequesterCommand):
         response = Response(req, res, None)
         self.handle_response(response)
         self.handle_responses([response])
-        self.persist_requests([response], meta=upload)
+        self.persist_requests([response])
 
 
 class RequesterCancelUploadsCommand(sublime_plugin.ApplicationCommand):

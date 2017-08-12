@@ -42,7 +42,9 @@ Of course not! In the response tab, go the command palette and look for __Reques
 
 
 ### Environment Variables
-It's time to add environment variables to your requests. Requester lets you to do this directly in your requester file. Just put your environment variables in a code block fenced by __###env__ lines.
+It's time to refactor your requests to use environment variables. Requester has a fully featured scripting language for env vars... Python!
+
+You can define them directly in your requester file. Just put your variables in a code block fenced by __###env__ lines.
 
 ~~~py
 ###env

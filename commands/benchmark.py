@@ -134,7 +134,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
     def handle_responses(self, responses):
         """Invoke the real function on a different thread to avoid blocking UI.
         """
-        sublime.set_timeout_async(lambda: self._handle_responses(), 0)
+        sublime.set_timeout_async(self._handle_responses, 0)
 
     def _handle_responses(self):
         """Inspect cached metrics for individual responses and extract aggregate

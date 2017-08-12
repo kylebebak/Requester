@@ -209,7 +209,7 @@ class RequestCommandMixin:
         while pools.qsize() > self.MAX_NUM_RESPONSE_POOLS:
             old_pool = pools.get()
             old_pool.is_done = True  # don't display responses for a pool which has already been removed
-        sublime.set_timeout_async(lambda: pool.run(), 0)  # run on an alternate thread
+        sublime.set_timeout_async(pool.run, 0)  # run on an alternate thread
         sublime.set_timeout(lambda: self.gather_responses(pool), 15)
         # small delay to show activity for requests that are returned in less than REFRESH_MS
 
@@ -234,7 +234,7 @@ class RequestCommandMixin:
         if responses is None:
             responses = []
 
-        for i in range(len(pool.responses)):
+        for _ in range(len(pool.responses)):
             response = pool.responses.popleft()
             responses.append(response)
             self.handle_response(response)
@@ -249,7 +249,7 @@ class RequestCommandMixin:
 
         sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
 
-    def persist_requests(self, responses, meta=None):
+    def persist_requests(self, responses):
         """Persist up to N requests to a history file, along with the context
         needed to rebuild the env for these requests. One entry per unique
         request. Old requests are removed when requests exceed file capacity.
@@ -276,12 +276,21 @@ class RequestCommandMixin:
         rh = json.loads(text, object_pairs_hook=OrderedDict)
 
         ts = int(time())
+        meta = None
         for response in responses:  # insert new requests
             req, res, err = response
             if res is None:
                 continue
+
+            upload = req.skwargs.get('streamed', None)
+            if upload:
+                meta = 'streamed: {}'.format(upload)
+            upload = req.skwargs.get('chunked', None)
+            if upload:
+                meta = 'chunked: {}'.format(upload)
+
             method, url = res.request.method, res.url
-            key = '{}: {}'.format(method, url)
+            key = '{}: {}: {}'.format(method, url, meta)
             if key in rh:
                 rh.pop(key, None)  # remove duplicate requests
             rh[key] = {
@@ -302,7 +311,7 @@ class RequestCommandMixin:
         if to_delete > 0:
             keys = []
             iter_ = iter(rh.keys())
-            for i in range(to_delete):
+            for _ in range(to_delete):
                 try:
                     keys.append(next(iter_))
                 except StopIteration:

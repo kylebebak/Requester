@@ -30,8 +30,7 @@ def parse_tests(s):
     selections.sort(key=lambda s: s.selection.ordering)
 
     tests = []
-    for i in range(len(selections)):
-        s = selections[i]
+    for i, s in enumerate(selections):
         try:
             next_s = selections[i+1]
         except IndexError:

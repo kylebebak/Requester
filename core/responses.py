@@ -215,7 +215,7 @@ def prepare_request(request, env, ordering):
 def prepare_url(url):
     """Prepend scheme to URL if necessary.
     """
-    if type(url) is str and len(url.split('://')) == 1:
+    if isinstance(url, str) and len(url.split('://')) == 1:
         scheme = sublime.load_settings('Requester.sublime-settings').get('scheme', 'http')
         return scheme + '://' + url
     return url

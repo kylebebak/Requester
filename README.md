@@ -10,7 +10,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
   + Forms and file uploads, Wget-style downloads  
   + HTTPS, proxies, redirects, and more
 - Intuitive, modern UX
-  + Environment variables
+  + Define [__environment variables__](#environment-variables) with regular Python code
   + Execute requests and display responses in parallel, [__or chain requests__](#chaining-by-reference)
   + Edit and replay requests from individual response tabs
   + Replay requests from fuzzy searchable request history
@@ -20,6 +20,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
   + Version and share requests however you want (Git, GitHub, etc)
   + Export requests to cURL or HTTPie, import requests from cURL
   + Lightweight, integrated test runner with support for JSON Schema
+    * [__Export Requester tests to a runnable test script__](#export-tests-to-runnable-script)
   + [AB-style](https://httpd.apache.org/docs/2.4/programs/ab.html) benchmarking tool
   + Runs on Linux, Windows and macOS/OS X
 
@@ -91,7 +92,9 @@ Of course not! In the response tab, go the command palette and look for __Reques
 
 
 ### Environment Variables
-It's time to add environment variables to your requests. Requester lets you to do this directly in your requester file. Just put your environment variables in a code block fenced by __###env__ lines.
+It's time to refactor your requests to use environment variables. Requester has a powerful scripting language for env vars... Python!
+
+You can define them directly in your requester file. Just put your variables in a code block fenced by __###env__ lines. Try executing these requests.
 
 ~~~py
 ###env
@@ -102,9 +105,20 @@ get(base_url + '/albums')
 post(base_url + '/albums')
 ~~~
 
-Try executing these requests. Nice, huh?
+Variables you define in your env block can be referenced by any of your requests. The __###env__ lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
 
-The __###env__ lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
+You can import and use anything in Python's standard library in your env block. You can also import and use `requests`. This makes Requester's env vars __powerful and flexible__. Here's a toy example. Copy it to another file and give it a try.
+
+~~~py
+###env
+import requests
+base_url = 'https://www.metaweather.com/api'
+r = requests.get(base_url + '/location/search/?lattlong=19.4326,-99.1332')
+woeid = str(r.json()[0]['woeid'])  # get "where on earth id" for Mexico City
+###env
+
+get('{}/location/{}/'.format(base_url, woeid))  # use "where on earth id" to get Mexico City's weather data
+~~~
 
 
 ## Advanced Features
@@ -112,7 +126,7 @@ Find out what makes Requester really special. In the future if you need to refre
 
 
 ### Separate Env File
-Requester also lets you save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env vars file, which is convenient. Save it with any name, like `requester.py`.
+Requester also lets you save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env file, which is convenient. Save it with any name, like `requester.py`.
 
 Next, save a file with the name `requester_env.py` in the same directory as `requester.py`, and add an env var to it.
 
@@ -153,8 +167,7 @@ get('httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
 
 get('httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 
-get('httpbin.org/redirect-to?url=foo')
-# response tab shows redirects
+get('httpbin.org/redirect-to?url=foo')  # response tab shows redirects
 ~~~
 
 Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`.
@@ -178,7 +191,7 @@ s = requests.Session()
 s.get('http://httpbin.org/cookies/set?session_id=12345', timeout=5)
 ###env
 
-s.get('http://httpbin.org/get') # run me
+s.get('http://httpbin.org/get')  # run me
 ~~~
 
 
