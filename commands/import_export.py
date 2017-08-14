@@ -10,7 +10,7 @@ import sys
 import traceback
 from time import time
 from collections import namedtuple
-from requests import Request as Request
+from requests import Request
 from urllib.parse import urlencode, parse_qsl
 
 from requests.auth import HTTPBasicAuth, HTTPDigestAuth

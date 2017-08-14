@@ -36,7 +36,8 @@ class RequesterUploadCommand(RequesterCommand):
         RequesterUploadCommand.CANCELLED = False
         super().run(edit)
         sublime.set_timeout_async(
-            lambda: self.upload_file(request, method, args, kwargs, filename, upload), 0)
+            lambda: self.upload_file(request, method, args, kwargs, filename, upload), 0
+        )
 
     def make_requests(self, requests, env=None):
         pass
@@ -51,8 +52,8 @@ class RequesterUploadCommand(RequesterCommand):
 
         try:
             filesize = os.path.getsize(filename)
-        except:
-            return
+        except Exception as e:
+            sublime.error_message('Upload Error: {}'.format(e))
 
         def handle_read(chunk_count, chunk_size):
             nonlocal uploaded
