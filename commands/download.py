@@ -7,33 +7,36 @@ import requests
 
 from .request import RequesterCommand
 from ..core.helpers import truncate, absolute_path, get_transfer_indicator
-from ..core.responses import Response, prepare_request
+from ..core.responses import Response
 
 
-class RequesterDownloadCommand(RequesterCommand):
+class Download(RequesterCommand):
     """Download a file to disk without opening a response view.
     """
     CANCELLED = False
 
-    def run(self, edit, request, args, kwargs, filename):
-        RequesterDownloadCommand.CANCELLED = False
-        # cache for setting status on this view later, in case focus changes to
-        # different view while env is executed and initial request is run
-        view = sublime.active_window().active_view()
-        super().run(edit)  # evaluate and cache env on instance
+    def __init__(self, req):
+        Download.CANCELLED = False
+        self.config = sublime.load_settings('Requester.sublime-settings')
+        self.view = sublime.active_window().active_view()
+        self.req = req
         sublime.set_timeout_async(
-            lambda: self.run_initial_request(request, args, kwargs, filename, view), 0
+            lambda: self.run_initial_request(), 0
         )
 
-    def make_requests(self, requests, env=None):
-        pass
-
-    def run_initial_request(self, request, args, kwargs, filename, view):
+    def run_initial_request(self):
+        if self.req.method.lower() != 'get':
+            sublime.error_message('Download Error: use "get" method to download files')
+            return
         try:
-            res = requests.get(*args, stream=True, **kwargs)
+            res = requests.get(*self.req.args, stream=True, **self.req.kwargs)
         except Exception as e:
             sublime.error_message('Download Error: {}'.format(e))
             return
+
+        response = Response(self.req, res, None)
+        self.handle_response(response)
+        self.persist_requests([response])  # persist initial request before starting download
 
         if res.status_code != 200:
             sublime.error_message(
@@ -41,16 +44,11 @@ class RequesterDownloadCommand(RequesterCommand):
             )
             if sublime.load_settings('Requester.sublime-settings').get('only_download_for_200', True):
                 return
-        req = prepare_request(request, self._env, 0)
-        if req.method.lower() != 'get':
-            sublime.error_message('Download Error: use "get" method to download files')
-            return
-        response = Response(req, res, None)
-        self.persist_requests([response])  # persist initial request before starting download
-        sublime.set_timeout_async(lambda: self.download_file(res, filename, view), 0)
+        filename = self.req.skwargs.get('filename')
+        sublime.set_timeout_async(lambda: self.download_file(res, filename), 0)
 
-    def download_file(self, res, filename, view):
-        filename = absolute_path(filename, view)
+    def download_file(self, res, filename):
+        filename = absolute_path(filename, self.view)
         if filename is None:
             sublime.error_message('Download Error: requester file must be saved to use relative path')
             return
@@ -68,14 +66,14 @@ class RequesterDownloadCommand(RequesterCommand):
                         break
                     f.write(chunk)
                     chunk_count += 1
-                    view.set_status('requester.download', 'Requester Download: {}'.format(
+                    self.view.set_status('requester.download', 'Requester Download: {}'.format(
                         get_transfer_indicator(basename, chunk_count*chunk_size, length)
                     ))
             if self.CANCELLED:
-                view.set_status('requester.download', 'Requester Download Cancelled: {}'.format(filename))
+                self.view.set_status('requester.download', 'Requester Download Cancelled: {}'.format(filename))
                 os.remove(filename)
             else:
-                view.set_status('requester.download', 'Requester Download Completed: {}'.format(filename))
+                self.view.set_status('requester.download', 'Requester Download Completed: {}'.format(filename))
         except Exception as e:
             sublime.error_message('Download Error: {}'.format(e))
 
@@ -84,4 +82,4 @@ class RequesterCancelDownloadsCommand(sublime_plugin.ApplicationCommand):
     """Cancel all outstanding downloads.
     """
     def run(self):
-        RequesterDownloadCommand.CANCELLED = True
+        Download.CANCELLED = True
