@@ -5,24 +5,30 @@ import os
 
 import requests
 
+from .request import RequesterCommand
 from ..core.helpers import truncate, absolute_path, get_transfer_indicator
+from ..core.responses import Response, prepare_request
 
 
-class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
+class RequesterDownloadCommand(RequesterCommand):
     """Download a file to disk without opening a response view.
     """
     CANCELLED = False
 
-    def run(self, args, kwargs, filename):
+    def run(self, edit, request, args, kwargs, filename):
+        RequesterDownloadCommand.CANCELLED = False
         # cache for setting status on this view later, in case focus changes to
         # different view while env is executed and initial request is run
-        RequesterDownloadCommand.CANCELLED = False
         view = sublime.active_window().active_view()
+        super().run(edit)  # evaluate and cache env on instance
         sublime.set_timeout_async(
-            lambda: self.run_initial_request(args, kwargs, filename, view), 0
+            lambda: self.run_initial_request(request, args, kwargs, filename, view), 0
         )
 
-    def run_initial_request(self, args, kwargs, filename, view):
+    def make_requests(self, requests, env=None):
+        pass
+
+    def run_initial_request(self, request, args, kwargs, filename, view):
         try:
             res = requests.get(*args, stream=True, **kwargs)
         except Exception as e:
@@ -35,6 +41,12 @@ class RequesterDownloadCommand(sublime_plugin.ApplicationCommand):
             )
             if sublime.load_settings('Requester.sublime-settings').get('only_download_for_200', True):
                 return
+        req = prepare_request(request, self._env, 0)
+        if req.method.lower() != 'get':
+            sublime.error_message('Download Error: use "get" method to download files')
+            return
+        response = Response(req, res, None)
+        self.persist_requests([response])  # persist initial request before starting download
         sublime.set_timeout_async(lambda: self.download_file(res, filename, view), 0)
 
     def download_file(self, res, filename, view):

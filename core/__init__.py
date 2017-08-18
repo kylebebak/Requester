@@ -288,6 +288,9 @@ class RequestCommandMixin:
             upload = req.skwargs.get('chunked', None)
             if upload:
                 meta = 'chunked: {}'.format(upload)
+            download = req.skwargs.get('filename', None)
+            if download:
+                meta = 'download: {}'.format(download)
 
             method, url = res.request.method, res.url
             key = '{}: {}: {}'.format(method, url, meta)

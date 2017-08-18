@@ -34,7 +34,7 @@ class RequesterUploadCommand(RequesterCommand):
 
     def run(self, edit, request, method, args, kwargs, filename, upload):
         RequesterUploadCommand.CANCELLED = False
-        super().run(edit)
+        super().run(edit)  # evaluate and cache env on instance
         sublime.set_timeout_async(
             lambda: self.upload_file(request, method, args, kwargs, filename, upload), 0
         )

@@ -1,0 +1,2 @@
+# New Features
+File downloads are now persisted to request history, and use RequestCommandMixin.

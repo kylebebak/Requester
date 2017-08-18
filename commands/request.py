@@ -169,8 +169,8 @@ class RequestsMixin:
         for r in special:
             req = r.req
             if r.err == 'skwarg_filename':
-                sublime.run_command('requester_download', {'args': req.args, 'kwargs': req.kwargs,
-                                    'filename': req.skwargs.get('filename')})
+                self.view.run_command('requester_download', {'request': req.request, 'args': req.args,
+                                      'kwargs': req.kwargs, 'filename': req.skwargs.get('filename')})
             elif r.err == 'skwarg_streamed':
                 self.view.run_command('requester_upload', {
                     'request': req.request, 'method': req.method, 'args': req.args, 'kwargs': req.kwargs,
