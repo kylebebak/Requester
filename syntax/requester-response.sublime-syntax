@@ -29,7 +29,7 @@ contexts:
       set: time-taken
 
   time-taken:
-    - match: ^([\d\.]*)(s), ([\d]*)(B)$\n
+    - match: ^([\d\.]*)(s), ([\d\?]*)(B)$\n
       captures:
         1: constant.numeric.response-seconds.requester-response
         2: constant.language.seconds.requester-response

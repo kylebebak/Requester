@@ -58,18 +58,23 @@ def get_response_view_content(response):
     and the index of the string at which response content begins.
     """
     req, res, err = response
+
+    read_content = True
+    if req.skwargs.get('filename'):
+        read_content = False
+
     redirects = [response.url for response in res.history]  # URLs traversed due to redirects
     redirects.append(res.url)  # final URL
 
     header = '{} {}\n{}s, {}B\n{}'.format(
-        res.status_code, res.reason, res.elapsed.total_seconds(), len(res.content),
+        res.status_code, res.reason, res.elapsed.total_seconds(), len(res.content) if read_content else '?',
         ' -> '.join(redirects)
     )
     headers = '\n'.join(
         ['{}: {}'.format(k, v) for k, v in sorted(res.headers.items())]
     )
 
-    content = get_content(res, req.skwargs.get('fmt'))
+    content = get_content(res, req.skwargs.get('fmt')) if read_content else 'File download.'
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [
