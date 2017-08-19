@@ -120,6 +120,27 @@ def set_response_view_name(view, res=None):
 class RequestsMixin:
     FROM_HISTORY = False
 
+    def get_requests(self):
+        """Parses requests from multiple selections. If nothing is highlighted,
+        cursor's current line is taken as selection.
+        """
+        view = self.view
+        requests = []
+        for region in view.sel():
+            if not region.empty():
+                selection = view.substr(region)
+            else:
+                selection = view.substr(view.line(region))
+            try:
+                requests_ = parse_requests(selection)
+            except Exception as e:
+                sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
+                print(e)
+            else:
+                for request in requests_:
+                    requests.append(request)
+        return requests
+
     def show_activity_for_pending_requests(self, requests, count, activity):
         """If there are already open response views waiting to display content from
         pending requests, show activity indicators in views.
@@ -165,68 +186,6 @@ class RequestsMixin:
                 if method == view_method and clean_url(url) == clean_url(view_url):
                     views.append(view)
         return views
-
-    def handle_errors(self, responses):
-        """Handle errors which may not be errors, like file downloads.
-        """
-        special = [r for r in responses if r.err.startswith('skwarg_')]
-        errors = [r for r in responses if not r.err.startswith('skwarg_')]
-        for r in special:
-            req = r.req
-            if r.err == 'skwarg_filename':
-                from .download import Download
-                Download(req)
-            elif r.err == 'skwarg_streamed':
-                self.view.run_command('requester_upload', {
-                    'request': req.request, 'method': req.method, 'args': req.args, 'kwargs': req.kwargs,
-                    'filename': req.skwargs.get('streamed'), 'upload': 'streamed'
-                })
-            elif r.err == 'skwarg_chunked':
-                self.view.run_command('requester_upload', {
-                    'request': req.request, 'method': req.method, 'args': req.args, 'kwargs': req.kwargs,
-                    'filename': req.skwargs.get('chunked'), 'upload': 'chunked'
-                })
-        super().handle_errors(errors)
-
-    @staticmethod
-    def set_request_setting_on_view(view, res):
-        """For reordering requests, showing pending activity for requests, and
-        jumping to matching response tabs after requests return.
-        """
-        view.settings().set('requester.request_method', res.request.method)
-        view.settings().set('requester.request_url', res.url.split('?')[0])
-
-
-class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
-    """Execute requests from requester file concurrently and open multiple
-    response views.
-    """
-    def run(self, edit, concurrency=10):
-        """Allow user to specify concurrency.
-        """
-        self.MAX_WORKERS = max(1, concurrency)
-        super().run(edit)
-
-    def get_requests(self):
-        """Parses requests from multiple selections. If nothing is highlighted,
-        cursor's current line is taken as selection.
-        """
-        view = self.view
-        requests = []
-        for region in view.sel():
-            if not region.empty():
-                selection = view.substr(region)
-            else:
-                selection = view.substr(view.line(region))
-            try:
-                requests_ = parse_requests(selection)
-            except Exception as e:
-                sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
-                print(e)
-            else:
-                for request in requests_:
-                    requests.append(request)
-        return requests
 
     def handle_response(self, response):
         """Create a response view and insert response content into it. Ensure that
@@ -279,7 +238,8 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             set_response_view_name(view, res)
 
     def handle_responses(self, responses):
-        """Change focus after request returns?
+        """Change focus after request returns? `handle_response` must be called
+        before this method.
         """
         if len(responses) != 1:
             return
@@ -287,6 +247,40 @@ class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCo
             return
         if not responses[0].err and responses[0].res is not None:
             self.view.window().focus_view(self._response_view)
+
+    def handle_errors(self, responses):
+        """Handle errors which may not be errors, like file downloads.
+        """
+        special = [r for r in responses if r.err.startswith('skwarg_')]
+        errors = [r for r in responses if not r.err.startswith('skwarg_')]
+        for r in special:
+            req = r.req
+            if r.err == 'skwarg_filename':
+                from .download import Download
+                Download(req)
+            elif r.err == 'skwarg_streamed' or r.err == 'skwarg_chunked':
+                from .upload import Upload
+                Upload(req)
+        super().handle_errors(errors)
+
+    @staticmethod
+    def set_request_setting_on_view(view, res):
+        """For reordering requests, showing pending activity for requests, and
+        jumping to matching response tabs after requests return.
+        """
+        view.settings().set('requester.request_method', res.request.method)
+        view.settings().set('requester.request_url', res.url.split('?')[0])
+
+
+class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
+    """Execute requests from requester file concurrently and open multiple
+    response views.
+    """
+    def run(self, edit, concurrency=10):
+        """Allow user to specify concurrency.
+        """
+        self.MAX_WORKERS = max(1, concurrency)
+        super().run(edit)
 
 
 class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):

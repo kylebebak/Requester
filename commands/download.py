@@ -5,12 +5,13 @@ import os
 
 import requests
 
-from .request import RequesterCommand
+from .request import RequestsMixin
 from ..core.helpers import truncate, absolute_path, get_transfer_indicator
 from ..core.responses import Response
+from ..core import RequestCommandMixin
 
 
-class Download(RequesterCommand):
+class Download(RequestsMixin, RequestCommandMixin):
     """Download a file to disk without opening a response view.
     """
     CANCELLED = False
@@ -18,11 +19,9 @@ class Download(RequesterCommand):
     def __init__(self, req):
         Download.CANCELLED = False
         self.config = sublime.load_settings('Requester.sublime-settings')
-        self.view = sublime.active_window().active_view()
         self.req = req
-        sublime.set_timeout_async(
-            lambda: self.run_initial_request(), 0
-        )
+        self.view = sublime.active_window().active_view()
+        sublime.set_timeout_async(self.run_initial_request, 0)
 
     def run_initial_request(self):
         if self.req.method.lower() != 'get':
@@ -36,6 +35,7 @@ class Download(RequesterCommand):
 
         response = Response(self.req, res, None)
         self.handle_response(response)
+        self.handle_responses([response])
         self.persist_requests([response])  # persist initial request before starting download
 
         if res.status_code != 200:
@@ -53,6 +53,7 @@ class Download(RequesterCommand):
             sublime.error_message('Download Error: requester file must be saved to use relative path')
             return
 
+        view = sublime.active_window().active_view()  # show download indicator in newly opened response tab
         length = int(res.headers.get('content-length') or 0)
         chunk_size = sublime.load_settings('Requester.sublime-settings').get('chunk_size', 1024)
         chunk_size = max(int(chunk_size), 128)
@@ -66,14 +67,14 @@ class Download(RequesterCommand):
                         break
                     f.write(chunk)
                     chunk_count += 1
-                    self.view.set_status('requester.download', 'Requester Download: {}'.format(
+                    view.set_status('requester.download', 'Requester Download: {}'.format(
                         get_transfer_indicator(basename, chunk_count*chunk_size, length)
                     ))
             if self.CANCELLED:
-                self.view.set_status('requester.download', 'Requester Download Cancelled: {}'.format(filename))
+                view.set_status('requester.download', 'Requester Download Cancelled: {}'.format(filename))
                 os.remove(filename)
             else:
-                self.view.set_status('requester.download', 'Requester Download Completed: {}'.format(filename))
+                view.set_status('requester.download', 'Requester Download Completed: {}'.format(filename))
         except Exception as e:
             sublime.error_message('Download Error: {}'.format(e))
 

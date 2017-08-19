@@ -5,9 +5,10 @@ import os
 
 import requests
 
-from .request import RequesterCommand
+from .request import RequestsMixin
 from ..core.helpers import absolute_path, get_transfer_indicator
-from ..core.responses import Response, prepare_request
+from ..core.responses import Response
+from ..core import RequestCommandMixin
 
 
 def read_in_chunks(f, chunk_size=1024, handle_read=None):
@@ -15,7 +16,7 @@ def read_in_chunks(f, chunk_size=1024, handle_read=None):
     """
     chunk_count = 0
     while True:
-        if RequesterUploadCommand.CANCELLED:
+        if Upload.CANCELLED:
             break
         chunk_count += 1
         data = f.read(chunk_size)
@@ -26,23 +27,23 @@ def read_in_chunks(f, chunk_size=1024, handle_read=None):
         yield data
 
 
-class RequesterUploadCommand(RequesterCommand):
+class Upload(RequestsMixin, RequestCommandMixin):
     """Upload a file using streaming, i.e. without reading the file into memory.
     Optionally used chunked transfer encoding.
     """
     CANCELLED = False
 
-    def run(self, edit, request, method, args, kwargs, filename, upload):
-        RequesterUploadCommand.CANCELLED = False
-        super().run(edit)  # evaluate and cache env on instance
-        sublime.set_timeout_async(
-            lambda: self.upload_file(request, method, args, kwargs, filename, upload), 0
-        )
+    def __init__(self, req):
+        Upload.CANCELLED = False
+        self.config = sublime.load_settings('Requester.sublime-settings')
+        self.view = sublime.active_window().active_view()
+        sublime.set_timeout_async(lambda: self.upload_file(req), 0)
 
-    def make_requests(self, requests, env=None):
-        pass
+    def upload_file(self, req):
+        method, args, kwargs, skwargs = req.method, req.args, req.kwargs, req.skwargs
+        upload = (skwargs.get('chunked') and 'chunked') or (skwargs.get('streamed') and 'streamed')
+        filename = req.skwargs.get('streamed') or req.skwargs.get('chunked')
 
-    def upload_file(self, request, method, args, kwargs, filename, upload):
         filename = absolute_path(filename, self.view)
         if filename is None:
             sublime.error_message('Upload Error: requester file must be saved to use relative path')
@@ -83,7 +84,6 @@ class RequesterUploadCommand(RequesterCommand):
         else:
             self.view.set_status('requester.upload', 'Requester Upload Completed: {}, {}kB uploaded'.format(
                 filename, uploaded//1024))
-        req = prepare_request(request, self._env, 0)
         response = Response(req, res, None)
         self.handle_response(response)
         self.handle_responses([response])
@@ -94,4 +94,4 @@ class RequesterCancelUploadsCommand(sublime_plugin.ApplicationCommand):
     """Cancel all outstanding uploads.
     """
     def run(self):
-        RequesterUploadCommand.CANCELLED = True
+        Upload.CANCELLED = True

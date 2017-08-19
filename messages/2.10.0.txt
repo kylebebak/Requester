@@ -1,2 +1,5 @@
 # New Features
-File downloads are now persisted to request history, and use RequestCommandMixin.
+File uploads and downloads are persisted to request history, and downloads get their own response tabs.
+
+# Code
+Fixed race condition bug in uploads and downloads, where env was being referenced before it had been evaluated.
