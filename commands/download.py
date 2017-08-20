@@ -19,21 +19,18 @@ class Download(RequestsMixin, RequestCommandMixin):
     def __init__(self, req):
         Download.CANCELLED = False
         self.config = sublime.load_settings('Requester.sublime-settings')
-        self.req = req
         self.view = sublime.active_window().active_view()
-        sublime.set_timeout_async(self.run_initial_request, 0)
+        sublime.set_timeout_async(lambda: self.run_initial_request(req), 0)
 
-    def run_initial_request(self):
-        if self.req.method.lower() != 'get':
-            sublime.error_message('Download Error: use "get" method to download files')
-            return
+    def run_initial_request(self, req):
+        requests_method = getattr(requests, req.method.lower())
         try:
-            res = requests.get(*self.req.args, stream=True, **self.req.kwargs)
+            res = requests_method(*req.args, stream=True, **req.kwargs)
         except Exception as e:
             sublime.error_message('Download Error: {}'.format(e))
             return
 
-        response = Response(self.req, res, None)
+        response = Response(req, res, None)
         self.handle_response(response)
         self.handle_responses([response])
         self.persist_requests([response])  # persist initial request before starting download
@@ -44,7 +41,7 @@ class Download(RequestsMixin, RequestCommandMixin):
             )
             if sublime.load_settings('Requester.sublime-settings').get('only_download_for_200', True):
                 return
-        filename = self.req.skwargs.get('filename')
+        filename = req.skwargs.get('filename')
         sublime.set_timeout_async(lambda: self.download_file(res, filename), 0)
 
     def download_file(self, res, filename):

@@ -1,0 +1,2 @@
+# New Features
+Any method can be used to start a file download, not just GET.
