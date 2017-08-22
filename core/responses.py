@@ -61,14 +61,13 @@ class ResponseThreadPool:
             req = prepare_request(request, self.env, ordering)
         if req.error is not None:
             return Response(req, None, None)
-        self.pending_requests.add(req)
 
+        if self.handle_special(req):
+            return Response(req, None, 'skwarg')  # "special" requests handled separately
+        self.pending_requests.add(req)
         res, err = None, ''
         if self.is_done:  # prevents further requests from being made if pool is cancelled
             return Response(req, res, err)  # check using: https://requestb.in/
-        for skwarg in ('filename', 'streamed', 'chunked'):
-            if req.skwargs.get(skwarg):
-                return Response(req, res, 'skwarg_{}'.format(skwarg))
 
         try:
             if req.session:
@@ -99,6 +98,25 @@ class ResponseThreadPool:
                 print('Name Error: {}'.format(e))
         return Response(req, res, err)
 
+    def handle_special(self, req):
+        """Handle "special" requests, such as downloads and uploads.
+        """
+        from ..commands.download import Download
+        from ..commands.upload import Upload
+        filename = req.skwargs.get('filename')
+        if filename:
+            Download(req, filename)
+            return True
+        filename = req.skwargs.get('streamed')
+        if filename:
+            Upload(req, filename, 'streamed')
+            return True
+        filename = req.skwargs.get('chunked')
+        if filename:
+            Upload(req, filename, 'chunked')
+            return True
+        return False
+
     def __init__(self, requests, env, max_workers):
         self.is_done = False
         self.responses = deque()
@@ -128,7 +146,7 @@ class ResponseThreadPool:
                 result = future.result()
                 # `responses` and `pending_requests` are instance properties, which means
                 # client code can inspect instance to read responses as they are completed
-                if result.req.error is not None:
+                if result.req.error is not None or result.err == 'skwarg':
                     continue
                 try:
                     self.pending_requests.remove(result.req)

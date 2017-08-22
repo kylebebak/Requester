@@ -1,0 +1,5 @@
+# New Features
+Multiple file uploads and downloads can be executed in parallel.
+
+# Code
+Access to persist_requests function is controlled by a lock, to make sure threads concurrently executing this function don't corrupt request history. Also, fixed small bug in importing requests from cURL.

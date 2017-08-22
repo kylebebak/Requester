@@ -227,7 +227,7 @@ Requester also provides Wget-style downloads. Just add the `filename` keyword ar
 get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='image.jpg')
 ~~~
 
-As with streamed and chunked uploads, `filename` can be an absolute path, or a path relative to your requester file. Downloads can be cancelled. They come with a nice progress bar.
+As with streamed and chunked uploads, `filename` can be an absolute path, or a path relative to your requester file. Also, as with uploads, __multiple downloads can be executed in parallel__. Downloads can be cancelled. They come with a nice progress bar.
 
 
 ### Cancel Outstanding Requests

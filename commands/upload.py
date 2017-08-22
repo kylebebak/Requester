@@ -33,17 +33,14 @@ class Upload(RequestsMixin, RequestCommandMixin):
     """
     CANCELLED = False
 
-    def __init__(self, req):
+    def __init__(self, req, filename, upload):
         Upload.CANCELLED = False
         self.config = sublime.load_settings('Requester.sublime-settings')
         self.view = sublime.active_window().active_view()
-        sublime.set_timeout_async(lambda: self.upload_file(req), 0)
+        self.upload_file(req, filename, upload)
 
-    def upload_file(self, req):
-        method, args, kwargs, skwargs = req.method, req.args, req.kwargs, req.skwargs
-        upload = (skwargs.get('chunked') and 'chunked') or (skwargs.get('streamed') and 'streamed')
-        filename = req.skwargs.get('streamed') or req.skwargs.get('chunked')
-
+    def upload_file(self, req, filename, upload):
+        method, args, kwargs = req.method, req.args, req.kwargs
         filename = absolute_path(filename, self.view)
         if filename is None:
             sublime.error_message('Upload Error: requester file must be saved to use relative path')

@@ -178,7 +178,6 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
     def persist_requests(self, requests):
         """Requests shouldn't be persisted for test runs.
         """
-        pass
 
 
 TEST_MODULE = """\"\"\"

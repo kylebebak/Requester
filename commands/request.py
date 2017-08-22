@@ -246,22 +246,8 @@ class RequestsMixin:
         if not self.config.get('change_focus_after_request', True):
             return
         if not responses[0].err and responses[0].res is not None:
-            self.view.window().focus_view(self._response_view)
-
-    def handle_errors(self, responses):
-        """Handle errors which may not be errors, like file downloads.
-        """
-        special = [r for r in responses if r.err.startswith('skwarg_')]
-        errors = [r for r in responses if not r.err.startswith('skwarg_')]
-        for r in special:
-            req = r.req
-            if r.err == 'skwarg_filename':
-                from .download import Download
-                Download(req)
-            elif r.err == 'skwarg_streamed' or r.err == 'skwarg_chunked':
-                from .upload import Upload
-                Upload(req)
-        super().handle_errors(errors)
+            if hasattr(self, '_response_view'):
+                self.view.window().focus_view(self._response_view)
 
     @staticmethod
     def set_request_setting_on_view(view, res):

@@ -12,17 +12,17 @@ from ..core import RequestCommandMixin
 
 
 class Download(RequestsMixin, RequestCommandMixin):
-    """Download a file to disk without opening a response view.
+    """Download a file to disk.
     """
     CANCELLED = False
 
-    def __init__(self, req):
+    def __init__(self, req, filename):
         Download.CANCELLED = False
         self.config = sublime.load_settings('Requester.sublime-settings')
         self.view = sublime.active_window().active_view()
-        sublime.set_timeout_async(lambda: self.run_initial_request(req), 0)
+        self.run_initial_request(req, filename)
 
-    def run_initial_request(self, req):
+    def run_initial_request(self, req, filename):
         requests_method = getattr(requests, req.method.lower())
         try:
             res = requests_method(*req.args, stream=True, **req.kwargs)
@@ -41,8 +41,7 @@ class Download(RequestsMixin, RequestCommandMixin):
             )
             if sublime.load_settings('Requester.sublime-settings').get('only_download_for_200', True):
                 return
-        filename = req.skwargs.get('filename')
-        sublime.set_timeout_async(lambda: self.download_file(res, filename), 0)
+        self.download_file(res, filename)
 
     def download_file(self, res, filename):
         filename = absolute_path(filename, self.view)

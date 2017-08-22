@@ -100,7 +100,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             else:
                 for i, request in enumerate(requests_):
                     # prepare base requests then copy them, instead of passing a
-                    # bunch of unprepared requestes to thread pool
+                    # bunch of unprepared requests to thread pool
                     requests.append(prepare_request(request, self._env, i))
         if len(requests) * self.REPETITIONS > self.MAX_REQUESTS:  # avoid attempting to instantiate huge list
             self.REPETITIONS = ceil(self.MAX_REQUESTS / len(requests))
@@ -174,12 +174,10 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
     def handle_errors(self, responses):
         """Don't allow default error handler to run, don't display error messages.
         """
-        pass
 
     def persist_requests(self, requests):
         """Requests shouldn't be persisted for benchmark runs.
         """
-        pass
 
     @staticmethod
     def get_profile_string(metrics):
