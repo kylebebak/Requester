@@ -361,7 +361,7 @@ def curl_to_request(curl):
         if key.lower() == 'cookie':
             cookies = value.split(';')
             for cookie in cookies:
-                key, value = cookie.strip().split('=')
+                key, value = cookie.strip().split('=', 1)
                 cookies_dict[key] = value
         else:
             headers_dict[key] = value.strip()
@@ -375,7 +375,6 @@ def curl_to_request(curl):
             qs = '?{}'.format(urlencode(post_data))
         except:
             qs = '?{}'.format(str(post_data))
-        print(post_data)
         post_data = {}
 
     result = """requests.{method}('{url}{qs}',{data}\n{headers},\n{cookies},\n)""".format(
