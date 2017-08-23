@@ -284,9 +284,7 @@ prop = 'status_code'
 ###env
 
 # first request
-get(
-    base_url + '/posts'
-)
+get(base_url + '/posts')
 assert {prop: 200, 'encoding': 'utf-8'}
 
 # second request, with no assertion
@@ -294,10 +292,7 @@ get(base_url + '/profile')
 
 # third request
 get(base_url + '/comments')
-
-assert {
-    'status_code': 500
-}
+assert {'status_code': 500}
 ~~~
 
 Highlight all the requests, look for __Requester: Run Tests__ in the command palette, and run it. You'll notice that test results are displayed for the first and third requests.
