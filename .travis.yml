@@ -8,6 +8,6 @@ install:
 before_script:
   - gunicorn httpbin:app
 script:
-  - coverage run --source=core -m unittest tests/core.py -v
+  - coverage run --source=core -m unittest tests.core -v
 after_success:
   - coveralls
