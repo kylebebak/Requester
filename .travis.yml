@@ -1,0 +1,13 @@
+language: python
+python:
+  - 3.3
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+# command to run tests
+before_script:
+  - gunicorn httpbin:app
+script:
+  - coverage run --source=core -m unittest tests/core.py -v
+after_success:
+  - coveralls

@@ -1,6 +1,8 @@
 # Requester: HTTP Client for Humans
 
 ![License](https://camo.githubusercontent.com/890acbdcb87868b382af9a4b1fac507b9659d9bf/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6c6963656e73652d4d49542d626c75652e737667)
+[![Build Status](https://travis-ci.org/kylebebak/Requester.svg?branch=master)](https://travis-ci.org/kylebebak/Requester)
+[![Coverage Status](https://coveralls.io/repos/github/kylebebak/Requester/badge.svg?branch=master)](https://coveralls.io/github/kylebebak/Requester?branch=master)
 
 A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie with rock-solid usability and the secret sauce of Requests.
 
@@ -204,13 +206,13 @@ Requester comes with a few pre-written auth classes you can use in your code, or
 
 
 ### Forms and File Uploads
-Requests makes posting forms and uploading files fairly easy. See how in the Requests documentation.
+Requests makes posting forms and uploading files easy. See how in the Requests documentation.
 
 - Forms: <http://docs.python-requests.org/en/latest/user/quickstart/#more-complicated-post-requests>
 - File uploads: <http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file>
 - Multiple file uploads: <http://docs.python-requests.org/en/master/user/advanced/#post-multiple-multipart-encoded-files>
 
-Requests also supports streaming and chunked file uploads, which is great (and necessary) if the file you're uploading doesn't fit in memory, but the API is a bit complicated. Requester has the special `streamed` and `chunked` arguments to make these uploads trivial.
+Requests also supports streaming and chunked file uploads, which is great (and necessary) if the file you're uploading doesn't fit in memory, but the API is a bit more complicated. Requester has the special `streamed` and `chunked` arguments to make these uploads trivial.
 
 ~~~py
 post('https://requestb.in/<your_request_bin>', streamed='/path/to/file')

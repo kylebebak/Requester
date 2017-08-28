@@ -59,7 +59,7 @@ def get_line(view, line):
 
 class TestRequesterMixin:
 
-    WAIT_MS = 2000  # wait in ms for responses to return
+    WAIT_MS = 500  # wait in ms for responses to return
 
     def setUp(self):
         self.config = sublime.load_settings('Requester.sublime-settings')
@@ -110,8 +110,8 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         select_line_beginnings(self.view, 6)
         self.view.run_command('requester')
         yield self.WAIT_MS  # this use of yield CAN'T be moved into a helper, it needs to be part of a test method
-        self._test_url_in_view(self.window.active_view(), 'http://jsonplaceholder.typicode.com/albums')
-        self._test_name_in_view(self.window.active_view(), 'POST: /albums')
+        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/post')
+        self._test_name_in_view(self.window.active_view(), 'POST: /post')
 
     def test_single_request_no_prefix(self):
         """Without `requests.` prefix.
@@ -119,8 +119,8 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         select_line_beginnings(self.view, 7)
         self.view.run_command('requester')
         yield self.WAIT_MS
-        self._test_url_in_view(self.window.active_view(), 'https://jsonplaceholder.typicode.com/posts')
-        self._test_name_in_view(self.window.active_view(), 'GET: /posts')
+        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')
+        self._test_name_in_view(self.window.active_view(), 'GET: /get')
 
     def test_single_request_with_env_block(self):
         """From env block.
@@ -128,7 +128,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         select_line_beginnings(self.view, 9)
         self.view.run_command('requester')
         yield self.WAIT_MS
-        self._test_url_in_view(self.window.active_view(), 'http://httpbin.org/get?key1=value1')
+        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get?key1=value1')
         self._test_name_in_view(self.window.active_view(), 'GET: /get')
 
     def test_single_request_with_env_file(self):
@@ -142,7 +142,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         view.run_command('requester')
         yield self.WAIT_MS
         view.close()
-        self._test_url_in_view(self.window.active_view(), 'http://httpbin.org/get')
+        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')
         self._test_name_in_view(self.window.active_view(), 'GET: /get')
 
     def test_single_request_focus_change(self):
@@ -166,6 +166,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
 class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
 
     REQUESTER_FILE = 'Packages/Requester/tests/requester.py'
+    WAIT_MS = 500
 
     def test_multiple_requests(self):
         """Tests the following:
@@ -174,26 +175,26 @@ class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
             - Focus doesn't change to any response tab after it appears
             - Reordering response tabs works correctly
         """
-        select_line_beginnings(self.view, [6, 7, 8, 9])
+        select_line_beginnings(self.view, [6, 9, 10])
         self.view.run_command('requester')
         yield self.WAIT_MS
         self.assertEqual(self.window.active_view(), self.view)
 
         self.view.run_command('requester_reorder_response_tabs')
-        yield 1000
+        yield self.WAIT_MS
         self.assertEqual(self.window.active_view(), self.view)
 
         group, index = self.window.get_view_index(self.view)
-        for i, name in enumerate(['POST: /albums', 'GET: /posts', 'GET: /get']):
+        for i, name in enumerate(['POST: /post', 'GET: /get', 'POST: /anything']):
             self.window.run_command('select_by_index', {'index': index + i + 1})
-            yield 1000
+            yield self.WAIT_MS
             self._test_name_in_view(self.window.active_view(), name)
 
 
 class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
 
     REQUESTER_FILE = 'Packages/Requester/tests/requester_session.py'
-    WAIT_MS = 3000
+    WAIT_MS = 1000
 
     def test_session(self):
         """Using session.
@@ -201,7 +202,7 @@ class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
         select_line_beginnings(self.view, 10)
         self.view.run_command('requester')
         yield self.WAIT_MS
-        self._test_url_in_view(self.window.active_view(), 'http://httpbin.org/cookies/set?k1=v1')
+        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/cookies/set?k1=v1')
         self._test_name_in_view(self.window.active_view(), 'GET: /cookies/set')
         self._test_string_in_view(self.window.active_view(), "'X-Test': 'true'")  # header added to session
         self._test_string_in_view(self.window.active_view(), "'Cookie': 'k0=v0'")  # cookies added to session

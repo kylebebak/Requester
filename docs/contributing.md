@@ -1,25 +1,14 @@
 # Contributing
 Please do! Possible improvements:
 
-- __Better test coverage__
-  + Use [httpbin](http://httpbin.org/) running on localhost
-    * Add a `requirements-dev.txt` file for `httpbin` and `gunicorn`
-  + Error messages for bad requests, etc
-  + Proper parsing of env block and env files
-  + Activity indicators
-  + Syntax files
-  + Test runner
-  + Request history
-  + File downloads
-  + Benchmarking tool
-  + Export/import functions
-  + Execute requests serially
 - Add snippets and docs for more auth schemes
   + OAuth 1
   + OAuth 2
 - More export/import formats
   + HTTP
   + Downloads to Wget
+- Improved support for GraphQL
+- Randomized requests with benchmark runs (e.g. for fuzz testing)
 - Tell your friends about Requester!
 
 
@@ -54,10 +43,12 @@ All classes and methods should have docstrings, limited to 82 characters per lin
 
 
 ## Tests
-Install __UnitTesting__ via Package Control. Read more about [UnitTesting](https://github.com/randy3k/UnitTesting-example). Also, make sure you've cloned the Requester repo into your __Packages__ directory.
+Tests are divided into tests of the `core` package, which depend on a mocked `sublime` and are run in Travis, and integration tests run within Sublime Text.
 
-Run tests before committing changes. Look for __UnitTesting__ in the command palette, hit enter, and enter `Requester`. Or, if you've created a project for Requester, run __UnitTesting: Test Current Project__.
+Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by __httpbin__. You can install __httpbin__ by running `pip install httpbin`. You can then run it with `gunicorn httpbin:app`.
 
-Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. This means tests may fail simply because a response wasn't returned on time. This is a false positive, just run the tests again.
+To run `core` tests, execute `python -m unittest tests/core.py -v` from the root of the repo. 
 
-This is also why I'm reluctant to use something like Travis, because the build may fail even when nothing is wrong with the package.
+To run the integration tests, install __UnitTesting__ via Package Control. Read more about [UnitTesting](https://github.com/randy3k/UnitTesting-example). Also, make sure you've cloned the Requester repo into your __Packages__ directory.
+
+Run integration tests before committing changes. Look for __UnitTesting__ in the command palette, hit enter, and enter `Requester`. Or, if you've created a project for Requester, run __UnitTesting: Test Current Project__.

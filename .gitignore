@@ -5,3 +5,5 @@
 package-metadata.json
 
 sandbox/*
+
+.coverage
