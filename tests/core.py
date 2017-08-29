@@ -43,7 +43,6 @@ def error_message(msg):
     """
     global error_messages
     error_messages.append(msg)
-    print(msg)
 
 def set_timeout(f, *args, **kwargs):
     f()
@@ -125,11 +124,6 @@ class RequestCommand(RequestCommandMixin):
         """
         self._responses = responses
 
-    def handle_errors(self, responses):
-        """Persist them so they can be inspected later.
-        """
-        self._errors = responses
-
 
 class TestCore(unittest.TestCase):
     def setUp(self):
@@ -140,13 +134,66 @@ class TestCore(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_single_request(self):
-        c = RequestCommand(["get('http://127.0.0.1:8000/get')", "get('http://127.0.0.1:8000/get' params=1)"])
+    def test_successful_requests(self):
+        c = RequestCommand([
+            "get('127.0.0.1:8000/get')",
+            "post('127.0.0.1:8000/post')",
+            "patch('127.0.0.1:8000/patch')",
+            "put('127.0.0.1:8000/put')",
+            "delete('127.0.0.1:8000/delete')",
+        ])
+        c.MAX_WORKERS = 1
         c.run(None)
-        print(error_messages)
-        print(c._responses)
-        print(c.view._status)
 
+        activities = c.view._status.get('requester.activity')
+        self.assertTrue([a for a in activities if 'Requester [' in a])
+        self.assertEqual(activities[-1], '')
+
+        self.assertEqual(len(c._responses), 5)
+        self.assertEqual(error_messages, [])
+
+        self.assertEqual(c._responses[0].req.url, 'http://127.0.0.1:8000/get')
+        methods = [r.req.method for r in c._responses]
+        self.assertEqual(methods, ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'])
+        codes = [r.res.status_code for r in c._responses]
+        self.assertEqual(codes, [200] * 5)
+        errors = [r.err for r in c._responses if r.err != '']
+        self.assertEqual(errors, [])
+
+    def test_errors(self):
+        c = RequestCommand([
+            "get('127.0.0.1:/get')",
+            "get('127.0.0.1:8000/get', params=1)",
+            "get('127.0.0.1:8000/get', params={'k': v})",
+            "get('127.0.0.1:8000/get', timeout=0)",
+            "get('127.0.0.1:8000/get', invalid_kwarg=0)",
+            "get('127.0.0.1:8000/get', fmt='invalid_fmt')",
+            "get('127.0.0.1:8000/get'",
+            "s.get('127.0.0.1:8000/get')",
+        ])
+        c.MAX_WORKERS = 1
+        c.run(None)
+
+        errors = [r.err for r in c._responses]
+        for error, start in zip(errors, ['Connection', 'Type', 'Other', 'Type', 'Session']):
+            self.assertTrue(error.startswith(start))
+
+        for error, contained in zip(error_messages, ['not defined', 'fmt', 'EOF', '']):
+            self.assertIn(contained, error)
+
+        self.assertEqual(error_messages[-1].count(' Error:'), 5)
+
+    def test_env(self):
+        c = RequestCommand([
+            "get('127.0.0.1:8000/get', params={'k': v})",
+            "post('127.0.0.1:8000/post', json={'k': w})",
+        ], env={'v': 1, 'w': 2})
+        c.MAX_WORKERS = 1
+        c.run(None)
+
+        r0, r1 = [r.res for r in c._responses]
+        self.assertIn('k=1', r0.url)
+        self.assertIn('post', r1.url)
 
 if __name__ == '__main__':
     unittest.main()

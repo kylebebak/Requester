@@ -45,7 +45,7 @@ All classes and methods should have docstrings, limited to 82 characters per lin
 ## Tests
 Tests are divided into tests of the `core` package, which depend on a mocked `sublime` and are run in Travis, and integration tests run within Sublime Text.
 
-Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by __httpbin__. You can install __httpbin__ by running `pip install httpbin`. You can then run it with `gunicorn httpbin:app`.
+Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by __httpbin__. You can install __httpbin__ by running `pip install httpbin`. You can then run it with `gunicorn httpbin:app` or `gunicorn --access-logfile /dev/stdout httpbin:app`.
 
 To run `core` tests, execute `python -m unittest tests/core.py -v` from the root of the repo. 
 

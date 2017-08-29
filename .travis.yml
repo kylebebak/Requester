@@ -4,9 +4,11 @@ python:
 # command to install dependencies
 install:
   - pip install -r requirements.txt
-# command to run tests
+# start local http server in background, give it a few seconds to start
 before_script:
-  - gunicorn httpbin:app
+  - gunicorn httpbin:app &
+  - sleep 2
+# command to run tests
 script:
   - coverage run --source=core -m unittest tests.core -v
 after_success:
