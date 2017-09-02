@@ -163,7 +163,12 @@ class RequestCommandMixin:
 
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
-        env_strings = [self.view.settings().get('requester.env_string', None)]
+        env_strings = []
+        packages_path = self.config.get('packages_path', '')
+        if packages_path:
+            env_strings.append("import sys\nsys.path.append('{}')".format(packages_path))
+
+        env_strings.append(self.view.settings().get('requester.env_string', None))
 
         file = self.view.settings().get('requester.file', None)
         if file:
