@@ -1,3 +1,5 @@
+import sublime
+
 import os
 
 
@@ -43,3 +45,12 @@ def get_transfer_indicator(filename, transferred, total, spaces=50):
     return '{}, [{}] {}kB'.format(
         filename, '·'*spaces_filled + ' '*(spaces-spaces_filled-1), transferred//1024
     )
+
+
+def prepend_scheme(url):
+    """Prepend scheme to URL if necessary.
+    """
+    if isinstance(url, str) and len(url.split('://')) == 1:
+        scheme = sublime.load_settings('Requester.sublime-settings').get('scheme', 'http')
+        return scheme + '://' + url
+    return url

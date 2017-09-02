@@ -7,7 +7,7 @@ from collections import namedtuple, deque
 import requests
 
 from .parsers import PREFIX
-from .helpers import truncate
+from .helpers import truncate, prepend_scheme
 
 
 Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session, skwargs, error')
@@ -192,7 +192,7 @@ def prepare_request(request, env, ordering):
 
     url = kwargs.get('url', None)
     if url is not None:
-        url = prepare_url(url)
+        url = prepend_scheme(url)
         kwargs['url'] = url
     else:
         try:
@@ -203,7 +203,7 @@ def prepare_request(request, env, ordering):
             ))
             return Request(req, method, url, args, kwargs, ordering, session, {}, error=str(e))
         else:
-            url = prepare_url(url)
+            url = prepend_scheme(url)
             args[0] = url
 
     error = None
@@ -228,12 +228,3 @@ def prepare_request(request, env, ordering):
     if 'allow_redirects' not in kwargs:
         kwargs['allow_redirects'] = settings.get('allow_redirects', True)
     return Request(req, method, url, args, kwargs, ordering, session, skwargs, error)
-
-
-def prepare_url(url):
-    """Prepend scheme to URL if necessary.
-    """
-    if isinstance(url, str) and len(url.split('://')) == 1:
-        scheme = sublime.load_settings('Requester.sublime-settings').get('scheme', 'http')
-        return scheme + '://' + url
-    return url

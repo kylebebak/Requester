@@ -1,6 +1,8 @@
 import re
 from collections import namedtuple
 
+from .helpers import prepend_scheme
+
 
 VERBS = '(get|options|head|post|put|patch|delete)\('
 PREFIX = '[\w_][\w\d_]*\.'
@@ -54,7 +56,8 @@ def parse(s, open_bracket, close_bracket, match_patterns, n=None):
     start_indices = []
 
     index = 0
-    for line in s.splitlines(True):
+    lines = s.splitlines(True)
+    for line in lines:
         if n and len(start_indices) >= n:
             break
         for pattern in match_patterns:
@@ -62,6 +65,8 @@ def parse(s, open_bracket, close_bracket, match_patterns, n=None):
                 start_indices.append(index)
                 break
         index += len(line)
+    if not start_indices and len(lines) == 1:
+        return [Selection("get('{}')".format(prepend_scheme(s)), 0)]
 
     sq, dq, comment, escape = False, False, False, False
     end_indices = []
