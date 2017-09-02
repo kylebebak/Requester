@@ -1,0 +1,27 @@
+%YAML 1.2
+---
+name: Requester
+file_extensions: [pyr]
+scope: source.requester
+
+contexts:
+  main:
+    - match: ""
+      push: "Packages/Python/Python.sublime-syntax"
+      with_prototype:
+        - match: "^(?=###env)"
+          push: env
+        - match: "^(?=##)"
+          push: symbol
+
+  env:
+    - match: "\n"
+      pop: true
+    - match: .*
+      scope: storage.requester-env
+
+  symbol:
+    - match: "\n"
+      pop: true
+    - match: .*
+      scope: storage.requester-symbol

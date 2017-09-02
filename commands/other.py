@@ -95,3 +95,5 @@ class RequesterNewRequesterFileCommand(sublime_plugin.TextCommand):
         view = self.view.window().new_file()
         view.insert(edit, 0, NEW_REQUESTER_FILE)
         set_syntax(view, 'Packages/Python/Python.sublime-syntax')
+        view.set_name('untitled.pyr')
+        view.set_syntax_file('Packages/Requester/syntax/requester-source.sublime-syntax')
