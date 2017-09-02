@@ -5,11 +5,16 @@
    <key>name</key>
    <string>Symbol List</string>
    <key>scope</key>
-   <string>source.requester storage.header.requester</string>
+   <string>source.requester meta.identifier.requester</string>
    <key>settings</key>
    <dict>
       <key>showInSymbolList</key>
       <integer>1</integer>
+      <key>symbolTransformation</key>
+      <string>
+         s/(requests\.)?(get|options|head|post|put|patch|delete)(.*)/\2:\3/g;
+         s/\(/ /g;
+      </string>
    </dict>
 </dict>
 </plist>

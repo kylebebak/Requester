@@ -12,16 +12,29 @@ contexts:
         - match: "^(?=###env)"
           push: env
         - match: "^(?=##)"
-          push: symbol
+          push: header
+        - match: ^(?=([\w_][\w\d_]*\.)?(get|options|head|post|put|patch|delete))
+          push: identifier
 
   env:
     - match: "\n"
       pop: true
     - match: .*
-      scope: storage.requester-env
+      scope: storage.env.requester
 
-  symbol:
+  header:
     - match: "\n"
       pop: true
     - match: .*
-      scope: storage.requester-symbol
+      scope: storage.header.requester
+
+  identifier:
+    - meta_content_scope: meta.identifier.requester
+    - match: "[,)\n]"
+      pop: true
+    - match: "(?<=').*?(?=')"
+      scope: string.quoted.single.python
+    - match: '(?<=").*?(?=")'
+      scope: string.quoted.double.python
+    - match: '\+'
+      scope: keyword.operator.arithmetic.python
