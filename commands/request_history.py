@@ -41,8 +41,8 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         """Display request and other properties for each entry.
         """
         meta = req[1].get('meta', None)
-        header = '{}{}, {}'.format(
-            req[1]['method'].lower(),
+        header = '{}{}: {}'.format(
+            req[1]['method'].upper(),
             ' ({})'.format(meta) if meta else '',
             req[1]['url']
         )

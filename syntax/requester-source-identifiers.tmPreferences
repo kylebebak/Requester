@@ -12,7 +12,7 @@
       <integer>1</integer>
       <key>symbolTransformation</key>
       <string>
-         s/(requests\.)?(get|options|head|post|put|patch|delete)(.*)/\2:\3/g;
+         s/(requests\.)?(get|options|head|post|put|patch|delete)(.*)/\U\2\E:\3/g;
          s/\(/ /g;
       </string>
    </dict>

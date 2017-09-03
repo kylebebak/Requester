@@ -31,6 +31,39 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
 If you're looking for an HTTP client you should try Requester __even if you've never used Sublime Text__. [Here's why](https://github.com/kylebebak/Requester#why-requester).
 
 
+## Contents
+- [Installation](#installation)
+- [Getting Started](#getting-started)
+  + [JSON Response Formatting](#json-response-formatting)
+  + [Pinned Response Tabs](#pinned-response-tabs)
+  + [Environment Variables](#environment-variables)
+- [Advanced Features](#advanced-features)
+  + [Separate Env File](#separate-env-file)
+    * [Merging Vars from Env Block and Env File](#merging-vars-from-env-block-and-env-file)
+  + [Request Body, Query Params, Custom Headers, Cookies](#request-body-query-params-custom-headers-cookies)
+  + [New Requester File](#new-requester-file)
+    * [Requester Source Syntax (.pyr extension)](#requester-source-syntax-pyr-extension)
+  + [Sessions](#sessions)
+  + [Authentication](#authentication)
+  + [Forms and File Uploads](#forms-and-file-uploads)
+  + [Downloads](#downloads)
+  + [Cancel Outstanding Requests](#cancel-outstanding-requests)
+  + [Request History](#request-history)
+  + [Chaining Requests](#chaining-requests)
+    * [Chaining By Reference](#chaining-by-reference)
+- [Test Runner](#test-runner)
+  + [Making Assertions About Response Structure](#making-assertions-about-response-structure)
+  + [Export Tests to Runnable Script](#export-tests-to-runnable-script)
+- [Benchmarking Tool](#benchmarking-tool)
+- [Export/Import with cURL, HTTPie](#exportimport-with-curl-httpie)
+- [Import Any Python Package With Requester](#import-any-python-package-with-requester)
+  + [OAuth1 and OAuth2](#oauth1-and-oauth2)
+- [Commands](#commands)
+- [Settings](#settings)
+- [Contributing and Tests](#contributing-and-tests)
+- [Why Requester?](#why-requester)
+
+
 ## Installation
 1. Download and install [Sublime Text 3](https://www.sublimetext.com/3).
 2. Install [Package Control for Sublime Text](https://packagecontrol.io/).
@@ -128,9 +161,9 @@ Find out what makes Requester really special. In the future if you need to refre
 
 
 ### Separate Env File
-Requester also lets you save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env file, which is convenient. Save it with any name, like `requester.py`.
+Requester also lets you save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env file, which is convenient. Save it with any name, but use the `.pyr` extension. `requester.pyr` is fine. More on the `.pyr` extension later.
 
-Next, save a file with the name `requester_env.py` in the same directory as `requester.py`, and add an env var to it.
+Next, save a file with the name `requester_env.py` in the same directory as `requester.pyr`, and add an env var to it.
 
 ~~~py
 base_url = 'https://jsonplaceholder.typicode.com'
@@ -179,6 +212,13 @@ If you execute the last request, you'll notice the response tab shows the series
 
 ### New Requester File
 Want to start a new collection of requests? Run __Requester: New Requester File__ from the command palette. You'll get a new file pointing to an empty env file, with an empty env block, and with a link to Requester's syntax at the top.
+
+
+#### Requester Source Syntax (.pyr extension)
+- Improved syntax highlighting for requester files, as long as they are saved with the `.pyr` extension
+  + You can also jump between requests in a requester file with the __Goto Symbol__ command
+  + Running __Requester: New Requester File__ from the command palette creates a file with this extension
+  + Read more in the __Requester Syntax Highlighting__ section of the README
 
 
 ### Sessions
@@ -379,6 +419,40 @@ Prefer [HTTPie](https://httpie.org/) instead of cURL? You can also export reques
 Exporting works seamlessly with env vars. Just highlight a group of requests and look for __Requester: Export To cURL__ or __Requester: Export To HTTPie__ in the command palette. For importing it's __Requester: Import From cURL__. Exporting to HTTPie supports a bunch of features, including basic and digest authentication, file downloads, and even sessions. For sessions, just highlight your env block along with the requests you want to export.
 
 
+## Import Any Python Package With Requester
+Requester comes bundled with the `requests` and `jsonschema` packages, but it can actually source __any__ Python 3 package in its env. All you have to do is set the `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file.
+
+In my settings `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
+
+Here are a couple of no-brainers:
+
+- [requests-oauthlib](https://github.com/requests/requests-oauthlib)
+- [requests-toolbelt](https://github.com/requests/toolbelt)
+
+
+### OAuth1 and OAuth2
+__requests-oauthlib__ makes OAuth1 and OAuth2 a lot easier. Let's say you want explore the Twitter REST API, which uses OAuth1 for authentication. Go to <https://apps.twitter.com/app/new>, create a new application, then go to the __Keys and Access Tokens__ tab for your application. Generate an access token and an access token secret, grab your API key and secret, and use pass them to `OAuth1`.
+
+~~~py
+###env
+from requests_oauthlib import OAuth1
+auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+###env
+
+get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackoverflow&count=100', auth=auth)
+
+# ...
+# [
+#   {
+#     "contributors": null,
+#     "coordinates": null,
+#     "created_at": "Fri Sep 01 12:46:09 +0000 2017",
+#     "entities": {...
+~~~
+
+Python has auth libraries for authenticating with a wide variety of APIs. With `pip` and the `packages_path` setting Requester can access them all.
+
+
 ## Commands
 Commands defined by this package, in case you want to add or change key bindings.
 
@@ -420,6 +494,7 @@ Requester's modifiable settings, and their default values. You can override any 
 - __history_max_entries__, `250`: max number of requests in history file
 - __chunk_size__, `1024`: chunk size for file downloads (bytes)
 - __only_download_for_200__, `true`: only perform file download if response status code is 200
+- __packages_path__, `""`: absolute path to extra python packages included in env
 
 
 ## Contributing and Tests
