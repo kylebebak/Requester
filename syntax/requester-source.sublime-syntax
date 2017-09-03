@@ -30,11 +30,11 @@ contexts:
 
   identifier:
     - meta_content_scope: meta.identifier.requester
-    - match: "[,)\n]"
+    - match: "[,)]"
       pop: true
-    - match: "(?<=').*?(?=')"
+    - match: "'.*?'"
       scope: string.quoted.single.python
-    - match: '(?<=").*?(?=")'
+    - match: '".*?"'
       scope: string.quoted.double.python
     - match: '\+'
       scope: keyword.operator.arithmetic.python

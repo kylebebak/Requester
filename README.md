@@ -15,7 +15,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
   + Define [__environment variables__](#environment-variables) with regular Python code
   + Execute requests and display responses in parallel, [__or chain requests__](#chaining-by-reference)
   + Edit and replay requests from individual response tabs
-  + Replay requests from fuzzy searchable request history
+  + Fuzzy searchable [request navigation](#request-navigation-pyr-extension), fuzzy searchable request history
   + Formatted, colorized output with automatic syntax highlighting
   + Clear error handling and error messages
 - Perfect for teams
@@ -35,6 +35,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 - [Installation](#installation)
 - [Getting Started](#getting-started)
   + [JSON Response Formatting](#json-response-formatting)
+  + [Ultra Convenient GET Requests](#ultra-convenient-get-requests)
   + [Pinned Response Tabs](#pinned-response-tabs)
   + [Environment Variables](#environment-variables)
 - [Advanced Features](#advanced-features)
@@ -42,7 +43,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
     * [Merging Vars from Env Block and Env File](#merging-vars-from-env-block-and-env-file)
   + [Request Body, Query Params, Custom Headers, Cookies](#request-body-query-params-custom-headers-cookies)
   + [New Requester File](#new-requester-file)
-    * [Requester Source Syntax (.pyr extension)](#requester-source-syntax-pyr-extension)
+    * [Request Navigation (.pyr extension)](#requester-navigation-pyr-extension)
   + [Sessions](#sessions)
   + [Authentication](#authentication)
   + [Forms and File Uploads](#forms-and-file-uploads)
@@ -84,9 +85,9 @@ get('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optio
 post('jsonplaceholder.typicode.com/posts')  # as is the URL scheme
 ~~~
 
-Place your cursor on one of the lines and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r</kbd> on OSX). Or, look for __Requester: Run Requests__ in the command palette <kbd>shift+cmd+p</kbd> and hit Enter. A response tab will appear, with a name like __GET: /albums__.
+Place your cursor on one of the lines and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r</kbd> on macOS). Or, look for __Requester: Run Requests__ in the command palette <kbd>shift+cmd+p</kbd> and hit Enter. A response tab will appear, with a name like __GET: /albums__.
 
-Head to the response tab and check out the response. Hit <kbd>ctrl+alt+r</kbd> or <kbd>ctrl+r</kbd> (<kbd>ctrl+r</kbd> or <kbd>cmd+r</kbd> on OSX) to replay the request. You can edit the request, which is at the top of the file, before replaying it.
+Head to the response tab and check out the response. Hit <kbd>ctrl+alt+r</kbd> or <kbd>ctrl+r</kbd> (<kbd>ctrl+r</kbd> or <kbd>cmd+r</kbd> on macOS) to replay the request. You can edit the request, which is at the top of the file, before replaying it.
 
 Now, go back to the requester file and highlight all 5 lines, and once again execute the requests.
 
@@ -117,6 +118,14 @@ Requester supports 3 options for JSON response formatting, `indent_sort`, `inden
 get('http://headers.jsontest.com/', fmt='indent_sort')
 get('http://headers.jsontest.com/', fmt='indent')
 get('http://headers.jsontest.com/', fmt='raw')
+~~~
+
+
+### Ultra Convenient GET Requests
+Try sending the following request. This is obviously not valid Python syntax, but Requester has a special convenience method for basic GET requets. If you run Requester on a URL like the one below, it will automatically wrap it in call to `requests.get` like so, `requests.get('...')`. 🌟🌟
+
+~~~py
+httpbin.com/get
 ~~~
 
 
@@ -214,11 +223,16 @@ If you execute the last request, you'll notice the response tab shows the series
 Want to start a new collection of requests? Run __Requester: New Requester File__ from the command palette. You'll get a new file pointing to an empty env file, with an empty env block, and with a link to Requester's syntax at the top.
 
 
-#### Requester Source Syntax (.pyr extension)
-- Improved syntax highlighting for requester files, as long as they are saved with the `.pyr` extension
-  + You can also jump between requests in a requester file with the __Goto Symbol__ command
-  + Running __Requester: New Requester File__ from the command palette creates a file with this extension
-  + Read more in the __Requester Syntax Highlighting__ section of the README
+#### Request Navigation (.pyr extension)
+You'll notice the unsaved file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your Requester files with this extension__.
+
+Here's why. Run __Requester: New Requester File (Navigation Demo)__ from the command palette. You'll get a new requester file with some stub requests already inserted. Now, run Sublime's __Goto Symbol__ command (<kbd>cmd+r</kbd> on macOS)... You can jump between request groups and individual requests almost instantaneously using fuzzy search!
+
+Behind the scenes, `.pyr` files get the special __Requester__ syntax applied to them (you can set this syntax on any view you like by running __Set Syntax: Requester__ from the command palette). __Requester__ is the default Python syntax with a few Requester-specific improvements:
+
+- your `###env` block delimeters are highlighted
+- request groups can be declared by starting a line with two or more `##` characters
+- you can use __Goto Symbol__ to jump between requests and request groups ✨✨
 
 
 ### Sessions
@@ -281,7 +295,7 @@ Requester saves a history of executed requests. Call __Requester: Request Histor
 
 Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__.
 
-Open your keymap from the command palette by running __Preferences: Key Bindings__. For example, on OSX you might bind it to <kbd>ctrl+h</kbd> by adding the following:
+Open your keymap from the command palette by running __Preferences: Key Bindings__. For example, on macOS you might bind it to <kbd>ctrl+h</kbd> by adding the following:
 
 ~~~json
 { "keys": ["ctrl+h"], "command": "requester_history" },
@@ -516,4 +530,4 @@ The paid collaboration features of HTTP client apps, such as sharing and version
 
 Need to share requests with someone who doesn't use Requester? Exporting all of your requests to cURL or HTTPie takes a few seconds.
 
-Requester is cross-platform and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use =)
+Requester is cross-platform and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use. ✨✨

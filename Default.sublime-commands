@@ -64,6 +64,12 @@
   },
 
   {
+    "caption": "Requester: New Requester File (Navigation Demo)",
+    "command": "requester_new_requester_file",
+    "args": { "demo": true }
+  },
+
+  {
     "caption": "Requester: Run Tests",
     "command": "requester_run_tests"
   },

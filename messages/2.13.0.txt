@@ -9,7 +9,7 @@ Great news! This release introduces some cool improvements to Requester.
 
 - Sending basic GET requests just got more convenient. Selections spanning only one line, of the form `http://google.com` or `google.com` are now transformed to `get('http://google.com')` before being sent by Requester.
 
-- Improved syntax highlighting for requester files, as long as they are saved with the `.pyr` extension
-  + You can also jump between requests in a requester file with the __Goto Symbol__ command
-  + Running __Requester: New Requester File__ from the command palette creates a file with this extension
-  + Read more in the __Requester Syntax Highlighting__ section of the README
+- Added request navigation, request groups, and improved syntax highlighting to requester files, as long as they are saved with the `.pyr` extension
+  + You can jump between requests using fuzzy search using the __Goto Symbol__ command
+  + Running __Requester: New Requester File__ from the command palette creates a file with this extension, and sets the __Requester__ syntax on the view
+  + Read more in the __Request Navigation__ section of the README

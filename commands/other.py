@@ -87,13 +87,30 @@ env_file = ''
 
 """
 
+NEW_REQUESTER_FILE_NAVIGATION = NEW_REQUESTER_FILE + """
+## group 1
+get('httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
+
+post('httpbin.org/post', json={'key1': 'value1', 'key2': 'value2'})
+
+
+## group 2
+put('httpbin.org/put', json={'key1': 'value1', 'key2': 'value2'})
+
+delete('httpbin.org/delete')
+
+"""
+
 
 class RequesterNewRequesterFileCommand(sublime_plugin.TextCommand):
     """Create a new view with a skeleton for a requester file.
     """
-    def run(self, edit):
+    def run(self, edit, demo=False):
         view = self.view.window().new_file()
-        view.insert(edit, 0, NEW_REQUESTER_FILE)
+        if demo:
+            view.insert(edit, 0, NEW_REQUESTER_FILE_NAVIGATION)
+        else:
+            view.insert(edit, 0, NEW_REQUESTER_FILE)
         set_syntax(view, 'Packages/Python/Python.sublime-syntax')
         view.set_name('untitled.pyr')
         view.set_syntax_file('Packages/Requester/syntax/requester-source.sublime-syntax')
