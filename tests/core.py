@@ -19,7 +19,7 @@ def handle_special(self, req):
     """Mock this on ResponseThreadPool so that it doesn't touch anything in
     `commands` package.
     """
-    if req.skwargs.get('filename') or req.skwargs.get('streamed') or req.skwargs.get('chunked'):
+    if 'filename' in req.skwargs or 'streamed' in req.skwargs or 'chunked' in req.skwargs:
         return True
     return False
 ResponseThreadPool.handle_special = handle_special

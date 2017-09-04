@@ -4,7 +4,7 @@
 [![Build Status](https://travis-ci.org/kylebebak/Requester.svg?branch=master)](https://travis-ci.org/kylebebak/Requester)
 [![Coverage Status](https://coveralls.io/repos/github/kylebebak/Requester/badge.svg?branch=master)](https://coveralls.io/github/kylebebak/Requester?branch=master)
 
-A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie with rock-solid usability and the secret sauce of Requests.
+A modern, team-oriented HTTP client for Sublime Text 3. Requester combines features of apps like Postman, Paw and HTTPie with rock-solid usability and the secret sauce of Requests. 🌟
 
 - [Super classy, well-documented syntax](http://docs.python-requests.org/en/master/user/quickstart/)
   + Easily set request body, query params, custom headers, cookies
@@ -43,11 +43,12 @@ If you're looking for an HTTP client you should try Requester __even if you've n
     * [Merging Vars from Env Block and Env File](#merging-vars-from-env-block-and-env-file)
   + [Request Body, Query Params, Custom Headers, Cookies](#request-body-query-params-custom-headers-cookies)
   + [New Requester File](#new-requester-file)
-    * [Request Navigation (.pyr extension)](#requester-navigation-pyr-extension)
+    * [Request Navigation (.pyr extension)](#request-navigation-pyr-extension)
   + [Sessions](#sessions)
   + [Authentication](#authentication)
   + [Forms and File Uploads](#forms-and-file-uploads)
   + [Downloads](#downloads)
+    * [Downloaded File Name](#downloaded-file-name)
   + [Cancel Outstanding Requests](#cancel-outstanding-requests)
   + [Request History](#request-history)
   + [Chaining Requests](#chaining-requests)
@@ -122,7 +123,7 @@ get('http://headers.jsontest.com/', fmt='raw')
 
 
 ### Ultra Convenient GET Requests
-Try sending the following request. This is obviously not valid Python syntax, but Requester has a special convenience method for basic GET requets. If you run Requester on a URL like the one below, it will automatically wrap it in call to `requests.get` like so, `requests.get('...')`. 🌟🌟
+Try sending the following request. This is obviously not valid Python syntax, but Requester has a special convenience method for basic GET requets. If you run Requester on a URL like the one below, it will automatically wrap it in call to `requests.get` like so, `requests.get('...')`.
 
 ~~~py
 httpbin.com/get
@@ -247,8 +248,13 @@ s = requests.Session()
 s.get('http://httpbin.org/cookies/set?session_id=12345', timeout=5)
 ###env
 
-s.get('http://httpbin.org/get')  # run me
+s.get('http://httpbin.org/get')
+s.get('http://httpbin.org/cookies/set?token=789')
 ~~~
+
+In the example above, each time you execute __Requester: Run Requests__, a new session is created, and once all responses are returned the session is destroyed.
+
+If you highlight and run multiple requests that depend a session `s`, they will all share the same session `s`. If you run them serially, you can control the order in which cookies are added to the session.
 
 
 ### Authentication
@@ -257,6 +263,8 @@ Requests has [excellent support for authentication](http://docs.python-requests.
 To use a custom auth scheme with Requester you define the auth class in your env block or env file, then pass an instance of this class to the `auth` argument of a request.
 
 Requester comes with a few pre-written auth classes you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
+
+If you want help handling more complicated forms of auth, like OAuth1 and OAuth2, have a look [at this section](#import-any-python-package-with-requester).
 
 
 ### Forms and File Uploads
@@ -286,6 +294,14 @@ get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/
 As with streamed and chunked uploads, `filename` can be an absolute path, or a path relative to your requester file. Also, as with uploads, __multiple downloads can be executed in parallel__. Downloads can be cancelled. They come with a nice progress bar.
 
 
+#### Downloaded File Name
+If you pass a path that has no __basename__, Requester will infer the name of the file from the URL. Examples of such paths: `''`, `relative/path/`, `/absolute/path/`. In this mode, if the file name already exists, Requester will add a suffix to make the file name unique.
+
+~~~py
+get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='')
+~~~
+
+
 ### Cancel Outstanding Requests
 If you have outstanding requests that are taking a while to return, and you don't want to wait for them to time out, you can cancel them by calling __Requester: Cancel Requests__ from the command palette.
 
@@ -293,7 +309,7 @@ If you have outstanding requests that are taking a while to return, and you don'
 ### Request History
 Requester saves a history of executed requests. Call __Requester: Request History__ to check it out. They appear in reverse chronological order and include each request's age, URL, response status code, and requester file. They're fuzzy searchable!
 
-Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__.
+Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__. ✨✨
 
 Open your keymap from the command palette by running __Preferences: Key Bindings__. For example, on macOS you might bind it to <kbd>ctrl+h</kbd> by adding the following:
 

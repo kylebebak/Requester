@@ -367,15 +367,12 @@ def _persist_requests(self, responses):
         if res is None:
             continue
 
-        upload = req.skwargs.get('streamed', None)
-        if upload:
-            meta = 'streamed: {}'.format(upload)
-        upload = req.skwargs.get('chunked', None)
-        if upload:
-            meta = 'chunked: {}'.format(upload)
-        download = req.skwargs.get('filename', None)
-        if download:
-            meta = 'download: {}'.format(download)
+        if 'streamed' in req.skwargs:
+            meta = 'streamed: {}'.format(req.skwargs['streamed'])
+        if 'chunked' in req.skwargs:
+            meta = 'chunked: {}'.format(req.skwargs['chunked'])
+        if 'filename' in req.skwargs:
+            meta = 'download: {}'.format(req.skwargs['filename'] or './')
 
         method, url = res.request.method, res.url
         key = '{}: {}: {}'.format(method, url, meta)

@@ -55,6 +55,8 @@ class Download(RequestsMixin, RequestCommandMixin):
         chunk_size = max(int(chunk_size), 128)
         chunk_count = 0
         basename = os.path.basename(filename)
+        if not basename:
+            filename = os.path.join(filename, res.url.split('/')[-1])
 
         try:
             with open(filename, 'xb') as f:  # don't overwrite file if it already exists

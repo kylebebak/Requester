@@ -103,17 +103,14 @@ class ResponseThreadPool:
         """
         from ..commands.download import Download
         from ..commands.upload import Upload
-        filename = req.skwargs.get('filename')
-        if filename:
-            Download(req, filename)
+        if 'filename' in req.skwargs:
+            Download(req, req.skwargs['filename'])
             return True
-        filename = req.skwargs.get('streamed')
-        if filename:
-            Upload(req, filename, 'streamed')
+        if 'streamed' in req.skwargs:
+            Upload(req, req.skwargs['streamed'], 'streamed')
             return True
-        filename = req.skwargs.get('chunked')
-        if filename:
-            Upload(req, filename, 'chunked')
+        if 'chunked' in req.skwargs:
+            Upload(req, req.skwargs['chunked'], 'chunked')
             return True
         return False
 
@@ -209,16 +206,13 @@ def prepare_request(request, env, ordering):
     error = None
     fmt = kwargs.pop('fmt', settings.get('fmt', None))
     name = kwargs.pop('name', None)  # cache response to "chain" requests
-    filename = kwargs.pop('filename', None)
-    streamed = kwargs.pop('streamed', None)
-    chunked = kwargs.pop('chunked', None)
-    skwargs = {
-        'fmt': fmt,
-        'name': name,
-        'filename': filename,
-        'streamed': streamed,
-        'chunked': chunked,
-    }
+    skwargs = {'fmt': fmt, 'name': name}
+    if 'filename' in kwargs:
+        skwargs['filename'] = str(kwargs.pop('filename'))
+    if 'streamed' in kwargs:
+        skwargs['streamed'] = str(kwargs.pop('streamed'))
+    if 'chunked' in kwargs:
+        skwargs['chunked'] = str(kwargs.pop('chunked'))
 
     if fmt not in ('raw', 'indent', 'indent_sort'):
         error = 'invalid `fmt`, must be one of ("raw", "indent", "indent_sort")'

@@ -29,6 +29,8 @@ def clean_url(url):
 
 
 def absolute_path(filename, view):
+    """Get absolute path to `filename` relative to view.
+    """
     if os.path.isabs(filename):
         return filename
     file_path = view.file_name()
@@ -38,6 +40,8 @@ def absolute_path(filename, view):
 
 
 def get_transfer_indicator(filename, transferred, total, spaces=50):
+    """Returns progress indicator for byte stream transfer.
+    """
     if not total:
         return '{}, ?'.format(filename)
     transferred = min(transferred, total)

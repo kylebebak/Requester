@@ -60,7 +60,7 @@ def get_response_view_content(response):
     req, res, err = response
 
     read_content = True
-    if req.skwargs.get('filename'):
+    if 'filename' in req.skwargs:
         read_content = False
 
     redirects = [response.url for response in res.history]  # URLs traversed due to redirects
