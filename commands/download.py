@@ -53,12 +53,10 @@ class Download(RequestsMixin, RequestCommandMixin):
         length = int(res.headers.get('content-length') or 0)
         chunk_size = sublime.load_settings('Requester.sublime-settings').get('chunk_size', 1024)
         chunk_size = max(int(chunk_size), 128)
-        chunk_count = 0
         basename = os.path.basename(filename)
-        if not basename:
-            filename = os.path.join(filename, res.url.split('/')[-1])
 
-        try:
+        def download(filename):
+            chunk_count = 0
             with open(filename, 'xb') as f:  # don't overwrite file if it already exists
                 for chunk in res.iter_content(chunk_size):
                     if self.CANCELLED:
@@ -73,8 +71,25 @@ class Download(RequestsMixin, RequestCommandMixin):
                 os.remove(filename)
             else:
                 view.set_status('requester.download', 'Requester Download Completed: {}'.format(filename))
-        except Exception as e:
-            sublime.error_message('Download Error: {}'.format(e))
+
+        if not basename:
+            count, suffix = 1, ''
+            filename = os.path.join(filename, res.url.split('/')[-1])
+            file, extension = os.path.splitext(filename)
+            while True:
+                try:
+                    download(file + suffix + extension)
+                    break
+                except FileExistsError:  # retry download if filename exists
+                    count, suffix = count + 1, '-{}'.format(count)
+                except Exception as e:
+                    sublime.error_message('Download Error: {}'.format(e))
+                    break
+        else:
+            try:
+                download(filename)
+            except Exception as e:
+                sublime.error_message('Download Error: {}'.format(e))
 
 
 class RequesterCancelDownloadsCommand(sublime_plugin.ApplicationCommand):
