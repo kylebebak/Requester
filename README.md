@@ -78,6 +78,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 Open the interactive tutorial in Sublime Text! Look for __Requester: Show Tutorial__ in the command palette. Alternatively, just keep reading.
 
 Open a file and insert the following:
+
 ~~~py
 requests.get('https://jsonplaceholder.typicode.com/albums')
 requests.post('https://jsonplaceholder.typicode.com/albums')
@@ -264,7 +265,7 @@ To use a custom auth scheme with Requester you define the auth class in your env
 
 Requester comes with a few pre-written auth classes you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
 
-If you want help handling more complicated forms of auth, like OAuth1 and OAuth2, have a look [at this section](#import-any-python-package-with-requester).
+>If you want help handling more complicated forms of auth, like OAuth1 and OAuth2, have a look [at this section](#import-any-python-package-with-requester).
 
 
 ### Forms and File Uploads
@@ -281,7 +282,9 @@ post('https://requestb.in/<your_request_bin>', streamed='/path/to/file')
 post('https://requestb.in/<your_request_bin>', chunked='/path/to/file')
 ~~~
 
-If you use pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header will be added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled. 
+If you use pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header will be added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled.
+
+>If you need streaming uploads for multipart forms, or uploads of multiple files, the `requests-toolbelt` packages has your back. Check out [this section](#import-any-python-package-with-requester).
 
 
 ### Downloads

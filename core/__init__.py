@@ -98,7 +98,7 @@ class RequestCommandMixin:
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
 
-    def is_requester_view(self):
+    def is_auxiliary_view(self):
         """Was this view opened by a Requester command? This is useful, e.g., to
         avoid resetting `env_file` and `env_string` on these views.
         """
@@ -111,24 +111,26 @@ class RequestCommandMixin:
     def reset_env_string(self):
         """(Re)sets the `requester.env_string` setting on the view, if appropriate.
         """
-        if self.is_requester_view():
+        if self.is_auxiliary_view():
             return
         env_string = self.parse_env_block(self.view.substr(
             sublime.Region(0, self.view.size())
         ))
+        if env_string:
+            self.view.settings().set('requester.env_block_parsed', True)
         self.view.settings().set('requester.env_string', env_string)
 
     def reset_file(self):
         """(Re)sets the `requester.file` setting on the view, if appropriate.
         """
-        if self.is_requester_view():
+        if self.is_auxiliary_view():
             return
         self.view.settings().set('requester.file', self.view.file_name())
 
     def reset_env_file(self):
         """(Re)sets the `requester.env_file` setting on the view, if appropriate.
         """
-        if self.is_requester_view():
+        if self.is_auxiliary_view():
             return
 
         scope = {}
@@ -165,20 +167,22 @@ class RequestCommandMixin:
         """
         env_strings = []
         packages_path = self.config.get('packages_path', '')
-        if packages_path:
+        if packages_path:  # makes it possible to import any Python package in env
             env_strings.append("import sys\nsys.path.append('{}')".format(packages_path))
 
         env_strings.append(self.view.settings().get('requester.env_string', None))
 
-        file = self.view.settings().get('requester.file', None)
-        if file:
-            try:
-                with open(file, 'r') as f:
-                    text = f.read()
-            except Exception as e:
-                self.add_error_status_bar(str(e))
-            else:
-                env_strings.append(self.parse_env_block(text))
+        if not self.view.settings().get('requester.env_block_parsed', None):
+            # if env block was already parsed don't parse it again
+            file = self.view.settings().get('requester.file', None)
+            if file:
+                try:
+                    with open(file, 'r') as f:
+                        text = f.read()
+                except Exception as e:
+                    self.add_error_status_bar(str(e))
+                else:
+                    env_strings.append(self.parse_env_block(text))
 
         env_file = self.view.settings().get('requester.env_file', None)
         if env_file:
