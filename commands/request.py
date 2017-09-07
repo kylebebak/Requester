@@ -129,16 +129,23 @@ class RequestsMixin:
         for region in view.sel():
             if not region.empty():
                 selection = view.substr(region)
+                try:
+                    requests_ = parse_requests(selection)
+                except Exception as e:
+                    sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
+                    print(e)
+                    continue
             else:
                 selection = view.substr(view.line(region))
-            try:
-                requests_ = parse_requests(selection)
-            except Exception as e:
-                sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
-                print(e)
-            else:
-                for request in requests_:
-                    requests.append(request)
+                extended_selection = view.substr(sublime.Region(view.line(region).a, view.size()))
+                try:
+                    requests_ = parse_requests(selection, n=1, es=extended_selection)
+                except Exception as e:
+                    sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
+                    print(e)
+                    continue
+            for request in requests_:
+                requests.append(request)
         return requests
 
     def show_activity_for_pending_requests(self, requests, count, activity):

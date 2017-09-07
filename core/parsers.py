@@ -14,12 +14,12 @@ TypedSelection = namedtuple('TypedSelection', 'selection, type')
 RequestAssertion = namedtuple('RequestAssertion', 'request, assertion')
 
 
-def parse_requests(s, n=None):
+def parse_requests(s, n=None, es=None):
     """Parse string for all calls to `{name}.{verb}(`, or simply `{verb}(`.
 
     Returns a list of request strings.
     """
-    selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], n=n)
+    selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], n=n, es=es)
     return [sel.selection for sel in selections]
 
 
@@ -45,13 +45,15 @@ def parse_tests(s):
     return tests
 
 
-def parse(s, open_bracket, close_bracket, match_patterns, n=None):
+def parse(s, open_bracket, close_bracket, match_patterns, n=None, es=None):
     """Parse string `s` for selections that begin with at least one of the
     specified match patterns. Continue expanding each selection until its opening
     and closing brackets are balanced.
 
     Returns a list of `Selection` instances. Optionally stop after `n` selections
     have been parsed.
+
+    Also supports a shorthand syntax for basic, one-line GET requests.
     """
     start_indices = []
 
@@ -65,8 +67,11 @@ def parse(s, open_bracket, close_bracket, match_patterns, n=None):
                 start_indices.append(index)
                 break
         index += len(line)
-    if not start_indices and len(lines) == 1:
+
+    if not start_indices and len(lines) == 1:  # shorthand syntax for basic, one-line GET requests
         return [Selection("get('{}')".format(prepend_scheme(s)), 0)]
+    if es:  # replace selection with extended selection AFTER `start_indices` have been found
+        s = es
 
     sq, dq, comment, escape = False, False, False, False
     end_indices = []
