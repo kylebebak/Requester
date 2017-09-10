@@ -175,7 +175,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         """Don't allow default error handler to run, don't display error messages.
         """
 
-    def persist_requests(self, requests):
+    def persist_requests(self, responses):
         """Requests shouldn't be persisted for benchmark runs.
         """
 

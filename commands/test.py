@@ -175,7 +175,7 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
             error_details.append('{}: {}'.format(attr, val))
         return '; '.join(error_details)
 
-    def persist_requests(self, requests):
+    def persist_requests(self, responses):
         """Requests shouldn't be persisted for test runs.
         """
 

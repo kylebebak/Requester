@@ -235,9 +235,8 @@ class RequestsMixin:
             view.settings().set('requester.response_view', True)
             self.set_env_settings_on_view(view)
 
-            content = get_response_view_content(response)
-            view.run_command('requester_replace_view_text',
-                             {'text': content.content, 'point': content.point})
+            content, point = get_response_view_content(response)
+            view.run_command('requester_replace_view_text', {'text': content, 'point': point})
             view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
             self.set_request_setting_on_view(view, res)
 
@@ -283,7 +282,19 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
     """Replay a request from a response view.
     """
     def get_requests(self):
-        """Parses requests from first line only.
+        """Also handles special case where request is replayed from "explore tab".
+        """
+        try:
+            request = self.get_replay_request()
+        except:
+            return []
+        e_url = self.view.settings().get('requester.explore_url', None)
+        if e_url is None:
+            return [request]
+        return [self.get_explore_request(request, e_url)]
+
+    def get_replay_request(self):
+        """Only parses first request in file.
         """
         try:
             requests = parse_requests(self.view.substr(
@@ -292,9 +303,17 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in your request')
             print(e)
-            return []
-        else:
-            return requests
+            raise
+        try:
+            return requests[0]
+        except IndexError:
+            sublime.error_message('Replay Error: there is no request in your response review')
+            raise
+
+    def get_explore_request(self, request, url):
+        """Build exploratory request by adding explore `url` to `explore` kwarg.
+        """
+        return "{}, explore=({}, {}))".format(request[:-1], repr(request), repr(url))
 
     def handle_response(self, response):
         """Overwrites content in current view.
@@ -305,13 +324,38 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         if err:
             return
 
-        content = get_response_view_content(response)
-        view.run_command('requester_replace_view_text',
-                         {'text': content.content, 'point': content.point})
+        explore_url = view.settings().get('requester.explore_url', None)
+        if explore_url is not None:
+            return self.handle_explore_response(view, response, explore_url)
+
+        content, point = get_response_view_content(response)
+        view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
-
         set_response_view_name(view, res)
+
+    def handle_explore_response(self, view, response, explore_url):
+        """In case this isn't a normal response view.
+        """
+        req, res, err = response
+        set_response_view_name(view, res)
+        self.set_env_settings_on_view(view)
+        self.set_request_setting_on_view(view, res)
+        view.settings().set('requester.response_view', True)
+        view.settings().set('requester.explore_url', explore_url)
+
+        content, point = get_response_view_content(response)
+        content = 'EXPLORE: {}\n{}'.format(explore_url, content)
+        view.set_scratch(True)
+        view.run_command('requester_replace_view_text', {'text': content, 'point': point})
+        view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
+
+    def persist_requests(self, responses):
+        """Don't do this for exploratory requests.
+        """
+        if self.view.settings().get('requester.explore_url', None):
+            return
+        return super().persist_requests(responses)
 
 
 class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
@@ -329,20 +373,18 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
             return []
 
         try:
-            url = view.substr(view.sel()[0])
+            url = view.substr(view.sel()[0]).replace('"', '')
         except:
             return []
         if not url:
             return []
+        self._explore_url = url
 
         try:
-            request = super().get_requests()[0]
-        except Exception as e:
-            sublime.error_message('Explore Error: {}'.format(e))
-            print(e)
+            request = self.get_replay_request()
+        except:
             return []
-        self._explore_url = url
-        return ["{}, explore=({}, {}))".format(request[:-1], repr(request), repr(url))]
+        return [self.get_explore_request(request, url)]
 
     def show_activity_for_pending_requests(self, *args, **kwargs):
         """Don't do this for exploratory requests.
@@ -351,28 +393,16 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
     def handle_response(self, response):
         """Creates new "explore URL" view.
         """
-        window = self.view.window()
         req, res, err = response
 
         if err:
             return
 
-        content, point = get_response_view_content(response)
-        content = 'EXPLORE: {}\n{}'.format(self._explore_url, content)
+        view = self.view.window().new_file()
+        self.handle_explore_response(view, response, self._explore_url)
 
-        view = window.new_file()
-        set_response_view_name(view, res)
-        self.set_env_settings_on_view(view)
-        self.set_request_setting_on_view(view, res)
-        view.settings().set('requester.response_view', True)
-        view.settings().set('requester.explore_view', True)
-
-        view.set_scratch(True)
-        view.run_command('requester_replace_view_text', {'text': content, 'point': point})
-        view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
-
-    def persist_requests(self, requests):
-        """Implementing this might require ugly changes to core API.
+    def persist_requests(self, responses):
+        """Don't do this for exploratory requests.
         """
 
 
