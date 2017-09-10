@@ -341,7 +341,39 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
             sublime.error_message('Explore Error: {}'.format(e))
             print(e)
             return []
+        self._explore_url = url
         return ["{}, explore=({}, {}))".format(request[:-1], repr(request), repr(url))]
+
+    def show_activity_for_pending_requests(self, *args, **kwargs):
+        """Don't do this for exploratory requests.
+        """
+
+    def handle_response(self, response):
+        """Creates new "explore URL" view.
+        """
+        window = self.view.window()
+        req, res, err = response
+
+        if err:
+            return
+
+        content, point = get_response_view_content(response)
+        content = 'EXPLORE: {}\n{}'.format(self._explore_url, content)
+
+        view = window.new_file()
+        set_response_view_name(view, res)
+        self.set_env_settings_on_view(view)
+        self.set_request_setting_on_view(view, res)
+        view.settings().set('requester.response_view', True)
+        view.settings().set('requester.explore_view', True)
+
+        view.set_scratch(True)
+        view.run_command('requester_replace_view_text', {'text': content, 'point': point})
+        view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
+
+    def persist_requests(self, requests):
+        """Implementing this might require ugly changes to core API.
+        """
 
 
 class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
