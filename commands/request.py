@@ -77,13 +77,14 @@ def get_response_view_content(response):
     content = get_content(res, req.skwargs.get('fmt')) if read_content else 'File download.'
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     explore_binding = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
+    options_binding = '[cmd+o]' if platform == 'osx' else '[ctrl+o]'
     pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [
         req.request,
         header,
         'Request Headers: {}'.format(res.request.headers),
-        '{} replay request, {} explore request, {} pin/unpin tab'.format(
-            replay_binding, explore_binding, pin_binding
+        '{} replay request, {} explore request, {} options, {} pin/unpin tab'.format(
+            replay_binding, explore_binding, options_binding, pin_binding
         ),
         headers
     ]

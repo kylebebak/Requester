@@ -29,6 +29,14 @@
   },
 
   {
+    "keys": ["ctrl+o"],
+    "command": "requester_url_options",
+    "context": [
+      { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
+    ]
+  },
+
+  {
     "keys": ["ctrl+t"],
     "command": "requester_response_tab_toggle_pinned",
     "context": [
