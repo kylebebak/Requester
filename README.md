@@ -493,6 +493,7 @@ Commands defined by this package, in case you want to add or change key bindings
 
 - __requester__
 - __requester_replay_request__
+- __requester_explore_url__: explore url in response tab
 - __requester_history__: search and re-execute past requests
 - __requester_cancel_requests__: cancel all outstanding requests
 - __requester_cancel_downloads__: cancel outstanding file downloads

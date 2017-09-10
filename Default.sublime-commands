@@ -24,6 +24,11 @@
   },
 
   {
+    "caption": "Requester: Explore URL in Response Tab",
+    "command": "requester_explore_url"
+  },
+
+  {
     "caption": "Requester: Request History",
     "command": "requester_history"
   },

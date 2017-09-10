@@ -1,6 +1,7 @@
 import sublime
 
 import re
+from urllib import parse
 from concurrent import futures
 from collections import namedtuple, deque
 
@@ -187,11 +188,10 @@ def prepare_request(request, env, ordering):
     else:
         args = list(args)
 
+    url_from_kwargs = True
     url = kwargs.get('url', None)
-    if url is not None:
-        url = prepend_scheme(url)
-        kwargs['url'] = url
-    else:
+    if url is None:
+        url_from_kwargs = False
         try:
             url = args[0]
         except Exception as e:
@@ -199,9 +199,18 @@ def prepare_request(request, env, ordering):
                 e, truncate(req, 150)
             ))
             return Request(req, method, url, args, kwargs, ordering, session, {}, error=str(e))
-        else:
-            url = prepend_scheme(url)
-            args[0] = url
+
+    if 'explore' in kwargs:
+        e_req, e_url = kwargs.pop('explore')
+        kwargs = prepare_explore_kwargs(e_url, url, kwargs)
+        req, url = e_req, prepend_scheme(e_url)
+    else:
+        url = prepend_scheme(url)
+
+    if url_from_kwargs:
+        kwargs['url'] = url
+    else:
+        args[0] = url
 
     error = None
     fmt = kwargs.pop('fmt', settings.get('fmt', None))
@@ -222,3 +231,22 @@ def prepare_request(request, env, ordering):
     if 'allow_redirects' not in kwargs:
         kwargs['allow_redirects'] = settings.get('allow_redirects', True)
     return Request(req, method, url, args, kwargs, ordering, session, skwargs, error)
+
+
+def prepare_explore_kwargs(e_url, url, kwargs):
+    """If explore URL (`e_url`) doesn't have same domain as `url`, remove any
+    kwargs related to authentication from request.
+
+    This prevents, for example, an "exploratory" request from sending auth headers
+    for one domain to a different, possibly malicious domain.
+    """
+    e_netloc, netloc = parse.urlparse(e_url).netloc, parse.urlparse(url).netloc
+    d, dd = sorted([n.split('.') for n in (e_netloc, netloc)], key=lambda d: len(d))
+    if len(d) == len(dd) - 1:
+        dd = dd[1:]  # only compare URL domains, not subdomains
+    if d == dd:  # if domains are identical, auth kwargs don't need to be removed
+        return kwargs
+    kwargs.pop('headers', None)
+    kwargs.pop('cookies', None)
+    kwargs.pop('auth', None)
+    return kwargs

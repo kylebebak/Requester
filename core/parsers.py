@@ -14,12 +14,12 @@ TypedSelection = namedtuple('TypedSelection', 'selection, type')
 RequestAssertion = namedtuple('RequestAssertion', 'request, assertion')
 
 
-def parse_requests(s, n=None, es=None):
+def parse_requests(s, **kwargs):
     """Parse string for all calls to `{name}.{verb}(`, or simply `{verb}(`.
 
     Returns a list of request strings.
     """
-    selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], n=n, es=es)
+    selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], **kwargs)
     return [sel.selection for sel in selections]
 
 

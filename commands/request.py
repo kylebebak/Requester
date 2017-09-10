@@ -76,12 +76,15 @@ def get_response_view_content(response):
 
     content = get_content(res, req.skwargs.get('fmt')) if read_content else 'File download.'
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
+    explore_binding = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
     pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [
         req.request,
         header,
         'Request Headers: {}'.format(res.request.headers),
-        '{} replay request'.format(replay_binding) + ', ' + '{} pin/unpin tab'.format(pin_binding),
+        '{} replay request, {} explore request, {} pin/unpin tab'.format(
+            replay_binding, explore_binding, pin_binding
+        ),
         headers
     ]
     try:
@@ -309,6 +312,36 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         self.set_request_setting_on_view(view, res)
 
         set_response_view_name(view, res)
+
+
+class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
+    """Explore a new URL from a response view. If the request doesn't hit the same
+    domain, remove the `headers`, `cookies` and `auth` args. This makes it trivial
+    for users to explore hyperlinked APIs (HATEOAS).
+    """
+    def get_requests(self):
+        """Parses requests from multiple selections, and marks request as being a
+        "auth child" of the request in the current response view.
+        """
+        view = self.view
+        if not view or not view.settings().get('requester.response_view', False):
+            sublime.error_message('Explore Error: you can only explore URLs from response tabs')
+            return []
+
+        try:
+            url = view.substr(view.sel()[0])
+        except:
+            return []
+        if not url:
+            return []
+
+        try:
+            request = super().get_requests()[0]
+        except Exception as e:
+            sublime.error_message('Explore Error: {}'.format(e))
+            print(e)
+            return []
+        return ["{}, explore=({}, {}))".format(request[:-1], repr(request), repr(url))]
 
 
 class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
