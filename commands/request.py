@@ -348,7 +348,7 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
             request = self.get_replay_request()
         except:
             return []
-        return ["{}, explore={})".format(request[:-1], repr(url))]
+        return ["{}, explore=({}, {}))".format(request[:-1], repr(request), repr(url))]
 
     def show_activity_for_pending_requests(self, *args, **kwargs):
         """Don't do this for exploratory requests.

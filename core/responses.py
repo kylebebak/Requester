@@ -166,10 +166,8 @@ def prepare_request(request, env, ordering):
     http://docs.python-requests.org/en/master/user/advanced/#timeouts
     """
     settings = sublime.load_settings('Requester.sublime-settings')
+    req = prepend_library(request)
 
-    req = request.strip()
-    if not re.match(PREFIX, req):
-        req = 'requests.' + req
     session = None
     if not req.startswith('requests.'):
         session = req.split('.')[0]
@@ -201,10 +199,19 @@ def prepare_request(request, env, ordering):
             return Request(req, method, url, args, kwargs, ordering, session, {}, error=str(e))
 
     if 'explore' in kwargs:
-        e_url = kwargs.pop('explore')
-        kwargs = prepare_explore_kwargs(e_url, url, kwargs)
+        req, e_url = kwargs.pop('explore')
+        req = replace_method(prepend_library(req), 'get')
+        if not same_domain(e_url, url):
+            # if explore URL does't have same domain as URL, remove auth kwargs from req
+            kwargs.pop('params', None)
+            kwargs.pop('headers', None)
+            kwargs.pop('cookies', None)
+            kwargs.pop('auth', None)
+            req = replace_url(req, e_url, replace_all=True)
+        else:
+            req = replace_url(req, e_url, replace_all=False)
         url = prepend_scheme(e_url)
-        req = replace_url_in_request(req, url)
+        method = 'GET'
     else:
         url = prepend_scheme(url)
 
@@ -234,28 +241,53 @@ def prepare_request(request, env, ordering):
     return Request(req, method, url, args, kwargs, ordering, session, skwargs, error)
 
 
-def prepare_explore_kwargs(e_url, url, kwargs):
-    """If explore URL (`e_url`) doesn't have same domain as `url`, remove any
-    kwargs related to authentication from request.
-
-    This prevents, for example, an "exploratory" request from sending auth headers
-    for one domain to a different, possibly malicious domain.
+def prepend_library(req):
+    """Makes sure "requests." is prepended to call to requests.
     """
-    kwargs.pop('params', None)  # likely not relevant for exploring hyperlinked URL
+    req = req.strip()
+    if not re.match(PREFIX, req):
+        return 'requests.' + req
+    return req
+
+
+def same_domain(e_url, url):
+    """Do these URLs have the same domain?
+
+    Note, this method is NOT correct for URLs whose gTLD/ccTLD has one or more '.'
+    chars, like "co.uk". See here: https://github.com/john-kurkowski/tldextract
+
+    It is also incorrect for subdomains with more than one segment, although I
+    haven't seen URLs like this in production.
+
+    https://raw.githubusercontent.com/toddmotto/public-apis/master/json/entries.json
+    This list suggests that public APIs overwhelmingly have gTLDs without '.' chars.
+    """
     e_netloc, netloc = parse.urlparse(e_url).netloc, parse.urlparse(url).netloc
     d, dd = sorted([n.split('.') for n in (e_netloc, netloc)], key=lambda d: len(d))
+    parts = max(2, len(dd)-1)
+    if len(d) < 2:  # not a valid URL, but this method not responsible for raising exception
+        return False
+    if len(d) < len(dd) - 1:
+        return False
     if len(d) == len(dd) - 1:
         dd = dd[1:]  # only compare URL domains, not subdomains
-    if d == dd:  # if domains are identical, auth kwargs don't need to be removed
-        return kwargs
-    kwargs.pop('headers', None)
-    kwargs.pop('cookies', None)
-    kwargs.pop('auth', None)
-    return kwargs
+    return d[-parts:] == dd[-parts:]
 
 
-def replace_url_in_request(req, url):
+def replace_method(req, method):
+    """Replace method in request string.
+    """
+    call, args = req.split('(', 1)
+    request, _method = call.split('.', 1)
+    return '{}.{}({}'.format(request, method, args)
+
+
+def replace_url(req, url, replace_all):
     """Tries to replace `url` in `req` string. This can fail if user has
     unconventional argument ordering. This is only for exploratory requests.
     """
-    return req
+    call, args = req.split('(', 1)
+    if ',' not in req or replace_all:
+        return '{}({})'.format(call, repr(url))
+    _first, rest = args.split(',', 1)
+    return '{}({},{}'.format(call, repr(url), rest)
