@@ -201,9 +201,10 @@ def prepare_request(request, env, ordering):
             return Request(req, method, url, args, kwargs, ordering, session, {}, error=str(e))
 
     if 'explore' in kwargs:
-        e_req, e_url = kwargs.pop('explore')
+        e_url = kwargs.pop('explore')
         kwargs = prepare_explore_kwargs(e_url, url, kwargs)
-        req, url = e_req, prepend_scheme(e_url)
+        url = prepend_scheme(e_url)
+        req = replace_url_in_request(req, url)
     else:
         url = prepend_scheme(url)
 
@@ -240,6 +241,7 @@ def prepare_explore_kwargs(e_url, url, kwargs):
     This prevents, for example, an "exploratory" request from sending auth headers
     for one domain to a different, possibly malicious domain.
     """
+    kwargs.pop('params', None)  # likely not relevant for exploring hyperlinked URL
     e_netloc, netloc = parse.urlparse(e_url).netloc, parse.urlparse(url).netloc
     d, dd = sorted([n.split('.') for n in (e_netloc, netloc)], key=lambda d: len(d))
     if len(d) == len(dd) - 1:
@@ -250,3 +252,10 @@ def prepare_explore_kwargs(e_url, url, kwargs):
     kwargs.pop('cookies', None)
     kwargs.pop('auth', None)
     return kwargs
+
+
+def replace_url_in_request(req, url):
+    """Tries to replace `url` in `req` string. This can fail if user has
+    unconventional argument ordering. This is only for exploratory requests.
+    """
+    return req

@@ -283,24 +283,19 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
     """Replay a request from a response view.
     """
     def get_requests(self):
-        """Also handles special case where request is replayed from "explore tab".
+        """Only parses first request in file.
         """
         try:
             request = self.get_replay_request()
         except:
             return []
-        e_url = self.view.settings().get('requester.explore_url', None)
-        if e_url is None:
-            return [request]
-        return [self.get_explore_request(request, e_url)]
+        return [request]
 
     def get_replay_request(self):
         """Only parses first request in file.
         """
         try:
-            requests = parse_requests(self.view.substr(
-                sublime.Region(0, self.view.size())
-            ), n=1)
+            requests = parse_requests(self.view.substr(sublime.Region(0, self.view.size())), n=1)
         except Exception as e:
             sublime.error_message('Parse Error: there may be unbalanced parentheses in your request')
             print(e)
@@ -311,11 +306,6 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
             sublime.error_message('Replay Error: there is no request in your response review')
             raise
 
-    def get_explore_request(self, request, url):
-        """Build exploratory request by adding explore `url` to `explore` kwarg.
-        """
-        return "{}, explore=({}, {}))".format(request[:-1], repr(request), repr(url))
-
     def handle_response(self, response):
         """Overwrites content in current view.
         """
@@ -325,38 +315,11 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         if err:
             return
 
-        explore_url = view.settings().get('requester.explore_url', None)
-        if explore_url is not None:
-            return self.handle_explore_response(view, response, explore_url)
-
         content, point = get_response_view_content(response)
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
         set_response_view_name(view, res)
-
-    def handle_explore_response(self, view, response, explore_url):
-        """In case this isn't a normal response view.
-        """
-        req, res, err = response
-        set_response_view_name(view, res)
-        self.set_env_settings_on_view(view)
-        self.set_request_setting_on_view(view, res)
-        view.settings().set('requester.response_view', True)
-        view.settings().set('requester.explore_url', explore_url)
-
-        content, point = get_response_view_content(response)
-        content = 'EXPLORE: {}\n{}'.format(explore_url, content)
-        view.set_scratch(True)
-        view.run_command('requester_replace_view_text', {'text': content, 'point': point})
-        view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
-
-    def persist_requests(self, responses):
-        """Don't do this for exploratory requests.
-        """
-        if self.view.settings().get('requester.explore_url', None):
-            return
-        return super().persist_requests(responses)
 
 
 class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
@@ -365,8 +328,8 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
     for users to explore hyperlinked APIs (HATEOAS).
     """
     def get_requests(self):
-        """Parses requests from multiple selections, and marks request as being a
-        "auth child" of the request in the current response view.
+        """Parses URL from first selection, and passes it in special `explore` arg
+        to call to requests.
         """
         view = self.view
         if not view or not view.settings().get('requester.response_view', False):
@@ -385,7 +348,7 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
             request = self.get_replay_request()
         except:
             return []
-        return [self.get_explore_request(request, url)]
+        return ["{}, explore={})".format(request[:-1], repr(url))]
 
     def show_activity_for_pending_requests(self, *args, **kwargs):
         """Don't do this for exploratory requests.
@@ -400,7 +363,15 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
             return
 
         view = self.view.window().new_file()
-        self.handle_explore_response(view, response, self._explore_url)
+        self.set_env_settings_on_view(view)
+        view.settings().set('requester.response_view', True)
+        view.set_scratch(True)
+
+        content, point = get_response_view_content(response)
+        view.run_command('requester_replace_view_text', {'text': content, 'point': point})
+        view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
+        self.set_request_setting_on_view(view, res)
+        set_response_view_name(view, res)
 
     def persist_requests(self, responses):
         """Don't do this for exploratory requests.

@@ -8,19 +8,12 @@ variables:
   content_type_sep: (?=;|$)
 contexts:
   main:
-    - match: '^EXPLORE: '
-      push: explore-url
     - match: ''
       push:
         - meta_content_scope: source.python
         - include: scope:source.python
         - match: $\n
           set: http-status
-
-  explore-url:
-    - meta_scope: entity.name.tag.explore.requester-response
-    - match: \n
-      pop: true
 
   http-status:
     - match: (\[)\s*(=)\s*(\])
