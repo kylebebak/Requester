@@ -15,6 +15,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
   + Define [__environment variables__](#environment-variables) with regular Python code
   + Execute requests and display responses in parallel, [__or chain requests__](#chaining-by-reference)
   + Edit and replay requests from individual response tabs
+    * [Explore hyperlinked APIs](#explore-hyperlinked-apis-hateoas) from response tabs
   + Fuzzy searchable [request navigation](#request-navigation-pyr-extension), fuzzy searchable request history
   + Formatted, colorized output with automatic syntax highlighting
   + Clear error handling and error messages
@@ -53,13 +54,17 @@ If you're looking for an HTTP client you should try Requester __even if you've n
   + [Request History](#request-history)
   + [Chaining Requests](#chaining-requests)
     * [Chaining By Reference](#chaining-by-reference)
+- [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
+  + [Options Requests](#options-requests)
 - [Test Runner](#test-runner)
   + [Making Assertions About Response Structure](#making-assertions-about-response-structure)
   + [Export Tests to Runnable Script](#export-tests-to-runnable-script)
 - [Benchmarking Tool](#benchmarking-tool)
 - [Export/Import with cURL, HTTPie](#exportimport-with-curl-httpie)
 - [Import Any Python Package With Requester](#import-any-python-package-with-requester)
+  + [Pip3 Quickstart](#pip3-quickstart)
   + [OAuth1 and OAuth2](#oauth1-and-oauth2)
+- [Special Keyword Arguments](#special-keyword-arguments)
 - [Commands](#commands)
 - [Settings](#settings)
 - [Contributing and Tests](#contributing-and-tests)
@@ -97,7 +102,10 @@ Tabs will open for all 4 requests (Requester conveniently ignores the blank line
 
 Want to see something nifty? Mix up the order of the 4 open response tabs, come back to your requester file, and run __Requester: Reorder Response Tabs__.
 
-If you want to define requests over multiple lines, just make sure you fully highlight the requests before executing them. Try it.
+For executing requests defined over multiple lines, you have two options:
+
+- fully highlight one or more requests and execute them
+- place your cursor on the __first line__ of a request and execute it
 
 ~~~py
 get(
@@ -124,7 +132,7 @@ get('http://headers.jsontest.com/', fmt='raw')
 
 
 ### Ultra Convenient GET Requests
-Try sending the following request. This is obviously not valid Python syntax, but Requester has a special convenience method for basic GET requets. If you run Requester on a URL like the one below, it will automatically wrap it in call to `requests.get` like so, `requests.get('...')`.
+Try sending the following request. This is obviously not valid Python syntax, but Requester has a special convenience method for basic GET requets. If you run Requester on a URL like the one below, it automatically wraps it in a call to `requests.get` like so, `requests.get('...')`.
 
 ~~~py
 httpbin.com/get
@@ -151,7 +159,7 @@ get(base_url + '/albums')
 post(base_url + '/albums')
 ~~~
 
-Variables you define in your env block can be referenced by any of your requests. The __###env__ lines must have no leading or trailing spaces. Only the first env block in a requester file will be used.
+Variables you define in your env block can be referenced by any of your requests. The __###env__ lines must have no leading or trailing spaces. Only the first env block in a requester file is used.
 
 You can import and use anything in Python's standard library in your env block. You can also import and use `requests`. This makes Requester's env vars __powerful and flexible__. Here's a toy example. Copy it to another file and give it a try.
 
@@ -234,7 +242,7 @@ Behind the scenes, `.pyr` files get the special __Requester__ syntax applied to 
 
 - your `###env` block delimeters are highlighted
 - request groups can be declared by starting a line with two or more `##` characters
-- you can use __Goto Symbol__ to jump between requests and request groups ✨✨
+- you can use Sublime's __Goto Symbol__ to jump between requests and request groups ✨✨
 
 
 ### Sessions
@@ -282,7 +290,7 @@ post('https://requestb.in/<your_request_bin>', streamed='/path/to/file')
 post('https://requestb.in/<your_request_bin>', chunked='/path/to/file')
 ~~~
 
-If you use pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header will be added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled.
+If you use pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header is added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled.
 
 >If you need streaming uploads for multipart forms, or uploads of multiple files, the `requests-toolbelt` packages has your back. Check out [this section](#import-any-python-package-with-requester).
 
@@ -298,9 +306,9 @@ As with streamed and chunked uploads, `filename` can be an absolute path, or a p
 
 
 #### Downloaded File Name
-If you pass a value for `filename` that has no __basename__, Requester will infer the name of the file from the URL. Examples of such `filename`s: __''__, __relative/path/__, __/absolute/path/__.
+If you pass a value for `filename` that has no __basename__, Requester infers the name of the file from the URL. Examples of such `filename`s: __''__, __relative/path/__, __/absolute/path/__.
 
-In this mode, if the file name already exists, Requester will add a suffix to make the file name unique. Try downloading this file several times in succession.
+In this mode, if the file name already exists, Requester adds a suffix to make the file name unique. Try downloading this file several times in succession.
 
 ~~~py
 get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='')
@@ -349,6 +357,31 @@ get('httpbin.org/cookies', cookies={'url': first_response.json()['url']})
 ~~~
 
 By the way, this means you shouldn't name an env var "Response", or with the same name that you pass to a request's `name` argument, because these env vars will be overwritten.
+
+
+## Explore Hyperlinked APIs (HATEOAS)
+Ever used an API that returns __hyperlinks__ to other resources in the response? This pattern is part of a larger concept in REST called HATEOAS, or [hypermedia as the engine of application state](http://www.django-rest-framework.org/topics/rest-hypermedia-hateoas/). 
+
+It's a mouthful, but the idea is simple: an API response should tell clients how to interact with related resources by providing them hyperlinks to those resources. This allows APIs to change without breaking clients, as long as clients are written to take their cues from the hyperlinks returned by the API.
+
+__Requester is ready-made for exploring these APIs__. From a response tab, highlight any URL and press <kbd>ctrl+e</kbd> (<kbd>cmd+e</kbd> on macOS). Instead of replaying the original request, Requester sends a GET request to the highlighted URL and opens the response in a new tab.
+
+It also compares the domain of the highlighted URL with the domain of the original request. If they're the same, Requester __includes the same args and kwargs in the new request__. If the original request was authenticated, the "exploratory" request will be authenticated as well.
+
+If the domains are not the same, Requester strips all additional args and kwargs from the request, to ensure that none of your auth credentials are sent to a URL not belonging to the "source" API.
+
+~~~py
+post('httpbin.org/post',
+    headers={'Authorization': 'Bearer my_secret_token'},
+    json={'same_domain': 'http://httpbin.org/get', 'other_domain': 'https://jsonplaceholder.typicode.com/posts'}
+)
+~~~
+
+Execute the request above. In the response tab, try highlighting each of the URLs in the response body and sending exploratory requests. Requester makes it trivial to explore hyperlinked URLs without worrying about leaking your credentials. ✨✨
+
+
+### Options Requests
+Want to see which HTTP verbs a given endpoint accepts? Send an `OPTIONS` request to the endpoint. Requester makes this ridiculously easy -- from a response tab, just press <kbd>ctrl+o</kbd> (<kbd>cmd+o</kbd> on macOS).
 
 
 ## Test Runner
@@ -429,7 +462,7 @@ Want to see how your staging or production servers hold up under load? Requester
 
 You'll be prompted for the number `N` of each request to run, and the concurrency `C`. In other words, if you highlight 5 requests, then input 100 for `N` and 20 for `C`, you'll send a total of 500 requests, 100 to each endpoint, in bunches of 20 at a time.
 
-Requester will then display a profile with response time metrics, grouped by request method and URL. Try it on these 3 here, with N=100 and C=20.
+Requester then displays a profile with response time metrics, grouped by request method and URL. Try it on these 3 here, with N=100 and C=20.
 
 ~~~py
 get('http://httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
@@ -455,14 +488,24 @@ Exporting works seamlessly with env vars. Just highlight a group of requests and
 
 
 ## Import Any Python Package With Requester
-Requester comes bundled with the `requests` and `jsonschema` packages, but it can actually source __any__ Python 3 package in its env. All you have to do is set the `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file.
+Requester comes bundled with the `requests` and `jsonschema` packages, but it can actually source __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file.
 
-In my settings `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
+In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
 
 Here are a couple of no-brainers:
 
 - [requests-oauthlib](https://github.com/requests/requests-oauthlib)
 - [requests-toolbelt](https://github.com/requests/toolbelt)
+
+
+### Pip3 Quickstart
+If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
+
+Then run `pip3 install requests-oauthlib`, `pip3 install requests-toolbelt`, and so on for whatever packages you'd like to use with Requester.
+
+Finally, run `pip3 show requests-oauthlib`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
+
+Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
 
 
 ### OAuth1 and OAuth2
@@ -486,6 +529,16 @@ get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackov
 ~~~
 
 Python has auth libraries for authenticating with a wide variety of APIs. With `pip` and the `packages_path` setting Requester can access them all.
+
+
+## Special Keyword Arguments
+Requester's syntax is basically identical to Requests' syntax, but it adds support for the following special `kwargs`.
+
+- __fmt__: one of ('raw', 'indent', 'indent_sort'), controls formatting of JSON responses
+- __name__: binds name to response object so that it can be referenced by subsequent serially executed requests
+- __filename__: downloads the response to the specied path
+- __streamed__: performs a streaming upload of the specified file
+- __chunked__: performs a chunked upload, with a progress indicator, of the specified file
 
 
 ## Commands

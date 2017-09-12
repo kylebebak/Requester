@@ -19,7 +19,10 @@ Tabs will open for all 4 requests (Requester conveniently ignores the blank line
 
 Want to see something nifty? Mix up the order of the 4 open response tabs, come back to the tutorial tab, and run __Requester: Reorder Response Tabs__.
 
-If you want to define requests over multiple lines, just make sure you fully highlight the requests before executing them. Try it.
+For executing requests defined over multiple lines, you have two options:
+
+- fully highlight one or more requests and execute them
+- place your cursor on the __first line__ of a request and execute it
 
 ~~~py
 get(

@@ -201,7 +201,7 @@ def prepare_request(request, env, ordering):
     if 'explore' in kwargs:
         req, e_url = kwargs.pop('explore')
         req = replace_method(prepend_library(req), 'get')
-        if not same_domain(e_url, url):
+        if not same_domain(prepend_scheme(e_url), prepend_scheme(url)):
             # if explore URL does't have same domain as URL, remove auth kwargs from req
             kwargs.pop('params', None)
             kwargs.pop('headers', None)
