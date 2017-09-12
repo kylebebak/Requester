@@ -16,6 +16,20 @@ Content = namedtuple('Content', 'content, point')
 platform = sublime.platform()
 
 
+def response_tab_bindings():
+    """For special key bindings response tabs.
+    """
+    replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
+    nav_binding = '[ctrl+alt+ ←/→]'
+    explore_binding = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
+    options_binding = '[cmd+o]' if platform == 'osx' else '[ctrl+o]'
+    pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
+
+    return '{} replay request, {} prev/next request, {} pin/unpin tab, {} explore URL, {} options'.format(
+        replay_binding, nav_binding, pin_binding, explore_binding, options_binding
+    )
+
+
 def get_content(res, fmt):
     """Efficiently decides if response content is binary. If this is the case,
     returns before `text` or `json` are invoked on response, because they are VERY
@@ -75,17 +89,11 @@ def get_response_view_content(response):
     )
 
     content = get_content(res, req.skwargs.get('fmt')) if read_content else 'File download.'
-    replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
-    explore_binding = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
-    options_binding = '[cmd+o]' if platform == 'osx' else '[ctrl+o]'
-    pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     before_content_items = [
         req.request,
         header,
         'Request Headers: {}'.format(res.request.headers),
-        '{} replay request, {} explore request, {} options, {} pin/unpin tab'.format(
-            replay_binding, explore_binding, options_binding, pin_binding
-        ),
+        response_tab_bindings(),
         headers
     ]
     try:
@@ -240,6 +248,7 @@ class RequestsMixin:
             view.run_command('requester_replace_view_text', {'text': content, 'point': point})
             view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
             self.set_request_setting_on_view(view, res)
+            persist_request_local(req, view)
 
         # should response tabs be reordered after requests return?
         if self.config.get('reorder_tabs_after_requests', False):
@@ -320,6 +329,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
         set_response_view_name(view, res)
+        persist_request_local(req, view)
 
 
 class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
@@ -372,6 +382,7 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
         set_response_view_name(view, res)
+        persist_request_local(req, view)
 
     def persist_requests(self, responses):
         """Don't do this for exploratory requests.
@@ -473,3 +484,14 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         window.set_view_index(self.view, group, index)
         for v in views:
             window.set_view_index(v.view, group, index)
+
+
+def persist_request_local(req, view, max_len=20):
+    """Persist `req` string to `view` settings. Store up to `max_len` request
+    strings. Deduplicates request strings. Not thread safe but who cares.
+    """
+    reqs = view.settings().get('requester.request_history', [])
+    reqs = [r for r in reqs if r != req.request]
+    reqs.append(req.request)
+    view.settings().set('requester.request_history', reqs[-max_len:])
+    view.settings().set('requester.request_history_index', len(reqs)-1)

@@ -148,3 +148,33 @@ class RequesterUrlOptionsCommand(sublime_plugin.WindowCommand):
             )
 
         view.show_popup(content, max_width=700, max_height=500)
+
+
+class RequesterNavigateLocalRequestHistoryCommand(sublime_plugin.TextCommand):
+    """`TextCommand` to cycle through  requests executed previously in this
+    response tab. Replaces text in response view with request string.
+    """
+    def run(self, edit, back):
+        from .request import response_tab_bindings
+        view = self.view
+        if not view.settings().get('requester.response_view', False):
+            return
+        reqs = view.settings().get('requester.request_history', [])
+        index = view.settings().get('requester.request_history_index', len(reqs)-1)
+
+        if back:
+            index -= 1
+        else:
+            index += 1
+        if index < 0 or index >= len(reqs):
+            return
+
+        try:
+            req = reqs[index]
+        except IndexError as e:
+            sublime.error_message('NavigateLocal Error: {}'.format(e))
+            return
+        view.settings().set('requester.request_history_index', index)
+
+        view.run_command('requester_replace_view_text',
+                         {'text': '{}\n\n{}\n'.format(req, response_tab_bindings()), 'point': 0})
