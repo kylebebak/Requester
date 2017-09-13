@@ -18,8 +18,8 @@ Content = namedtuple('Content', 'content, point')
 platform = sublime.platform()
 
 
-def response_tab_bindings():
-    """For special key bindings response tabs.
+def response_tab_command_bindings():
+    """Returns string with special key bindings for response tab commands.
     """
     replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     nav_binding = '[ctrl+alt+ ←/→]'
@@ -95,7 +95,7 @@ def get_response_view_content(response):
         req.request,
         header,
         'Request Headers: {}'.format(res.request.headers),
-        response_tab_bindings(),
+        response_tab_command_bindings(),
         headers
     ]
     try:
@@ -132,8 +132,6 @@ def set_response_view_name(view, res=None):
 
 
 class RequestsMixin:
-    FROM_HISTORY = False
-
     def get_requests(self):
         """Parses requests from multiple selections. If nothing is highlighted,
         cursor's current line is taken as selection.
@@ -188,7 +186,7 @@ class RequestsMixin:
     def response_views_with_matching_request(self, method, url):
         """Get all response views whose request matches `request`.
         """
-        if self.view.settings().get('requester.response_view', False) and not self.FROM_HISTORY:
+        if self.view.settings().get('requester.response_view', False):
             return [self.view]  # don't update other views when replaying a request
 
         views = []

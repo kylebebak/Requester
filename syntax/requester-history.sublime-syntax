@@ -13,7 +13,7 @@ contexts:
         - meta_content_scope: source.python
         - include: scope:source.python
         - match: $\n
-          set: http-status
+          set: commands
 
   response-meta:
 

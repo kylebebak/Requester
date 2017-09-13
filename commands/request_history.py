@@ -4,11 +4,91 @@ import sublime_plugin
 import os
 import json
 from time import time
+from urllib import parse
 from collections import OrderedDict
 
-from .request import RequesterCommand
-from ..core import RequestCommandMixin
 from ..core.helpers import truncate
+
+
+def load_history():
+    """Returns list of past requests. Raises exception if history file doesn't
+    exist.
+    """
+    history_file = sublime.load_settings('Requester.sublime-settings').get('history_file', None)
+    if not history_file:
+        raise KeyError
+
+    history_path = os.path.join(sublime.packages_path(), 'User', history_file)
+    with open(history_path, 'r') as f:
+        rh = json.loads(f.read() or '{}', object_pairs_hook=OrderedDict)
+    return list(rh.items())
+
+
+def populate_staging_view(
+    view, request, method, url, code, ts, meta=None, file=None, env_string=None, env_file=None
+):
+    """Populate staging view with historical request string/metadata.
+    """
+    from .request import response_tab_command_bindings
+    view.settings().set('requester.response_view', True)
+    view.settings().set('requester.env_string', env_string)
+    view.settings().set('requester.file', file)
+    view.settings().set('requester.env_file', env_file)
+
+    content = '{}\n\n{}\n'.format(request, response_tab_command_bindings())
+    view.run_command('requester_replace_view_text', {'text': content, 'point': 0})
+
+    path = parse.urlparse(url).path
+    if path and path[-1] == '/':
+        path = path[:-1]
+    view.set_name('(History) {}: {}'.format(method, path))
+    view.set_syntax_file('Packages/Requester/syntax/requester-history.sublime-syntax')
+    view.set_scratch(True)
+
+
+def approximate_age(from_stamp, to_stamp=None, precision=2):
+    """Calculate the relative time from given timestamp to another given
+    (epoch) or now.
+
+    Taken from: <https://github.com/FichteFoll/sublimetext-filehistory>
+    """
+    if to_stamp is None:
+        to_stamp = time()
+    rem = to_stamp - from_stamp
+
+    def divide(rem, mod):
+        return rem % mod, int(rem // mod)
+
+    def subtract(rem, div):
+        n = int(rem // div)
+        return n,  rem - n * div
+
+    seconds, rem = divide(rem, 60)
+    minutes, rem = divide(rem, 60)
+    hours, days = divide(rem, 24)
+    years, days = subtract(days, 365)
+    months, days = subtract(days, 30)
+    weeks, days = subtract(days, 7)
+
+    magnitudes = []
+    first = None
+    values = locals()
+    for i, magnitude in enumerate(('years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds')):
+        v = int(values[magnitude])
+        if v == 0:
+            continue
+        s = '{} {}'.format(v, magnitude)
+        if v == 1:  # strip plural s
+            s = s[:-1]
+        # handle precision limit
+        if first is None:
+            first = i
+        elif first + precision <= i:
+            break
+        magnitudes.append(s)
+
+    age = ', '.join(magnitudes)
+    return (age or '0 seconds') + ' ago'
 
 
 class RequesterHistoryCommand(sublime_plugin.WindowCommand):
@@ -17,19 +97,11 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
     panel, stage request.
     """
     def run(self):
-        history_file = sublime.load_settings('Requester.sublime-settings').get('history_file', None)
-        if not history_file:
-            return
-
-        history_path = os.path.join(sublime.packages_path(), 'User', history_file)
         try:
-            with open(history_path, 'r') as f:
-                rh = json.loads(f.read() or '{}', object_pairs_hook=OrderedDict)
-        except:
+            self.requests = list(reversed(load_history()))
+        except Exception as e:
+            print(e)
             return
-        self.requests = list(reversed(
-            list(rh.items())
-        ))
 
         entries = [self.get_entry_parts(req) for req in self.requests]
         self.window.show_quick_panel(
@@ -49,7 +121,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         try:  # in case, e.g., schema has changed
             return [
                 truncate(header, 100),
-                self.approximate_age(req[1]['ts']),
+                approximate_age(req[1]['ts']),
                 str(req[1]['code']),
                 req[1]['file'] or '?',
             ]
@@ -62,89 +134,10 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         if index < 0:  # e.g. user presses escape
             return
 
-        request = self.requests[index]
-        params_dict = request[1]
-        self.window.run_command('requester_stage_request_from_history', params_dict)
-
-    @staticmethod
-    def remove_prefix(text, prefix='requests.'):
-        """Removes "requests." prefix from history entries to reduce noise.
-        """
-        if text.startswith(prefix):
-            return text[len(prefix):]
-        return text
-
-    @staticmethod
-    def approximate_age(from_stamp, to_stamp=None, precision=2):
-        """Calculate the relative time from given timestamp to another given
-        (epoch) or now.
-
-        Taken from: <https://github.com/FichteFoll/sublimetext-filehistory>
-        """
-        if to_stamp is None:
-            to_stamp = time()
-        rem = to_stamp - from_stamp
-
-        def divide(rem, mod):
-            return rem % mod, int(rem // mod)
-
-        def subtract(rem, div):
-            n = int(rem // div)
-            return n,  rem - n * div
-
-        seconds, rem = divide(rem, 60)
-        minutes, rem = divide(rem, 60)
-        hours, days = divide(rem, 24)
-        years, days = subtract(days, 365)
-        months, days = subtract(days, 30)
-        weeks, days = subtract(days, 7)
-
-        magnitudes = []
-        first = None
-        values = locals()
-        for i, magnitude in enumerate(('years', 'months', 'weeks', 'days', 'hours', 'minutes', 'seconds')):
-            v = int(values[magnitude])
-            if v == 0:
-                continue
-            s = '{} {}'.format(v, magnitude)
-            if v == 1:  # strip plural s
-                s = s[:-1]
-            # handle precision limit
-            if first is None:
-                first = i
-            elif first + precision <= i:
-                break
-            magnitudes.append(s)
-
-        age = ', '.join(magnitudes)
-        return (age or '0 seconds') + ' ago'
-
-
-class RequesterStageRequestFromHistoryCommand(RequesterCommand):
-    """Stage request chosen from requester history in context of env under
-    which request was originally executed.
-    """
-    def run(self, edit, request, env_string, file, env_file, **kwargs):
-        """Client must pass `request` and env parameters.
-        """
-        self.FROM_HISTORY = True
-        self.request = request
-        self.view.settings().set('requester.env_string', env_string)
-        self.view.settings().set('requester.file', file)
-        self.view.settings().set('requester.env_file', env_file)
-        RequestCommandMixin.run(self, edit)
-
-    def get_requests(self):
-        return [self.request]
-
-    def reset_env_string(self):
-        pass
-
-    def reset_file(self):
-        pass
-
-    def reset_env_file(self):
-        pass
+        params_dict = self.requests[index][1]
+        view = self.window.new_file()
+        view.settings().set('requester.request_history_index', index)
+        populate_staging_view(view=view, **params_dict)
 
 
 class RequesterNavigateRequestHistoryCommand(sublime_plugin.TextCommand):
@@ -153,11 +146,10 @@ class RequesterNavigateRequestHistoryCommand(sublime_plugin.TextCommand):
     and response metadata.
     """
     def run(self, edit, back):
-        from .request import response_tab_bindings
         view = self.view
         if not view.settings().get('requester.response_view', False):
             return
-        reqs = view.settings().get('requester.request_history', [])
+        reqs = load_history()
         index = view.settings().get('requester.request_history_index', len(reqs)-1)
 
         if back:
@@ -168,11 +160,9 @@ class RequesterNavigateRequestHistoryCommand(sublime_plugin.TextCommand):
             return
 
         try:
-            req = reqs[index]
+            params_dict = reqs[index][1]
         except IndexError as e:
-            sublime.error_message('NavigateLocal Error: {}'.format(e))
+            sublime.error_message('RequestHistory Error: {}'.format(e))
             return
         view.settings().set('requester.request_history_index', index)
-
-        view.run_command('requester_replace_view_text',
-                         {'text': '{}\n\n{}\n'.format(req, response_tab_bindings()), 'point': 0})
+        populate_staging_view(view, **params_dict)
