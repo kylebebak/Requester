@@ -69,7 +69,7 @@ def parse(s, open_bracket, close_bracket, match_patterns, n=None, es=None):
         index += len(line)
 
     if not start_indices and len(lines) == 1:  # shorthand syntax for basic, one-line GET requests
-        return [Selection("get('{}')".format(prepend_scheme(s)), 0)]
+        return [Selection("get('{}')".format(prepend_scheme(s.strip().strip('"').strip("'"))), 0)]
     if es:  # replace selection with extended selection AFTER `start_indices` have been found
         s = es
 

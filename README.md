@@ -14,9 +14,9 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
 - Intuitive, modern UX
   + Define [__environment variables__](#environment-variables) with regular Python code
   + Execute requests and display responses in parallel, [__or chain requests__](#chaining-by-reference)
-  + Edit and replay requests from individual response tabs
+  + Edit and replay requests from individual response tabs, cycle through past requests
     * [Explore hyperlinked APIs](#explore-hyperlinked-apis-hateoas) from response tabs
-  + Fuzzy searchable [request navigation](#request-navigation-pyr-extension), fuzzy searchable request history
+  + Fuzzy searchable [request navigation and request history](#navigation-and-history)
   + Formatted, colorized output with automatic syntax highlighting
   + Clear error handling and error messages
 - Perfect for teams
@@ -35,37 +35,40 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 ## Contents
 - [Installation](#installation)
 - [Getting Started](#getting-started)
+  + [Multiline Requests](#multiline-requests)
   + [JSON Response Formatting](#json-response-formatting)
-  + [Ultra Convenient GET Requests](#ultra-convenient-get-requests)
+  + [Ergonomic GET Requests](#ergonomic-get-requests)
   + [Pinned Response Tabs](#pinned-response-tabs)
   + [Environment Variables](#environment-variables)
 - [Advanced Features](#advanced-features)
   + [Separate Env File](#separate-env-file)
     * [Merging Vars from Env Block and Env File](#merging-vars-from-env-block-and-env-file)
   + [Request Body, Query Params, Custom Headers, Cookies](#request-body-query-params-custom-headers-cookies)
-  + [New Requester File](#new-requester-file)
-    * [Request Navigation (.pyr extension)](#request-navigation-pyr-extension)
   + [Sessions](#sessions)
   + [Authentication](#authentication)
   + [Forms and File Uploads](#forms-and-file-uploads)
   + [Downloads](#downloads)
     * [Downloaded File Name](#downloaded-file-name)
   + [Cancel Outstanding Requests](#cancel-outstanding-requests)
-  + [Request History](#request-history)
   + [Chaining Requests](#chaining-requests)
-    * [Chaining By Reference](#chaining-by-reference)
-- [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
+    * [Chaining by Reference](#chaining-by-reference)
+- [Navigation and History](#navigation-and-history)
+  + [Requester File Navigation (.pyr extension)](#requester-file-navigation-pyr-extension)
+  + [Request History](#request-history)
+    * [Cycle Through Past Requests](#cycle-through-past-requests)
+  + [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
   + [Options Requests](#options-requests)
+- [Import Any Python Package with Requester](#import-any-python-package-with-requester)
+  + [Pip3 Quickstart](#pip3-quickstart)
+  + [OAuth1 and OAuth2](#oauth1-and-oauth2)
 - [Test Runner](#test-runner)
   + [Making Assertions About Response Structure](#making-assertions-about-response-structure)
   + [Export Tests to Runnable Script](#export-tests-to-runnable-script)
 - [Benchmarking Tool](#benchmarking-tool)
 - [Export/Import with cURL, HTTPie](#exportimport-with-curl-httpie)
-- [Import Any Python Package With Requester](#import-any-python-package-with-requester)
-  + [Pip3 Quickstart](#pip3-quickstart)
-  + [OAuth1 and OAuth2](#oauth1-and-oauth2)
 - [Special Keyword Arguments](#special-keyword-arguments)
 - [Commands](#commands)
+- [Response Tab Commands](#response-tab-commands)
 - [Settings](#settings)
 - [Contributing and Tests](#contributing-and-tests)
 - [Why Requester?](#why-requester)
@@ -98,10 +101,10 @@ Head to the response tab and check out the response. Hit <kbd>ctrl+alt+r</kbd> o
 
 Now, go back to the requester file and highlight all 5 lines, and once again execute the requests.
 
-Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, but simply overwrite the content in the matching response tabs (read on if you'd like to change this behavior).
+Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, they just overwrite the content in the matching response tabs (read on if you'd like to change this behavior).
 
-Want to see something nifty? Mix up the order of the 4 open response tabs, come back to your requester file, and run __Requester: Reorder Response Tabs__.
 
+### Multiline Requests
 For executing requests defined over multiple lines, you have two options:
 
 - fully highlight one or more requests and execute them
@@ -131,18 +134,19 @@ get('http://headers.jsontest.com/', fmt='raw')
 ~~~
 
 
-### Ultra Convenient GET Requests
-Try sending the following request. This is obviously not valid Python syntax, but Requester has a special convenience method for basic GET requets. If you run Requester on a URL like the one below, it automatically wraps it in a call to `requests.get` like so, `requests.get('...')`.
+### Ergonomic GET Requests
+Try sending the following requests. This is obviously not valid Python syntax, but Requester has a shortuct for basic GET requets. If you run Requester on a URL like the one below, it automatically wraps it like so: `requests.get('<url>')`. And it doesn't wrap the URL in quotes if it's already got them.
 
 ~~~py
 httpbin.com/get
+'httpbin.com/headers'
 ~~~
 
 
 ### Pinned Response Tabs
-When you execute a request, Requester overwrites response tabs that have the same request method and URL as the request you're executing. Hmmm... Does this mean you can't open multiple response tabs for the same request?
+When you execute a request, Requester overwrites response tabs that have the same request method and URL as the request you're executing. If you want multiple views into the same request, you can __pin__ your response tabs. Pinned response tabs are never overwritten.
 
-Of course not! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or look in the response tab for the keyboard shortcut to __pin/unpin tab__. Pinned response tabs are never overwritten, which allows you as many views into a response as you like.
+In a response tab, go to the command palette and look for __Requester: Pin/Unpin Response Tab__, or look in the response tab for the keyboard shortcut to __pin/unpin tab__.
 
 
 ### Environment Variables
@@ -229,22 +233,6 @@ Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cook
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser. If you want to disallow redirects by default, simply change Requester's `allow_redirects` setting to `false`.
 
 
-### New Requester File
-Want to start a new collection of requests? Run __Requester: New Requester File__ from the command palette. You'll get a new file pointing to an empty env file, with an empty env block, and with a link to Requester's syntax at the top.
-
-
-#### Request Navigation (.pyr extension)
-You'll notice the unsaved file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your Requester files with this extension__.
-
-Here's why. Run __Requester: New Requester File (Navigation Demo)__ from the command palette. You'll get a new requester file with some stub requests already inserted. Now, run Sublime's __Goto Symbol__ command (<kbd>cmd+r</kbd> on macOS)... You can jump between request groups and individual requests almost instantaneously using fuzzy search!
-
-Behind the scenes, `.pyr` files get the special __Requester__ syntax applied to them (you can set this syntax on any view you like by running __Set Syntax: Requester__ from the command palette). __Requester__ is the default Python syntax with a few Requester-specific improvements:
-
-- your `###env` block delimeters are highlighted
-- request groups can be declared by starting a line with two or more `##` characters
-- you can use Sublime's __Goto Symbol__ to jump between requests and request groups ✨✨
-
-
 ### Sessions
 Need to log in first so all your requests include a session cookie? [Session objects](http://docs.python-requests.org/en/master/user/advanced/#session-objects) make this a cinch. 
 
@@ -319,18 +307,6 @@ get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/
 If you have outstanding requests that are taking a while to return, and you don't want to wait for them to time out, you can cancel them by calling __Requester: Cancel Requests__ from the command palette.
 
 
-### Request History
-Requester saves a history of executed requests. Call __Requester: Request History__ to check it out. They appear in reverse chronological order and include each request's age, URL, response status code, and requester file. They're fuzzy searchable!
-
-Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__. ✨✨
-
-Open your keymap from the command palette by running __Preferences: Key Bindings__. For example, on macOS you might bind it to <kbd>ctrl+h</kbd> by adding the following:
-
-~~~json
-{ "keys": ["ctrl+h"], "command": "requester_history" },
-~~~
-
-
 ### Chaining Requests
 If you need to run requests or tests one after another, in the order in which they're defined in your requester file, look for __Requester: Run Requests Serially__ or __Requester: Run Tests Serially__ in the command palette.
 
@@ -339,7 +315,7 @@ Behind the scenes, this just passes the `concurrency=1` arg to `requester` or `r
 Note: code inside your __env block/env file__ is always run serially, which includes any requests you put in there.
 
 
-#### Chaining By Reference
+#### Chaining by Reference
 If you need __true__ request chaining, such that a request can reference the `Response` object returned by the previous request, that's easy too. Requester lets you reference the most recently returned response using the `Response` variable, and also lets you __name__ your responses. Copy the following code to a new view, highlight it, and run __Requester: Run Requests Serially__.
 
 ~~~py
@@ -359,7 +335,39 @@ get('httpbin.org/cookies', cookies={'url': first_response.json()['url']})
 By the way, this means you shouldn't name an env var "Response", or with the same name that you pass to a request's `name` argument, because these env vars will be overwritten.
 
 
-## Explore Hyperlinked APIs (HATEOAS)
+## Navigation and History
+Requester 
+
+### Requester File Navigation (.pyr extension)
+Want to start a new collection of requests? Run __Requester: New Requester File__ from the command palette. You'll get a new file pointing to an empty env file, with an empty env block, and with a link to Requester's syntax at the top.
+
+You'll notice the unsaved file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your Requester files with this extension__.
+
+Here's why. Run __Requester: New Requester File (Navigation Demo)__ from the command palette. You'll get a new requester file with some stub requests already inserted. Now, run Sublime's __Goto Symbol__ command (<kbd>cmd+r</kbd> on macOS)... You can jump between request groups and individual requests almost instantaneously using fuzzy search!
+
+Behind the scenes, `.pyr` files get the special __Requester__ syntax applied to them (you can set this syntax on any view you like by running __Set Syntax: Requester__ from the command palette). __Requester__ is the default Python syntax with a few Requester-specific improvements:
+
+- your `###env` block delimeters are highlighted
+- request groups can be declared by starting a line with two or more `##` characters
+- you can use Sublime's __Goto Symbol__ to jump between requests and request groups ✨✨
+
+
+### Request History
+Requester saves a history of executed requests. Call __Requester: Request History__ to check it out. They appear in reverse chronological order and include each request's age, URL, response status code, and requester file. They're fuzzy searchable!
+
+Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__. ✨✨
+
+Open your keymap from the command palette by running __Preferences: Key Bindings__. For example, on macOS you might bind it to <kbd>ctrl+h</kbd> by adding the following:
+
+~~~json
+{ "keys": ["ctrl+h"], "command": "requester_history" },
+~~~
+
+
+#### Cycle Through Past Requests
+
+
+### Explore Hyperlinked APIs (HATEOAS)
 Ever used an API that returns __hyperlinks__ to other resources in the response? This pattern is part of a larger concept in REST called HATEOAS, or [hypermedia as the engine of application state](http://www.django-rest-framework.org/topics/rest-hypermedia-hateoas/). 
 
 It's a mouthful, but the idea is simple: an API response should tell clients how to interact with related resources by providing them hyperlinks to those resources. This allows APIs to change without breaking clients, as long as clients are written to take their cues from the hyperlinks returned by the API.
@@ -382,6 +390,50 @@ Execute the request above. In the response tab, try highlighting each of the URL
 
 ### Options Requests
 Want to see which HTTP verbs a given endpoint accepts? Send an `OPTIONS` request to the endpoint. Requester makes this ridiculously easy -- from a response tab, just press <kbd>ctrl+o</kbd> (<kbd>cmd+o</kbd> on macOS).
+
+
+## Import Any Python Package with Requester
+Requester comes bundled with the `requests` and `jsonschema` packages, but it can actually source __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file.
+
+In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
+
+Here are a couple of no-brainers:
+
+- [requests-oauthlib](https://github.com/requests/requests-oauthlib)
+- [requests-toolbelt](https://github.com/requests/toolbelt)
+
+
+### Pip3 Quickstart
+If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
+
+Then run `pip3 install requests-oauthlib`, `pip3 install requests-toolbelt`, and so on for whatever packages you'd like to use with Requester.
+
+Finally, run `pip3 show requests-oauthlib`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
+
+Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
+
+
+### OAuth1 and OAuth2
+__requests-oauthlib__ makes OAuth1 and OAuth2 a lot easier. Let's say you want explore the Twitter REST API, which uses OAuth1 for authentication. Go to <https://apps.twitter.com/app/new>, create a new application, then go to the __Keys and Access Tokens__ tab for your application. Generate an access token and an access token secret, grab your API key and secret, and use pass them to `OAuth1`.
+
+~~~py
+###env
+from requests_oauthlib import OAuth1
+auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+###env
+
+get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackoverflow&count=100', auth=auth)
+
+# ...
+# [
+#   {
+#     "contributors": null,
+#     "coordinates": null,
+#     "created_at": "Fri Sep 01 12:46:09 +0000 2017",
+#     "entities": {...
+~~~
+
+Python has auth libraries for authenticating with a wide variety of APIs. With `pip` and the `packages_path` setting Requester can access them all.
 
 
 ## Test Runner
@@ -487,50 +539,6 @@ Prefer [HTTPie](https://httpie.org/) instead of cURL? You can also export reques
 Exporting works seamlessly with env vars. Just highlight a group of requests and look for __Requester: Export To cURL__ or __Requester: Export To HTTPie__ in the command palette. For importing it's __Requester: Import From cURL__. Exporting to HTTPie supports a bunch of features, including basic and digest authentication, file downloads, and even sessions. For sessions, just highlight your env block along with the requests you want to export.
 
 
-## Import Any Python Package With Requester
-Requester comes bundled with the `requests` and `jsonschema` packages, but it can actually source __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file.
-
-In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
-
-Here are a couple of no-brainers:
-
-- [requests-oauthlib](https://github.com/requests/requests-oauthlib)
-- [requests-toolbelt](https://github.com/requests/toolbelt)
-
-
-### Pip3 Quickstart
-If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
-
-Then run `pip3 install requests-oauthlib`, `pip3 install requests-toolbelt`, and so on for whatever packages you'd like to use with Requester.
-
-Finally, run `pip3 show requests-oauthlib`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
-
-Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
-
-
-### OAuth1 and OAuth2
-__requests-oauthlib__ makes OAuth1 and OAuth2 a lot easier. Let's say you want explore the Twitter REST API, which uses OAuth1 for authentication. Go to <https://apps.twitter.com/app/new>, create a new application, then go to the __Keys and Access Tokens__ tab for your application. Generate an access token and an access token secret, grab your API key and secret, and use pass them to `OAuth1`.
-
-~~~py
-###env
-from requests_oauthlib import OAuth1
-auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-###env
-
-get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackoverflow&count=100', auth=auth)
-
-# ...
-# [
-#   {
-#     "contributors": null,
-#     "coordinates": null,
-#     "created_at": "Fri Sep 01 12:46:09 +0000 2017",
-#     "entities": {...
-~~~
-
-Python has auth libraries for authenticating with a wide variety of APIs. With `pip` and the `packages_path` setting Requester can access them all.
-
-
 ## Special Keyword Arguments
 Requester's syntax is basically identical to Requests' syntax, but it adds support for the following special `kwargs`.
 
@@ -567,6 +575,26 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_show_syntax__
 
 
+## Response Tab Commands
+The following commands are only available in response tabs. The key bindings listed below are for macOS. Every response tab includes these key bindings for your reference.
+
+- __cmd+r__: replay request
+- __ctrl+alt+ ←/→__: prev/next request
+- __cmd+t__: pin/unpin tab
+- __cmd+e__: explore URL
+- __cmd+o__: options
+
+If you try to execute one of these commands and nothing happens, you've already mapped the binding to another command. Run __Preferences: Key Bindings__ from the command palette, find the conflicting key combination, add the following context to the binding, and restart Sublime Text.
+
+~~~json
+"context": [
+  { "key": "setting.requester.response_view", "operator": "equal", "operand": false }
+]
+~~~
+
+This removes the conflict by disabling your binding __only__ in Requester's response views.
+
+
 ## Settings
 Requester's modifiable settings, and their default values. You can override any of these settings by creating a `Requester.sublime-settings` file in Sublime's `Packages/User` directory. The easiest way to do this is go to __Preferences > Package Settings > Requester > Settings__ from the menu bar, or look for __Requester: Settings__ in the command palette.
 
@@ -598,6 +626,8 @@ Requester leans on [Requests](http://docs.python-requests.org/en/master/user/qui
 It also means Requester uses an extensively documented, battle-tested library famed for its beauty. If you don't know how to do something with Requester, there are thousands of blog posts, articles and answers on Stack Overflow that explain how to do it.
 
 Apart from being feature-rich, __Requester is built for speed and simplicity__. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
+
+Request navigation and history are especially powerful. Finding a request you executed a week ago, editing it and executing it is lightning fast. __No HTTP client, GUI, CLI or otherwise, comes close.__
 
 [![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester")
 

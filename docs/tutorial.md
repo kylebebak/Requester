@@ -19,6 +19,8 @@ Tabs will open for all 4 requests (Requester conveniently ignores the blank line
 
 Want to see something nifty? Mix up the order of the 4 open response tabs, come back to the tutorial tab, and run __Requester: Reorder Response Tabs__.
 
+
+### Multiline Requests
 For executing requests defined over multiple lines, you have two options:
 
 - fully highlight one or more requests and execute them
