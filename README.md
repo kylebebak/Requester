@@ -35,6 +35,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 ## Contents
 - [Installation](#installation)
 - [Getting Started](#getting-started)
+  + [Jump to Request](#jump-to-request)
   + [Multiline Requests](#multiline-requests)
   + [JSON Response Formatting](#json-response-formatting)
   + [Ergonomic GET Requests](#ergonomic-get-requests)
@@ -85,7 +86,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 ## Getting Started
 Open the interactive tutorial in Sublime Text! Look for __Requester: Show Tutorial__ in the command palette. Alternatively, just keep reading.
 
-Open a file and insert the following:
+Open a file and insert the following.
 
 ~~~py
 requests.get('https://jsonplaceholder.typicode.com/albums')
@@ -102,6 +103,10 @@ Head to the response tab and check out the response. Hit <kbd>ctrl+alt+r</kbd> o
 Now, go back to the requester file and highlight all 5 lines, and once again execute the requests.
 
 Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, they just overwrite the content in the matching response tabs (read on if you'd like to change this behavior).
+
+
+### Jump to Request
+Go back to your Requester file and save it as `<anything>.pyr`. The extension is important. Run Sublime Text's __Goto Symbol__ by pressing <kbd>ctrl+r</kbd> (<kbd>cmd+r</kbd> on macOS). If your Requester file has this extension, you can jump between your requests almost instantaneously.
 
 
 ### Multiline Requests
@@ -336,12 +341,13 @@ By the way, this means you shouldn't name an env var "Response", or with the sam
 
 
 ## Navigation and History
-Requester 
+UX is sort of an obsession for me, and it's sacred in Requester. The biggest UX difference between Requester and other HTTP clients is the ease with which you can find, modify and execute your requests — the ones in your Requester file, and the ones in you request history.
+
 
 ### Requester File Navigation (.pyr extension)
-Want to start a new collection of requests? Run __Requester: New Requester File__ from the command palette. You'll get a new file pointing to an empty env file, with an empty env block, and with a link to Requester's syntax at the top.
+Try running __Requester: New Requester File__ from the command palette. You'll get a file pointing to an empty env file, with an empty env block, and a link to Requester's syntax at the top. It's ready for starting a new collection of requests.
 
-You'll notice the unsaved file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your Requester files with this extension__.
+You'll notice the file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your Requester files with this extension__.
 
 Here's why. Run __Requester: New Requester File (Navigation Demo)__ from the command palette. You'll get a new requester file with some stub requests already inserted. Now, run Sublime's __Goto Symbol__ command (<kbd>cmd+r</kbd> on macOS)... You can jump between request groups and individual requests almost instantaneously using fuzzy search!
 
@@ -355,16 +361,29 @@ Behind the scenes, `.pyr` files get the special __Requester__ syntax applied to 
 ### Request History
 Requester saves a history of executed requests. Call __Requester: Request History__ to check it out. They appear in reverse chronological order and include each request's age, URL, response status code, and requester file. They're fuzzy searchable!
 
-Choose an old request and run it. It runs as if it were executed from its original requester file, with access to up-to-date env vars defined in the env block and the env file. It's one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__. ✨✨
+Choose an old request and select it. A special response tab will open, with the request string, some response metadata, and the usual response tab commands, but nothing else.
+
+Replay the chosen request. It runs as if it were executed from its original requester file, but it also pulls in up-to-date env vars from the env block and the env file.
+
+
+#### Cycle Through Past Requests
+Notice the key bindings for __prev/next request__ in response tabs? Give them a try. If they don't work, don't fret! Here's a 1 minute, [permanent fix to the problem](#response-tab-commands).
+
+These commands let you cycle through past requests one at a time, and can be used from any response tab. __Combine them with fuzzy search for request searching nirvana__.
+
+Imagine you want to find a GET request you ran when you were working with the Twitter API over the weekend. You open search with __Requester: Request History__ and type _twitter_, and see a bunch of requests from around 3 days ago. You're not sure which is the right one, so you hit enter to get a better look.
+
+From here, you begin to cycle back, past a few 40Xs, some POSTs, then boom, the elusive 200 GET is right in front of you. You replay it, and now it's back on top of your request history. Next time you want it it'll take 1 second to find instead of 10.
+
+---
+
+Requester's history is one of Requester's most convenient features, which means you might want to modify your keymap and bind something to __requester_history__. ✨✨
 
 Open your keymap from the command palette by running __Preferences: Key Bindings__. For example, on macOS you might bind it to <kbd>ctrl+h</kbd> by adding the following:
 
 ~~~json
 { "keys": ["ctrl+h"], "command": "requester_history" },
 ~~~
-
-
-#### Cycle Through Past Requests
 
 
 ### Explore Hyperlinked APIs (HATEOAS)
