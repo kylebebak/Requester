@@ -10,7 +10,7 @@ from collections import OrderedDict
 from ..core.helpers import truncate
 
 
-def load_history():
+def load_history(rev=True):
     """Returns list of past requests. Raises exception if history file doesn't
     exist.
     """
@@ -21,12 +21,15 @@ def load_history():
     history_path = os.path.join(sublime.packages_path(), 'User', history_file)
     with open(history_path, 'r') as f:
         rh = json.loads(f.read() or '{}', object_pairs_hook=OrderedDict)
-    return list(rh.items())
+    requests = list(rh.items())
+    if rev:
+        requests.reverse()
+    return requests
 
 
-def populate_staging_view(
-    view, request, method, url, code, ts, meta=None, file=None, env_string=None, env_file=None
-):
+def populate_staging_view(view, index, total,
+                          request, method, url, code, ts,
+                          meta=None, file=None, env_string=None, env_file=None):
     """Populate staging view with historical request string/metadata.
     """
     from .request import response_tab_command_bindings
@@ -41,7 +44,7 @@ def populate_staging_view(
     path = parse.urlparse(url).path
     if path and path[-1] == '/':
         path = path[:-1]
-    view.set_name('(History) {}: {}'.format(method, path))
+    view.set_name('({}) {}: {}'.format(index+1, total, method, path))
     view.set_syntax_file('Packages/Requester/syntax/requester-history.sublime-syntax')
     view.set_scratch(True)
 
@@ -98,7 +101,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
     """
     def run(self):
         try:
-            self.requests = list(reversed(load_history()))
+            self.requests = load_history()
         except Exception as e:
             print(e)
             return
@@ -135,13 +138,15 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
             return
 
         params_dict = self.requests[index][1]
+        total = len(self.requests)
+        reversed_index = total - index - 1
         view = self.window.new_file()
-        view.settings().set('requester.request_history_index', index)
-        populate_staging_view(view=view, **params_dict)
+        view.settings().set('requester.request_history_index', reversed_index)
+        populate_staging_view(view, index, total, **params_dict)
 
 
-class RequesterNavigateRequestHistoryCommand(sublime_plugin.TextCommand):
-    """`TextCommand` to cycle through and stage previously executed requests. Can
+class RequesterPageRequestHistoryCommand(sublime_plugin.TextCommand):
+    """`TextCommand` to page through and stage previously executed requests. Can
     only be executed from response view. Replaces text in view with request string
     and response metadata.
     """
@@ -149,8 +154,9 @@ class RequesterNavigateRequestHistoryCommand(sublime_plugin.TextCommand):
         view = self.view
         if not view.settings().get('requester.response_view', False):
             return
-        reqs = load_history()
+        reqs = load_history(rev=False)
         index = view.settings().get('requester.request_history_index', len(reqs)-1)
+        total = len(reqs)
 
         if back:
             index -= 1
@@ -165,4 +171,4 @@ class RequesterNavigateRequestHistoryCommand(sublime_plugin.TextCommand):
             sublime.error_message('RequestHistory Error: {}'.format(e))
             return
         view.settings().set('requester.request_history_index', index)
-        populate_staging_view(view, **params_dict)
+        populate_staging_view(view, total-index-1, total, **params_dict)

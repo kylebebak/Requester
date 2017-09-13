@@ -327,6 +327,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
+        view.settings().erase('requester.request_history_index')
         set_response_view_name(view, res)
 
 

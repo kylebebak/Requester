@@ -14,7 +14,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
 - Intuitive, modern UX
   + Define [__environment variables__](#environment-variables) with regular Python code
   + Execute requests and display responses in parallel, [__or chain requests__](#chaining-by-reference)
-  + Edit and replay requests from individual response tabs, cycle through past requests
+  + Edit and replay requests from individual response tabs, page through past requests
     * [Explore hyperlinked APIs](#explore-hyperlinked-apis-hateoas) from response tabs
   + Fuzzy searchable [request navigation and request history](#navigation-and-history)
   + Formatted, colorized output with automatic syntax highlighting
@@ -56,7 +56,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 - [Navigation and History](#navigation-and-history)
   + [Requester File Navigation (.pyr extension)](#requester-file-navigation-pyr-extension)
   + [Request History](#request-history)
-    * [Cycle Through Past Requests](#cycle-through-past-requests)
+    * [Page Through Past Requests](#page-through-past-requests)
   + [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
   + [Options Requests](#options-requests)
 - [Import Any Python Package with Requester](#import-any-python-package-with-requester)
@@ -366,14 +366,14 @@ Choose an old request and select it. A special response tab will open, with the 
 Replay the chosen request. It runs as if it were executed from its original requester file, but it also pulls in up-to-date env vars from the env block and the env file.
 
 
-#### Cycle Through Past Requests
+#### Page Through Past Requests
 Notice the key bindings for __prev/next request__ in response tabs? Give them a try. If they don't work, don't fret! Here's a 1 minute, [permanent fix to the problem](#response-tab-commands).
 
-These commands let you cycle through past requests one at a time, and can be used from any response tab. __Combine them with fuzzy search for request searching nirvana__.
+These commands let you page through past requests one at a time, and can be used from any response tab. __Combine them with fuzzy search for request searching nirvana__.
 
 Imagine you want to find a GET request you ran when you were working with the Twitter API over the weekend. You open search with __Requester: Request History__ and type _twitter_, and see a bunch of requests from around 3 days ago. You're not sure which is the right one, so you hit enter to get a better look.
 
-From here, you begin to cycle back, past a few 40Xs, some POSTs, then boom, the elusive 200 GET is right in front of you. You replay it, and now it's back on top of your request history. Next time you want it it'll take 1 second to find instead of 10.
+From here, you begin to page back, past a few 40Xs, some POSTs, then boom, the elusive 200 GET is right in front of you. You replay it, and now it's back on top of your request history. Next time you want it it'll take 1 second to find instead of 10.
 
 ---
 
