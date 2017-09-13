@@ -1,0 +1,22 @@
+%YAML 1.2
+---
+# See http://www.sublimetext.com/docs/3/syntax.html
+scope: source.requester-history
+name: Requester History
+hidden: true
+variables:
+  content_type_sep: (?=;|$)
+contexts:
+  main:
+    - match: ''
+      push:
+        - meta_content_scope: source.python
+        - include: scope:source.python
+        - match: $\n
+          set: http-status
+
+  response-meta:
+
+  commands:
+    - match: '\[.*replay request.*$\n'
+      scope: storage.type.commands.requester-response

@@ -344,10 +344,7 @@ def _persist_requests(self, responses):
     needed to rebuild the env for these requests. One entry per unique
     request. Old requests are removed when requests exceed file capacity.
 
-    Requests in history are keyed for uniqueness on (method + url/qs), a
-    compromise to minimize duplicate requests without clobbering requests
-    whose meanings could be very different. Imagine GET requests to a GraphQL
-    API, where the querystring determines most everything about the response.
+    Requests in history are keyed for uniqueness on request string.
     """
     history_file = self.config.get('history_file', None)
     if not history_file:
@@ -379,7 +376,7 @@ def _persist_requests(self, responses):
             meta = 'download: {}'.format(req.skwargs['filename'] or './')
 
         method, url = res.request.method, res.url
-        key = '{}: {}: {}'.format(method, url, meta)
+        key = req.request
         if key in rh:
             rh.pop(key, None)  # remove duplicate requests
         rh[key] = {

@@ -1,6 +1,8 @@
 import sublime
 import sublime_plugin
 
+from requests import options
+
 import json
 from sys import maxsize
 from urllib import parse
@@ -248,7 +250,6 @@ class RequestsMixin:
             view.run_command('requester_replace_view_text', {'text': content, 'point': point})
             view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
             self.set_request_setting_on_view(view, res)
-            persist_request_local(req, view)
 
         # should response tabs be reordered after requests return?
         if self.config.get('reorder_tabs_after_requests', False):
@@ -329,7 +330,6 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
         set_response_view_name(view, res)
-        persist_request_local(req, view)
 
 
 class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
@@ -382,11 +382,42 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
         set_response_view_name(view, res)
-        persist_request_local(req, view)
 
     def persist_requests(self, responses):
         """Don't do this for exploratory requests.
         """
+
+
+class RequesterUrlOptionsCommand(sublime_plugin.WindowCommand):
+    """Display pop-up with options for request in currently open response tab.
+    """
+    def run(self):
+        view = self.window.active_view()
+        url = view.settings().get('requester.request_url', None)
+        if url is None:
+            return
+        sublime.set_timeout_async(lambda: self.show_options(url, view), 0)
+
+    def show_options(self, url, view):
+        """Send options request to `url` and display results in pop-up.
+        """
+        res = options(url, timeout=5)
+        if not res.ok:
+            return
+        names = ['Allow', 'Access-Control-Allow-Methods', 'Access-Control-Max-Age']
+        headers = [res.headers.get(name, None) for name in names]
+        items = '\n'.join('<li>{}: {}</li>'.format(n, h) for n, h in zip(names, headers) if h)
+        content = '<h2>OPTIONS: {}</h2>\n<ul>{}</ul>'.format(url, items)
+        try:
+            json_dict = res.json()
+        except:
+            pass
+        else:
+            content = '{}\n<pre><code>{}</pre></code>'.format(
+                content, json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
+            )
+
+        view.show_popup(content, max_width=700, max_height=500)
 
 
 class RequesterCancelRequestsCommand(sublime_plugin.WindowCommand):
@@ -484,14 +515,3 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         window.set_view_index(self.view, group, index)
         for v in views:
             window.set_view_index(v.view, group, index)
-
-
-def persist_request_local(req, view, max_len=20):
-    """Persist `req` string to `view` settings. Store up to `max_len` request
-    strings. Deduplicates request strings. Not thread safe but who cares.
-    """
-    reqs = view.settings().get('requester.request_history', [])
-    reqs = [r for r in reqs if r != req.request]
-    reqs.append(req.request)
-    view.settings().set('requester.request_history', reqs[-max_len:])
-    view.settings().set('requester.request_history_index', len(reqs)-1)

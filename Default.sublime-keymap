@@ -22,7 +22,7 @@
 
   {
     "keys": ["ctrl+alt+left"],
-    "command": "requester_navigate_local_request_history",
+    "command": "requester_navigate_request_history",
     "args": {"back": true},
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
@@ -30,7 +30,7 @@
   },
   {
     "keys": ["ctrl+alt+right"],
-    "command": "requester_navigate_local_request_history",
+    "command": "requester_navigate_request_history",
     "args": {"back": false},
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }

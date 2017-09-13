@@ -1,9 +1,7 @@
 import sublime
 import sublime_plugin
 
-from requests import options
 import webbrowser
-import json
 
 
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
@@ -122,65 +120,3 @@ class RequesterNewRequesterFileCommand(sublime_plugin.TextCommand):
         set_syntax(view, 'Packages/Python/Python.sublime-syntax')
         view.set_name('untitled.pyr')
         view.set_syntax_file('Packages/Requester/syntax/requester-source.sublime-syntax')
-
-
-class RequesterUrlOptionsCommand(sublime_plugin.WindowCommand):
-    """Display pop-up with options for request in currently open response tab.
-    """
-    def run(self):
-        view = self.window.active_view()
-        url = view.settings().get('requester.request_url', None)
-        if url is None:
-            return
-        sublime.set_timeout_async(lambda: self.show_options(url, view), 0)
-
-    def show_options(self, url, view):
-        """Send options request to `url` and display results in pop-up.
-        """
-        res = options(url, timeout=5)
-        if not res.ok:
-            return
-        names = ['Allow', 'Access-Control-Allow-Methods', 'Access-Control-Max-Age']
-        headers = [res.headers.get(name, None) for name in names]
-        items = '\n'.join('<li>{}: {}</li>'.format(n, h) for n, h in zip(names, headers) if h)
-        content = '<h2>OPTIONS: {}</h2>\n<ul>{}</ul>'.format(url, items)
-        try:
-            json_dict = res.json()
-        except:
-            pass
-        else:
-            content = '{}\n<pre><code>{}</pre></code>'.format(
-                content, json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
-            )
-
-        view.show_popup(content, max_width=700, max_height=500)
-
-
-class RequesterNavigateLocalRequestHistoryCommand(sublime_plugin.TextCommand):
-    """`TextCommand` to cycle through  requests executed previously in this
-    response tab. Replaces text in response view with request string.
-    """
-    def run(self, edit, back):
-        from .request import response_tab_bindings
-        view = self.view
-        if not view.settings().get('requester.response_view', False):
-            return
-        reqs = view.settings().get('requester.request_history', [])
-        index = view.settings().get('requester.request_history_index', len(reqs)-1)
-
-        if back:
-            index -= 1
-        else:
-            index += 1
-        if index < 0 or index >= len(reqs):
-            return
-
-        try:
-            req = reqs[index]
-        except IndexError as e:
-            sublime.error_message('NavigateLocal Error: {}'.format(e))
-            return
-        view.settings().set('requester.request_history_index', index)
-
-        view.run_command('requester_replace_view_text',
-                         {'text': '{}\n\n{}\n'.format(req, response_tab_bindings()), 'point': 0})

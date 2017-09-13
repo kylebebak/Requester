@@ -14,7 +14,7 @@ from ..core.helpers import truncate
 class RequesterHistoryCommand(sublime_plugin.WindowCommand):
     """Loads request history from file, and populates quick panel with list of
     requests in reverse chronological order. If a request is chosen from quick
-    panel, invoke request.
+    panel, stage request.
     """
     def run(self):
         history_file = sublime.load_settings('Requester.sublime-settings').get('history_file', None)
@@ -64,7 +64,7 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
 
         request = self.requests[index]
         params_dict = request[1]
-        self.window.run_command('requester_replay_request_from_history', params_dict)
+        self.window.run_command('requester_stage_request_from_history', params_dict)
 
     @staticmethod
     def remove_prefix(text, prefix='requests.'):
@@ -120,8 +120,8 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         return (age or '0 seconds') + ' ago'
 
 
-class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
-    """Re-execute request chosen from requester history in context of env under
+class RequesterStageRequestFromHistoryCommand(RequesterCommand):
+    """Stage request chosen from requester history in context of env under
     which request was originally executed.
     """
     def run(self, edit, request, env_string, file, env_file, **kwargs):
@@ -145,3 +145,34 @@ class RequesterReplayRequestFromHistoryCommand(RequesterCommand):
 
     def reset_env_file(self):
         pass
+
+
+class RequesterNavigateRequestHistoryCommand(sublime_plugin.TextCommand):
+    """`TextCommand` to cycle through and stage previously executed requests. Can
+    only be executed from response view. Replaces text in view with request string
+    and response metadata.
+    """
+    def run(self, edit, back):
+        from .request import response_tab_bindings
+        view = self.view
+        if not view.settings().get('requester.response_view', False):
+            return
+        reqs = view.settings().get('requester.request_history', [])
+        index = view.settings().get('requester.request_history_index', len(reqs)-1)
+
+        if back:
+            index -= 1
+        else:
+            index += 1
+        if index < 0 or index >= len(reqs):
+            return
+
+        try:
+            req = reqs[index]
+        except IndexError as e:
+            sublime.error_message('NavigateLocal Error: {}'.format(e))
+            return
+        view.settings().set('requester.request_history_index', index)
+
+        view.run_command('requester_replace_view_text',
+                         {'text': '{}\n\n{}\n'.format(req, response_tab_bindings()), 'point': 0})

@@ -17,7 +17,7 @@ contexts:
 
   http-status:
     - match: '\[.*replay request.*$\n'
-      scope: storage.type.replay-request.requester-response
+      scope: storage.type.commands.requester-response
     - match: (\[)\s*(=)\s*(\])
       scope: meta.response-pending.requester-response
       captures:
@@ -50,11 +50,11 @@ contexts:
         1: constant.numeric.label.requester-response
         2: constant.language.headers-body-cookies.requester-response
     - match: ^(?=\[)  # use look-ahead to not include bracket in match
-      set: replay-request
+      set: commands
 
-  replay-request:
+  commands:
     - match: '\[.*replay request.*$\n'
-      scope: storage.type.replay-request.requester-response
+      scope: storage.type.commands.requester-response
       set:
         - match: ^$\n
           set: http-headers
