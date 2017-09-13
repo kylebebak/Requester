@@ -4,19 +4,33 @@
 scope: source.requester-history
 name: Requester History
 hidden: true
-variables:
-  content_type_sep: (?=;|$)
 contexts:
   main:
-    - match: ''
-      push:
-        - meta_content_scope: source.python
-        - include: scope:source.python
-        - match: $\n
-          set: commands
+    - match: ""
+      push: "Packages/Python/Python.sublime-syntax"
+      with_prototype:
+        - match: '^(?=\[cmd\+r\])'
+          push: meta
 
-  response-meta:
+  meta:
+    - match: '^\[cmd\+r.*'
+      scope: storage.type.commands
+    - match: ^([\d]{3}) (.*)$\n
+      captures:
+        1: constant.numeric.meta-status-code
+        2: constant.language.meta-reason
+    - match: ^([\d]{3}) (.*)$\n
+      captures:
+        1: constant.numeric.meta-status-code
+        2: constant.language.meta-reason
+    - match: .*://.*
+      scope: entity.name.tag  # hack to make URL bold
+    - match: '^(.*): ([\d]+/[\d]+)$\n'
+      captures:
+        1: constant.numeric.meta-age
+        2: constant.language.meta-request-number
+      push: file
 
-  commands:
-    - match: '\[.*replay request.*$\n'
-      scope: storage.type.commands.requester-response
+  file:
+    - match: .*
+      scope: comment.line.url

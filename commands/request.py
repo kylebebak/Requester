@@ -328,6 +328,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         self.set_request_setting_on_view(view, res)
         view.settings().erase('requester.request_history_index')
+        view.settings().set('requester.history_view', False)
         set_response_view_name(view, res)
 
 
@@ -444,6 +445,8 @@ class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
         if not view:
             return
         if not view.settings().get('requester.response_view', False):
+            return
+        if view.settings().get('requester.history_view', False):
             return
         pinned = bool(view.settings().get('requester.response_pinned', False))
         pinned = not pinned

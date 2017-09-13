@@ -34,17 +34,25 @@ def populate_staging_view(view, index, total,
     """
     from .request import response_tab_command_bindings
     view.settings().set('requester.response_view', True)
+    view.settings().set('requester.history_view', True)
     view.settings().set('requester.env_string', env_string)
     view.settings().set('requester.file', file)
     view.settings().set('requester.env_file', env_file)
 
-    content = '{}\n\n{}\n'.format(request, response_tab_command_bindings())
+    meta_parts = [
+        '{} {}{}'.format(code, method, ' ({})'.format(meta) if meta else ''),
+        url,
+        '{}: {}/{}'.format(approximate_age(ts), index+1, total),
+        file,
+    ]
+    meta_string = '\n'.join(s for s in meta_parts if s)
+    content = '{}\n\n{}\n\n{}\n'.format(request, response_tab_command_bindings(), meta_string)
     view.run_command('requester_replace_view_text', {'text': content, 'point': 0})
 
     path = parse.urlparse(url).path
     if path and path[-1] == '/':
         path = path[:-1]
-    view.set_name('({}) {}: {}'.format(index+1, total, method, path))
+    view.set_name('({}) {}: {}'.format(index+1, method, path))
     view.set_syntax_file('Packages/Requester/syntax/requester-history.sublime-syntax')
     view.set_scratch(True)
 

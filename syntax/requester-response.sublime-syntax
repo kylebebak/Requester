@@ -17,50 +17,50 @@ contexts:
 
   http-status:
     - match: '\[.*replay request.*$\n'
-      scope: storage.type.commands.requester-response
+      scope: storage.type.commands
     - match: (\[)\s*(=)\s*(\])
-      scope: meta.response-pending.requester-response
+      scope: meta.response-pending
       captures:
-        1: punctuation.section.brackets.begin.requester-response
-        2: constant.language.requester-response
-        3: punctuation.section.brackets.end.requester-response
+        1: punctuation.section.brackets.begin
+        2: constant.language
+        3: punctuation.section.brackets.end
     - match: ^(\d+) (.*)$\n
       captures:
-        1: constant.numeric.http-status-code.requester-response
-        2: constant.language.http-status.requester-response
+        1: constant.numeric.http-status-code
+        2: constant.language.http-status
       set: time-taken
 
   time-taken:
     - match: ^([\d\.]*)(s), ([\d\?]*)(B)$\n
       captures:
-        1: constant.numeric.response-seconds.requester-response
-        2: constant.language.seconds.requester-response
-        3: constant.numeric.response-seconds.requester-response
-        4: constant.language.seconds.requester-response
+        1: constant.numeric.response-seconds
+        2: constant.language.seconds
+        3: constant.numeric.response-seconds
+        4: constant.language.seconds
       set: url
 
   url:
     - match: ^.*$\n
-      scope: entity.name.tag.requester-response  # hack to make URL bold
+      scope: entity.name.tag  # hack to make URL bold
       set: headers-body-cookies
 
   headers-body-cookies:
     - match: ^(Request Headers:|Request Body:|Response Cookies:)(.*)$\n
       captures:
-        1: constant.numeric.label.requester-response
-        2: constant.language.headers-body-cookies.requester-response
+        1: constant.numeric.label
+        2: constant.language.headers-body-cookies
     - match: ^(?=\[)  # use look-ahead to not include bracket in match
       set: commands
 
   commands:
     - match: '\[.*replay request.*$\n'
-      scope: storage.type.commands.requester-response
+      scope: storage.type.commands
       set:
         - match: ^$\n
           set: http-headers
 
   content-type:
-    - meta_content_scope: meta.response-headers.requester-response string.unquoted.http-header.value.requester-response
+    - meta_content_scope: meta.response-headers string.unquoted.http-header.value
     - match: (application/json|text/json){{content_type_sep}}
       set: [response-type-json, content-type-suffix]
     - match: (application/xml|text/xml){{content_type_sep}}
@@ -72,41 +72,41 @@ contexts:
 
   content-type-suffix:
     - match: .*$
-      scope: string.unquoted.http-header.value.requester-response
+      scope: string.unquoted.http-header.value
       pop: true
 
   http-headers:
-    - meta_content_scope: meta.response-headers.requester-response
+    - meta_content_scope: meta.response-headers
     - match: (?i)^(Content-Type)(:)\s*
       captures:
-        1: keyword.other.http-header.key.requester-response
-        2: punctuation.separator.key-value.requester-response
+        1: keyword.other.http-header.key
+        2: punctuation.separator.key-value
       set: content-type
     - match: ([^:]+)(:)\s*(.*$)
       captures:
-        1: keyword.other.http-header.key.requester-response
-        2: punctuation.separator.key-value.requester-response
-        3: string.unquoted.http-header.value.requester-response
+        1: keyword.other.http-header.key
+        2: punctuation.separator.key-value
+        3: string.unquoted.http-header.value
     - match: ^$\n
       set: scope:text.plain
 
   response-type-json:
-    - meta_content_scope: meta.response-headers.requester-response
+    - meta_content_scope: meta.response-headers
     - match: ^$\n
       set: [response-body, scope:source.json]
     - include: http-headers
 
   response-type-xml:
-    - meta_content_scope: meta.response-headers.requester-response
+    - meta_content_scope: meta.response-headers
     - match: ^$\n
       set: [response-body, scope:text.xml]
     - include: http-headers
 
   response-type-html:
-    - meta_content_scope: meta.response-headers.requester-response
+    - meta_content_scope: meta.response-headers
     - match: ^$\n
       set: [response-body, scope:text.html.basic]
     - include: http-headers
 
   response-body:
-    - meta_content_scope: meta.response-body.requester-response
+    - meta_content_scope: meta.response-body

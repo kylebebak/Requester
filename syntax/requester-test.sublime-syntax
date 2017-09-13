@@ -8,39 +8,39 @@ contexts:
   main:
     - match: '^-- ([\d]+) (assertions?), ([\d]+) (errors?) --'
       captures:
-        1: constant.numeric.label.requester-test
-        2: constant.language.props.requester-test
-        3: constant.numeric.label.requester-test
-        4: constant.language.errors.requester-test
+        1: constant.numeric.label
+        2: constant.language.props
+        3: constant.numeric.label
+        4: constant.language.errors
 
     - match: '^(assert) (\{.*)'
       captures:
-        1: keyword.other.assertion.requester-test
-        2: entity.name.tag.requester-test
+        1: keyword.other.assertion
+        2: entity.name.tag
 
     - match: '^([\d]+) (assertions?), ([\d]+) (errors?)'
       captures:
-        1: constant.numeric.label.requester-test
-        2: constant.language.props.requester-test
-        3: constant.numeric.label.requester-test
-        4: constant.language.errors.requester-test
+        1: constant.numeric.label
+        2: constant.language.props
+        3: constant.numeric.label
+        4: constant.language.errors
 
     - match: '^(prop):(.*?); (expected):(.*?); (got):(.*?); (error):(.*)'
       captures:
-        1: constant.language.variable.requester-test
-        2: constant.numeric.value.requester-test
-        3: constant.language.variable.requester-test
-        4: constant.numeric.value.requester-test
-        5: constant.language.variable.requester-test
-        6: constant.numeric.value.requester-test
-        7: constant.language.variable.requester-test
-        8: constant.numeric.value.requester-test
+        1: constant.language.variable
+        2: constant.numeric.value
+        3: constant.language.variable
+        4: constant.numeric.value
+        5: constant.language.variable
+        6: constant.numeric.value
+        7: constant.language.variable
+        8: constant.numeric.value
 
     - match: '^[\w_][\w\d_]*\.(get|options|head|post|put|patch|delete)\('
       push: request
 
   request:
-    - meta_scope: storage.type.replay-request.requester-test
+    - meta_scope: storage.type.replay-request
 
     - match: '#'
       push: request-comment
