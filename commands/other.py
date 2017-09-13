@@ -35,9 +35,12 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
     Requester works.
     """
     def run(self):
-        show_read_only_doc_view(self.window.new_file(),
-                                sublime.load_resource('Packages/Requester/docs/tutorial.md'),
-                                'Requester Tutorial')
+        show_read_only_doc_view(
+            self.window.new_file(),
+            sublime.load_resource('Packages/Requester/docs/tutorial.pyr'),
+            'Requester Tutorial.pyr',
+            syntax='Packages/Requester/syntax/requester-source.sublime-syntax'
+        )
 
 
 class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
@@ -49,14 +52,17 @@ class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
                                 'Requester Documentation')
 
 
-def show_read_only_doc_view(view, content, name, point=0):
+def show_read_only_doc_view(view, content, name, point=0, syntax=''):
     """Helper for creating read-only scratch view.
     """
     view.run_command('requester_replace_view_text', {'text': content, 'point': point})
     view.set_read_only(True)
     view.set_scratch(True)
-    if not set_syntax(view, 'Packages/MarkdownEditing/Markdown.tmLanguage'):
-        set_syntax(view, 'Packages/Markdown/Markdown.sublime-syntax')
+    if not syntax:
+        if not set_syntax(view, 'Packages/MarkdownEditing/Markdown.tmLanguage'):
+            set_syntax(view, 'Packages/Markdown/Markdown.sublime-syntax')
+    else:
+        set_syntax(view, syntax)
     view.set_name(name)
 
 

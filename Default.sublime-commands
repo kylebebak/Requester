@@ -116,17 +116,17 @@
   },
 
   {
-    "caption": "Requester: Show Tutorial",
+    "caption": "Requester: Show Interactive Tutorial",
     "command": "requester_show_tutorial"
   },
 
   {
-    "caption": "Requester: Show Documentation",
+    "caption": "Requester: Show Documentation (Local)",
     "command": "requester_show_documentation"
   },
 
   {
-    "caption": "Requester: Show Syntax",
+    "caption": "Requester: Show Syntax (Online)",
     "command": "requester_show_syntax"
   }
 ]
