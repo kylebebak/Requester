@@ -15,7 +15,7 @@ Please do! Possible improvements:
 ## How Does It Work?
 The core API is defined in modules under the `core` directory. The main class is `RequestCommandMixin`.
 
-This mixin is the motor for parsing an env, executing requests in parallel in the context of this env, invoking activity indicator methods, and invoking response handling methods. These methods can be overridden to control the behavior of classes that inherit from this mixin. It must be mixed in to classes that also inherit from `sublime_plugin.TextCommand`.
+This mixin is the motor for parsing an env, executing requests in parallel in the context of this env, invoking activity indicator methods, and invoking response handling methods. These methods can be overridden to control the behavior of classes that inherit from this mixin.
 
 The mixin uses the `ResponseThreadPool` class, which wraps a thread pool to execute requests in parallel. Default concurrency is determined by the mixin's `MAX_WORKERS` class property. The thread pool is inspected at regular intervals to remove completed responses and handle them, and show activity for pending requests.
 

@@ -81,8 +81,8 @@ class ResponseThreadPool:
                 res = methods.get(req.method)(*req.args, **req.kwargs)
         except requests.Timeout:
             err = 'Timeout Error: the request timed out'
-        except requests.ConnectionError:
-            err = 'Connection Error: check your connection'
+        except requests.ConnectionError as e:
+            err = 'Connection Error: {}'.format(e)
         except SyntaxError as e:
             err = '{}: {}\n\n{}'.format('Syntax Error', e,
                                         'Run "Requester: Show Syntax" to review properly formatted requests')

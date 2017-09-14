@@ -275,7 +275,7 @@ class RequestCommandMixin:
         ))
 
     def reset_status(self):
-        """Make sure this is called before `add_error_status_bar`.
+        """Make sure this is called _before_ `add_error_status_bar`.
         """
         self._status_errors = []
         self.view.set_status('requester.errors', '')

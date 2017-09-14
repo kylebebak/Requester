@@ -29,7 +29,7 @@ A modern, team-oriented HTTP client for Sublime Text 3. Requester combines featu
 
 ---
 
-If you're looking for an HTTP client you should try Requester __even if you've never used Sublime Text__. [Here's why](https://github.com/kylebebak/Requester#why-requester).
+If you're looking for an HTTP client you should try Requester __even if you've never used Sublime Text__. [Here's why](#why-requester).
 
 
 ## Contents
@@ -189,7 +189,7 @@ Find out what makes Requester really special. In the future if you need to refre
 
 
 ### Separate Env File
-Requester also lets you save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env file, which is convenient. Save it with any name, but use the `.pyr` extension. `requester.pyr` is fine. More on the `.pyr` extension later.
+Requester can save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env file, which is convenient. Save it with any name, but use the `.pyr` extension. `requester.pyr` is fine. More on the `.pyr` extension later.
 
 Next, save a file with the name `requester_env.py` in the same directory as `requester.pyr`, and add an env var to it.
 
@@ -283,7 +283,7 @@ post('https://requestb.in/<your_request_bin>', streamed='/path/to/file')
 post('https://requestb.in/<your_request_bin>', chunked='/path/to/file')
 ~~~
 
-If you use pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header is added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled.
+If you pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header is added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled.
 
 >If you need streaming uploads for multipart forms, or uploads of multiple files, the `requests-toolbelt` packages has your back. Check out [this section](#import-any-python-package-with-requester).
 
@@ -412,7 +412,7 @@ Want to see which HTTP verbs a given endpoint accepts? Send an `OPTIONS` request
 
 
 ## Import Any Python Package with Requester
-Requester comes bundled with the `requests` and `jsonschema` packages, but it can actually source __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file.
+Requester comes bundled with the `requests` and `jsonschema` packages, but you can trivially extend it to source __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
 In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
 
@@ -433,7 +433,7 @@ Use this path as your `packages_path` setting in Requester's settings file. To o
 
 
 ### OAuth1 and OAuth2
-__requests-oauthlib__ makes OAuth1 and OAuth2 a lot easier. Let's say you want explore the Twitter REST API, which uses OAuth1 for authentication. Go to <https://apps.twitter.com/app/new>, create a new application, then go to the __Keys and Access Tokens__ tab for your application. Generate an access token and an access token secret, grab your API key and secret, and use pass them to `OAuth1`.
+__requests-oauthlib__ makes OAuth1 and OAuth2 a lot easier. Let's say you want explore the Twitter REST API, which uses OAuth1 for authentication. Go to <https://apps.twitter.com/app/new>, create a new application, then go to the __Keys and Access Tokens__ tab for your application. Generate an access token and an access token secret, grab your API key and secret, and pass them to `OAuth1`.
 
 ~~~py
 ###env
@@ -444,12 +444,25 @@ auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackoverflow&count=100', auth=auth)
 
 # ...
-# [
-#   {
-#     "contributors": null,
-#     "coordinates": null,
-#     "created_at": "Fri Sep 01 12:46:09 +0000 2017",
-#     "entities": {...
+#   "created_at": "Wed Sep 13 19:10:10 +0000 2017",
+#   "entities": {
+#     "hashtags": [],
+#     "symbols": [],
+#     "urls": [
+#       {
+#         "display_url": "stackoverflow.blog/2017/09/06/inc\u2026",
+#         "expanded_url": "https://stackoverflow.blog/2017/09/06/incredible-growth-python/",
+#         "indices": [
+#           32,
+#           55
+#         ],
+#         "url": "https://t.co/4NCaBp5RKh"
+#       }
+#     ],
+#     "user_mentions": []
+#   },
+#   "favorite_count": 2,
+# ...
 ~~~
 
 Python has auth libraries for authenticating with a wide variety of APIs. With `pip` and the `packages_path` setting Requester can access them all.
@@ -518,7 +531,7 @@ Assertions can be inserted seamlessly into a requester file; if you're not doing
 
 
 ### Export Tests to Runnable Script
-Want to integrate your Requester tests into your app's test routine? Requester lets you export request/assertion pairs to a runnable test script! Highlight the requests and assertions you want to export and look for __Requester: Export Tests To Runnable Script__ in the command palette.
+If you want to integrate your Requester tests into your app's test routine, Requester can export request/assertion pairs to a runnable test script. Highlight the requests and assertions you want to export and look for __Requester: Export Tests To Runnable Script__ in the command palette.
 
 This test script depends only on the Python `requests` and `jsonschema` packages. To run it from the command line you just call `python -m unittest <test_module_name>`. The default test module name is __requester_tests__.
 
@@ -549,7 +562,7 @@ Warning: benchmarks runs with `C` above ~100 may slow down the UI while they are
 
 
 ## Export/Import with cURL, HTTPie
-Need your requests in a more portable format? Requester lets you export to and import from the ubiquitous [cURL](https://curl.haxx.se/) format.
+Need your requests in a more portable format? Requester exports to and import from the ubiquitous [cURL](https://curl.haxx.se/) format.
 
 This makes it trivial to share requests with teammates who don't use Requester, or execute your requests on any server you like.
 
@@ -595,7 +608,7 @@ Commands defined by this package, in case you want to add or change key bindings
 
 
 ## Response Tab Commands
-The following commands are only available in response tabs. The key bindings listed below are for macOS. Every response tab includes these key bindings for your reference.
+The following commands are only available in response tabs. The key bindings listed below are for macOS. Every response tab shows these key bindings.
 
 - __cmd+r__: replay request
 - __ctrl+alt+ ←/→__: prev/next request
@@ -603,7 +616,7 @@ The following commands are only available in response tabs. The key bindings lis
 - __cmd+e__: explore URL
 - __cmd+o__: options
 
-If you try to execute one of these commands and nothing happens, you've already mapped the binding to another command. Run __Preferences: Key Bindings__ from the command palette, find the conflicting key combination, add the following context to the binding, and restart Sublime Text.
+If you try to execute one of these commands and nothing happens, you've already mapped the binding to another command. Run __Preferences: Key Bindings__ from the command palette, find the conflicting key combination, add the following `context` to the binding, and restart Sublime Text.
 
 ~~~json
 "context": [

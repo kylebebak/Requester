@@ -44,7 +44,10 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
 class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
     """Show read-only version of README.
     """
-    def run(self):
+    def run(self, online=False):
+        if online:
+            webbrowser.open_new_tab('http://requester.org')
+            return
         show_read_only_doc_view(self.window.new_file(),
                                 sublime.load_resource('Packages/Requester/README.md'),
                                 'Requester Documentation')

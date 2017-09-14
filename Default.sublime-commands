@@ -121,6 +121,12 @@
   },
 
   {
+    "caption": "Requester: Show Documentation (Online)",
+    "command": "requester_show_documentation",
+    "args": { "online": true }
+  },
+
+  {
     "caption": "Requester: Show Documentation (Local)",
     "command": "requester_show_documentation"
   },
