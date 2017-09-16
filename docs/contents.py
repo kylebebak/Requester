@@ -1,3 +1,6 @@
+"""Takes filename as input, creates a Markdown table of contents from its Markdown
+headers, and prints TOC to stdout.
+"""
 import re
 
 
@@ -34,6 +37,7 @@ def get_contents(s):
 if __name__ == '__main__':
     import sys
     filename = sys.argv[1]
+    contents = '## Contents\n'
     with open(filename, 'r') as f:
-        contents = get_contents(f.read())
+        contents += get_contents(f.read())
         print(contents)
