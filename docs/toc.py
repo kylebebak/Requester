@@ -37,7 +37,5 @@ def get_contents(s):
 if __name__ == '__main__':
     import sys
     filename = sys.argv[1]
-    contents = '## Contents\n'
     with open(filename, 'r') as f:
-        contents += get_contents(f.read())
-        print(contents)
+        print(get_contents(f.read()))

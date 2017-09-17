@@ -1,4 +1,3 @@
-## Contents
 - [Installation](#installation)
 - [Getting Started](#getting-started)
   + [Jump to Request](#jump-to-request)

@@ -1,0 +1,58 @@
+---
+# Front matter
+---
+@charset "utf-8";
+
+// Use media queries like this:
+// @include media-query($on-palm) {
+//   .wrapper {
+//     padding-right: $spacing-unit / 2;
+//     padding-left: $spacing-unit / 2;
+//   }
+// }
+@mixin media-query($device) {
+  @media screen and (max-width: $device) {
+    @content;
+  }
+}
+
+$nav-bar-height: 60px;
+$toc-width: 20%;
+
+#nav-bar {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  height: $nav-bar-height;
+  background: white;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  .nav-bar-item {
+    display: inline;
+  }
+}
+
+#toc {
+  position: fixed;
+  width: $toc-width;
+  overflow-y: scroll;
+  top: $nav-bar-height;
+  bottom: 0;
+  left: 0;
+  ul {
+    padding-left: 20px;
+  }
+  li {
+    list-style-type: none;
+  }
+  a:visited {
+    color: blue;
+  }
+}
+
+#content {
+  margin-left: $toc-width;
+  padding-top: $nav-bar-height;
+}

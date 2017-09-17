@@ -2,15 +2,29 @@
 layout: default
 ---
 
-<div class="home">
+<div class="wrapper">
 
-  <h1>Documentation</h1>
-  <a class="button" href="https://github.com/kylebebak/Requester/blob/master/docs/_content/body.md">EDIT ON GITHUB</a>
+  <header id="nav-bar">
+    <a class="site-title nav-bar-item" href="{{ site.baseurl }}/">Requester</a>
+    <a class="external-link nav-bar-item" href="{{ site.github_url }}/">GitHub</a>
+    <input id="q" type="search" placeholder="Search docs…" />
+  </header>
 
-  {% capture features %}{% include_relative _content/features.md %}{% endcapture %}
-  {{ features | markdownify }}
+  <nav id="toc">
+    {% capture toc %}{% include_relative _content/toc.md %}{% endcapture %}
+    {{ toc | markdownify }}
+  </nav>
 
-  {% capture body %}{% include_relative _content/body.md %}{% endcapture %}
-  {{ body | markdownify }}
+
+  <div id="content">
+    <h1>Documentation</h1>
+    <a class="button" href="https://github.com/kylebebak/Requester/blob/master/docs/_content/body.md">EDIT ON GITHUB</a>
+
+    {% capture features %}{% include_relative _content/features.md %}{% endcapture %}
+    {{ features | markdownify }}
+
+    {% capture body %}{% include_relative _content/body.md %}{% endcapture %}
+    {{ body | markdownify }}
+  </div>
 
 </div>

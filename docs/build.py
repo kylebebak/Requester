@@ -9,7 +9,10 @@ if __name__ == '__main__':
     parts = []
     for filename in filenames:
         with open(filename, 'r') as f:
-            parts.append(f.read())
+            if filename.split('/')[-1] == 'toc.md':
+                parts.append('## Contents\n' + f.read())
+            else:
+                parts.append(f.read())
     content = '\n\n'.join(parts)
     if content[-1] == '\n':  # redirection will automatically add a trailing new-line to file
         content = content[:-1]
