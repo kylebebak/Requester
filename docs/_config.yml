@@ -17,6 +17,7 @@ github_username: kylebebak
 # no date or extension in url
 permalink: /post/:title
 home: "http://requester.org"
+github_url: "https://github.com/kylebebak/Requester"
 
 # Build settings
 markdown: kramdown
