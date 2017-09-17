@@ -9,3 +9,6 @@ BASE='docs/_content' && python docs/build.py $BASE/header.md $BASE/features.md $
 # the -u flag updates and removes index entries, but adds nothing
 git add docs/_content/toc.md
 git add README.md
+
+# exits with non-zero status if there are lint or style errors in any Python source files
+flake8

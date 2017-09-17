@@ -570,7 +570,7 @@ Requester's modifiable settings, and their default values. You can override any 
 
 
 ## Contributing and Tests
-I would be very grateful! [See here](https://github.com/kylebebak/Requester/blob/master/docs/_content/contributing.md).
+[See here](https://github.com/kylebebak/Requester/blob/master/docs/_content/contributing.md).
 
 
 ## Why Requester?
