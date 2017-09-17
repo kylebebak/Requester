@@ -1,0 +1,15 @@
+---
+layout: default
+---
+
+<div class="home">
+
+  <h1>Documentation</h1>
+
+  {% capture features %}{% include_relative _content/features.md %}{% endcapture %}
+  {{ features | markdownify }}
+
+  {% capture body %}{% include_relative _content/body.md %}{% endcapture %}
+  {{ body | markdownify }}
+
+</div>

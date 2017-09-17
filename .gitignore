@@ -7,3 +7,8 @@ package-metadata.json
 sandbox/*
 
 .coverage
+
+# Jekyll
+.sass-cache
+.jekyll-metadata
+_site
