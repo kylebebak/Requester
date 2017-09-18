@@ -6,15 +6,23 @@ layout: default
 
   <header id="nav-bar">
     <div style="flex: 0.25;"></div>
-    <a class="site-title nav-bar-item" href="{{ site.baseurl }}/">Requester</a>
-    <a class="external-link nav-bar-item" href="{{ site.github_url }}/">GitHub</a>
-    <a class="external-link nav-bar-item" href="{{ site.youtube_url }}/">YouTube</a>
+
+    <div class="nav-bar-main-item">
+      <a class="site-title" href="{{ site.baseurl }}/">Requester</a>
+    </div>
+    <div class="nav-bar-item">
+      <a class="external-link nav-bar-item" href="{{ site.github_url }}/">GitHub</a>
+    </div>
+    <div class="nav-bar-item">
+      <a class="external-link nav-bar-item" href="{{ site.youtube_url }}/">YouTube</a>
+    </div>
 
     <div style="flex: 2;"></div>
 
     <div class="nav-bar-item">
       <input id="q" type="search" placeholder="&quot;\&quot; to search…" />
     </div>
+    <div style="flex: 0.25;"></div>
   </header>
 
   <nav id="toc">
@@ -24,8 +32,10 @@ layout: default
 
 
   <div id="content">
-    <h1>Documentation</h1>
-    <a class="button" href="https://github.com/kylebebak/Requester/blob/master/docs/_content/body.md">EDIT ON GITHUB</a>
+    <div class="header">
+      <h1>Documentation</h1>
+      <a class="button" href="https://github.com/kylebebak/Requester/blob/master/docs/_content/body.md">EDIT ON GITHUB</a>
+    </div>
 
     {% capture features %}{% include_relative _content/features.md %}{% endcapture %}
     {{ features | markdownify }}

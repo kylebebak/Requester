@@ -29,7 +29,7 @@ $nav-bar-height: 60px;
 $toc-width: 20%;
 
 #nav-bar {
-  background-color: #f3f3f3;
+  background-color: #eee;
   position: fixed;
   width: 100%;
   top: 0;
@@ -37,8 +37,25 @@ $toc-width: 20%;
   display: flex;
   flex-direction: row;
   align-items: center;
+  a {
+    font-family: Lucida Console, Courier, monospace;
+    border-bottom: 0px;
+    color: black;
+    &:hover {
+      color: $link;
+    }
+  }
   .nav-bar-item {
-    flex: 1;
+    flex: .75;
+    a {
+      font-size: 1.25em;
+    }
+  }
+  .nav-bar-main-item {
+    flex: 1.25;
+    a {
+      font-size: 1.6em;
+    }
   }
 }
 
@@ -82,8 +99,8 @@ $toc-width: 20%;
   padding-top: $nav-bar-height;
 }
 
-a {
-  font-weight: 400;
+h1,h2,h3,h4,h5 {
+  color: black;
 }
 
 // https://css-tricks.com/hash-tag-links-padding/
@@ -93,4 +110,39 @@ h2:before,h3:before,h4:before {
   margin-top: -$nav-bar-height;
   height: $nav-bar-height;
   visibility: hidden;
+}
+
+a {
+  font-weight: 400;
+}
+
+.button {
+  background-color: #bbb;
+  border-radius: 6px;
+  padding: 4px 20px 2px;
+  color: white;
+  &:hover {
+    background-color: #aaa;
+    border-bottom: 0px;
+  }
+}
+
+.header {
+  h1,a {
+    display: inline;
+  }
+  a:last-child {
+    float: right;
+  }
+}
+
+input[type=search]
+{
+  background-color: white;
+  border: solid 1px #BFBDBD;
+  border-radius: 6px;
+  height: $nav-bar-height * .6;
+  padding-left: 10px;
+  box-shadow: 2px 2px 0 black inset;
+  width: 200px;
 }
