@@ -158,7 +158,9 @@ get('httpbin.org/redirect-to?url=foo')  # response tab shows redirects
 
 Body, Query Params, and Headers are passed to __requests__ as dictionaries. Cookies can be passed as a dict or an instance of `requests.cookies.RequestsCookieJar`.
 
-If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser. If you want to disallow redirects by default, simply change Requester's `allow_redirects` setting to `false`.
+If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser.
+
+>If you want to disallow redirects by default, simply change Requester's `allow_redirects` setting to `false`.
 
 
 ### Sessions
@@ -195,9 +197,9 @@ Requester comes with a few pre-written auth classes you can use in your code, or
 ### Forms and File Uploads
 Requests makes posting forms and uploading files easy. See how in the Requests documentation.
 
-- Forms: <http://docs.python-requests.org/en/latest/user/quickstart/#more-complicated-post-requests>
-- File uploads: <http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file>
-- Multiple file uploads: <http://docs.python-requests.org/en/master/user/advanced/#post-multiple-multipart-encoded-files>
+- [Forms](http://docs.python-requests.org/en/latest/user/quickstart/#more-complicated-post-requests)
+- [File uploads](http://docs.python-requests.org/en/latest/user/quickstart/#post-a-multipart-encoded-file)
+- [Multiple file uploads](http://docs.python-requests.org/en/master/user/advanced/#post-multiple-multipart-encoded-files)
 
 Requests also supports streaming and chunked file uploads, which is great (and necessary) if the file you're uploading doesn't fit in memory, but the API is a bit more complicated. Requester has the special `streamed` and `chunked` arguments to make these uploads trivial.
 
@@ -240,7 +242,7 @@ If you need to run requests or tests one after another, in the order in which th
 
 Behind the scenes, this just passes the `concurrency=1` arg to `requester` or `requester_run_tests`, and voilà, you've chained your requests.
 
-Note: code inside your __env block/env file__ is always run serially, which includes any requests you put in there.
+>Note: code inside your __env block/env file__ always runs serially, which includes any requests you put in there.
 
 
 #### Chaining by Reference
@@ -260,7 +262,7 @@ get('google.com', allow_redirects=False)
 get('httpbin.org/cookies', cookies={'url': first_response.json()['url']})
 ~~~
 
-By the way, this means you shouldn't name an env var "Response", or with the same name that you pass to a request's `name` argument, because these env vars will be overwritten.
+>By the way, you shouldn't name an env var "Response", or with the same name that you pass to a request's `name` argument, because it will be overwritten.
 
 
 ## Navigation and History
@@ -290,7 +292,9 @@ Replay the chosen request. It runs as if it were executed from its original requ
 
 
 #### Page Through Past Requests
-Notice the key bindings for __prev/next request__ in response tabs? Give them a try. If they don't work, don't fret! Here's a 1 minute, [permanent fix to the problem](#response-tab-commands).
+Notice the key bindings for __prev/next request__ in response tabs? Give them a try.
+
+>If these or other bindings don't work, don't fret! Here's a 1 minute, [permanent fix to the problem](#response-tab-commands).
 
 These commands let you page through past requests one at a time, and can be used from any response tab. __Combine them with fuzzy search for request searching nirvana__.
 
@@ -420,7 +424,7 @@ Some valid properties: `apparent_encoding`, `cookies`, `encoding`, `headers`, `h
 
 
 ### Making Assertions About Response Structure
-`cookies`, `headers` and `json` point to Python dicts or lists, which means comparing for equality isn't very useful. Much more useful are the following special assertion keys for these properties: `cookies_schema` `headers_schema` `json_schema`.
+`cookies`, `headers` and `json` point to Python dicts or lists, which means comparing for equality isn't very useful. Much more useful are the following special assertion keys for these properties: `cookies_schema`, `headers_schema`, `json_schema`.
 
 Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). __This lets you describe the structure of cookies, headers, and JSON responses returned by your API__. Look at the example below. The test fails because we assert that the `userId` for each object in the array of results has a type of `string`, and this isn't true.
 
@@ -481,7 +485,7 @@ get('http://httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
 
 It goes without saying, but please don't use this for DoS attacks on servers you don't own. Regardless of what you pass for `N`, the total number of requests executed is capped at 100000. `C` is capped at 1000, which translates to [tens of millions of requests per day](https://serverfault.com/questions/274253/apache-ab-choosing-number-of-concurrent-connections).
 
-Warning: benchmarks runs with `C` above ~100 may slow down the UI while they are running.
+>Warning: benchmarks runs with `C` above ~100 may slow down the UI while they are running.
 
 
 ## Export/Import with cURL, HTTPie
@@ -583,11 +587,3 @@ It also means Requester uses an extensively documented, battle-tested library fa
 Apart from being feature-rich, __Requester is built for speed and simplicity__. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
 
 Request navigation and history are especially powerful. Finding a request you executed a week ago, editing it and executing it is lightning fast. __No HTTP client, GUI, CLI or otherwise, comes close.__
-
-[![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester")
-
-The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control.
-
-Need to share requests with someone who doesn't use Requester? Exporting all of your requests to cURL or HTTPie takes a few seconds.
-
-Requester is cross-platform and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use. ✨✨

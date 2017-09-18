@@ -1,0 +1,28 @@
+%block--align-center { margin-left: auto; margin-right: auto; }
+%content--width-limit { @extend %block--align-center; max-width: 40rem; }
+%banner__wrapper {
+  @include tablet-portrait-up {
+    position: absolute;
+    top: 14rem;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    padding: 0 3rem;
+    height: 0;
+    max-width: 60rem;
+    color: #fff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+%banner__title {
+  @include tablet-portrait-up {
+    font-weight: 700;
+    font-size: 3rem;
+    text-shadow: 1px 1px #555;
+  }
+}
+

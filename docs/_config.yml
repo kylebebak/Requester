@@ -18,6 +18,7 @@ github_username: kylebebak
 permalink: /post/:title
 home: "http://requester.org"
 github_url: "https://github.com/kylebebak/Requester"
+youtube_url: "https://www.youtube.com/watch?v=kVO5AWIsmF0"
 
 # Build settings
 markdown: kramdown

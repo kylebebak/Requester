@@ -10,7 +10,7 @@ Requester is a modern, team-oriented HTTP client for Sublime Text 3 that combine
   + Execute requests and display responses in parallel, [__or chain requests__](#chaining-by-reference)
   + Edit and replay requests from individual response tabs, page through past requests
     * [Explore hyperlinked APIs](#explore-hyperlinked-apis-hateoas) from response tabs
-  + Fuzzy searchable [request navigation and request history](#navigation-and-history)
+  + Fuzzy search [request navigation and request history](#navigation-and-history)
   + Formatted, colorized output with automatic syntax highlighting
   + Clear error handling and error messages
 - Perfect for teams

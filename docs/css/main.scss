@@ -16,21 +16,29 @@
   }
 }
 
+// Import partials from `sass_dir` (defaults to `_sass`)
+@import
+  "tools",
+  "objects",
+  "constants",
+  "syntax.solarized-dark",
+  "base"
+;
+
 $nav-bar-height: 60px;
 $toc-width: 20%;
 
 #nav-bar {
+  background-color: #f3f3f3;
   position: fixed;
   width: 100%;
   top: 0;
   height: $nav-bar-height;
-  background: white;
   display: flex;
   flex-direction: row;
   align-items: center;
-  justify-content: space-between;
   .nav-bar-item {
-    display: inline;
+    flex: 1;
   }
 }
 
@@ -41,18 +49,48 @@ $toc-width: 20%;
   top: $nav-bar-height;
   bottom: 0;
   left: 0;
+  border-right: 1px solid #777;
   ul {
     padding-left: 20px;
+    padding-right: 10px;
   }
   li {
     list-style-type: none;
-  }
-  a:visited {
-    color: blue;
+    margin-top: 5px;
+    a {
+      border-bottom: 0px;
+      color: $nav_link;
+      &:visited {
+        color: $nav_link;
+      }
+      &:hover {
+        &::before {
+          color: black;
+        }
+      }
+      &::before {
+        content: '▸ ';
+        color: #ddd;
+      }
+    }
   }
 }
 
 #content {
-  margin-left: $toc-width;
+  width: 100% - $toc-width * 2.25;
+  margin-left: $toc-width * 1.5;
   padding-top: $nav-bar-height;
+}
+
+a {
+  font-weight: 400;
+}
+
+// https://css-tricks.com/hash-tag-links-padding/
+h2:before,h3:before,h4:before {
+  display: block;
+  content: " ";
+  margin-top: -$nav-bar-height;
+  height: $nav-bar-height;
+  visibility: hidden;
 }

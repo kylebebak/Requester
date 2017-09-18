@@ -1,0 +1,120 @@
+/* # Media Queries
+   ========================================= */
+
+@mixin mobile-only {
+  @media (max-width: 599px) { @content; }
+}
+
+@mixin tablet-portrait-up {
+  @media (min-width: 600px) { @content; }
+}
+
+@mixin tablet-portrait-down {
+  @media (max-width: 899px) { @content; }
+}
+
+@mixin tablet-landscape-up {
+  @media (min-width: 900px) { @content; }
+}
+
+@mixin desktop-up {
+  @media (min-width: 1200px) { @content; }
+}
+
+@mixin big-desktop-up {
+  @media (min-width: 1800px) { @content; }
+}
+
+/* # Typography
+   ========================================= */
+
+@mixin fontface($face: $default_font_face) {
+  @if $face == sans-serif { font-family: "Roboto", sans-serif; }
+  @else if $face == serif { font-family: "Roboto Slab", Georgia, serif }
+  @else if $face == monospace { font-family: "Roboto Mono", monospace; }
+}
+
+@mixin fontweight($weight: normal, $face: $default_font_face, $color: default) {
+  @if $weight == normal {
+    @if $color == default { color: #666; }
+    @else { color: $color; }
+    @if $face == sans-serif or $face == serif { font-weight: 300; }
+    @else { font-weight: normal; }
+  }
+
+  @else if $weight == bold {
+    @if $face == sans-serif { font-weight: 600; }
+    @else if $face == serif { font-weight: 400; }
+    @else { font-weight: bold; }
+  }
+}
+
+@mixin heading($size) {
+  @include fontface(serif);
+  @include fontweight(bold, serif);
+  font-size: #{$size}em;
+  line-height: 1.2;
+
+  @if $size > 1.2 { margin-top: 2rem }
+  @else { margin-top: 1.5rem }
+
+  &:first-child { margin-top: 0.5rem; }
+}
+
+@mixin underline($color: inherit) {
+  text-decoration: none;
+  border-bottom: 1px solid $color;
+}
+
+@mixin highlight($bg, $fg: #fff) {
+  color: $fg;
+  background-color: $bg;
+}
+
+/* # Layout
+   ========================================= */
+
+@mixin edge($side: bottom, $weight: 1px, $color: null, $distance: null) {
+  padding-#{$side}: $distance;
+  border-#{$side}: $weight solid $color;
+}
+
+@mixin inset($background-color: null, $overflow-x: scroll) {
+  background-color: $background-color;
+  padding: 1rem;
+  border-radius: 0.25rem;
+  overflow-x: $overflow-x;
+  *:first-child { margin-top: 0; }
+  *:last-child { margin-bottom: 0; }
+}
+
+@mixin bgicon($image: null, $position: null, $size: null, $color: null) {
+  background-image: $image;
+  background-position: $position;
+  background-size: $size;
+  background-repeat: no-repeat;
+  background-color: $color;
+}
+
+/* # UI Effects
+   ========================================= */
+
+@mixin transition($property, $base_value, $interval) {
+  #{$property}: $base_value;
+  transition: $property $interval;
+  will-change: $property;
+}
+
+@mixin hoverbutton($basecolor, $icon: null) {
+  background-color: $basecolor;
+  display: inline-block;
+  position: relative;
+  @include transition(top, 0, 40ms);
+  &:hover { top: -2px; }
+  @include fontweight($weight: bold, $color: #fff);
+  border-radius: 0.25rem;
+  @include edge(bottom, 2px, darken($basecolor, 15%));
+  &, &:link, &:hover, &:visited { border-bottom: 2px solid darken($basecolor, 15%); }
+  &:hover { background-color: lighten($basecolor, 15%); }
+  &:active { @include highlight(#fff, $basecolor); background-image: $icon; }
+}

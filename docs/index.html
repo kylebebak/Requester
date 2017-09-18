@@ -5,9 +5,16 @@ layout: default
 <div class="wrapper">
 
   <header id="nav-bar">
+    <div style="flex: 0.25;"></div>
     <a class="site-title nav-bar-item" href="{{ site.baseurl }}/">Requester</a>
     <a class="external-link nav-bar-item" href="{{ site.github_url }}/">GitHub</a>
-    <input id="q" type="search" placeholder="Search docs…" />
+    <a class="external-link nav-bar-item" href="{{ site.youtube_url }}/">YouTube</a>
+
+    <div style="flex: 2;"></div>
+
+    <div class="nav-bar-item">
+      <input id="q" type="search" placeholder="&quot;\&quot; to search…" />
+    </div>
   </header>
 
   <nav id="toc">
@@ -25,6 +32,9 @@ layout: default
 
     {% capture body %}{% include_relative _content/body.md %}{% endcapture %}
     {{ body | markdownify }}
+
+    {% capture footer %}{% include_relative _content/footer.md %}{% endcapture %}
+    {{ footer | markdownify }}
   </div>
 
 </div>
