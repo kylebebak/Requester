@@ -52,4 +52,15 @@ class TokenAuth:
 requests.get('http://httpbin.org/headers', auth=TokenAuth('Bearer', 'big_auth_token'))
 """
     ),
+    (
+        'OAuth1',
+        """###env
+# http://requester.org/#import-any-python-package-with-requester
+from requests_oauthlib import OAuth1
+auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+###env
+
+get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackoverflow&count=100', auth=auth)
+"""
+    ),
 ]

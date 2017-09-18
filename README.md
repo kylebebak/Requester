@@ -73,6 +73,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 - [Response Tab Commands](#response-tab-commands)
 - [Settings](#settings)
 - [Contributing and Tests](#contributing-and-tests)
+- [Inspired By](#inspired-by)
 - [Why Requester?](#why-requester)
 
 
@@ -655,6 +656,12 @@ Requester's modifiable settings, and their default values. You can override any 
 [See here](https://github.com/kylebebak/Requester/blob/master/docs/_content/contributing.md).
 
 
+## Inspired By
+- [Requests](http://docs.python-requests.org/en/master/) — Requester sends all its requests using this amazing library.
+- [HTTPie](https://github.com/jakubroztocil/httpie) — A truly "Pythonic" tool. Its focus on intuitiveness and ergonomics inspired many of Requester's features, including its [docs site](http://requester.org).
+- [Postman](https://www.getpostman.com/) — A strong influence on much of Requester's "managed" UI.
+
+
 ## Why Requester?
 Requester combines features from applications like Postman, Paw, Insomnia and HTTPie with the elegance and power of Requests and rock-solid UX of Sublime Text.
 
@@ -664,7 +671,7 @@ It also means Requester uses an extensively documented, battle-tested library fa
 
 Apart from being feature-rich, __Requester is built for speed and simplicity__. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
 
-Request navigation and history are especially powerful. Finding a request you executed a week ago, editing it and executing it is lightning fast. __No HTTP client, GUI, CLI or otherwise, comes close.__
+Request navigation and history are especially powerful. Finding a request you executed a week ago, editing it and executing it is lightning fast.
 
 
 [![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester")
