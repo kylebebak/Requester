@@ -3,6 +3,7 @@
 ![License](https://camo.githubusercontent.com/890acbdcb87868b382af9a4b1fac507b9659d9bf/68747470733a2f2f696d672e736869656c64732e696f2f62616467652f6c6963656e73652d4d49542d626c75652e737667)
 [![Build Status](https://travis-ci.org/kylebebak/Requester.svg?branch=master)](https://travis-ci.org/kylebebak/Requester)
 [![Coverage Status](https://coveralls.io/repos/github/kylebebak/Requester/badge.svg?branch=master)](https://coveralls.io/github/kylebebak/Requester?branch=master)
+[![Join the chat at https://gitter.im/kylebebak/Requester](https://badges.gitter.im/kylebebak/Requester.svg)](https://gitter.im/kylebebak/Requester?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 
 __Requester__ is a modern, team-oriented HTTP client for Sublime Text 3 that combines features of apps like Postman, Paw and HTTPie with rock-solid usability and the secret sauce of Requests. 🌟
@@ -108,7 +109,7 @@ Tabs will open for all 4 requests (Requester conveniently ignores the blank line
 
 
 ### Jump to Request
-Go back to your Requester file and save it as `<anything>.pyr`. The extension is important. Run Sublime Text's __Goto Symbol__ by pressing <kbd>ctrl+r</kbd> (<kbd>cmd+r</kbd> on macOS). If your Requester file has this extension, you can jump between your requests almost instantaneously.
+Go back to your requester file and save it as `<anything>.pyr`. The extension is important. Run Sublime Text's __Goto Symbol__ by pressing <kbd>ctrl+r</kbd> (<kbd>cmd+r</kbd> on macOS). If your requester file has this extension, you can jump between your requests almost instantaneously.
 
 
 ### Multiline Requests
@@ -345,13 +346,13 @@ get('httpbin.org/cookies', cookies={'url': first_response.json()['url']})
 
 
 ## Navigation and History
-UX is sort of an obsession for me, and it's sacred in Requester. The biggest UX difference between Requester and other HTTP clients is the ease with which you can find, modify and execute your requests — the ones in your Requester file, and the ones in you request history.
+UX is sort of an obsession for me, and it's sacred in Requester. The biggest UX difference between Requester and other HTTP clients is the ease with which you can find, modify and execute your requests — the ones in your requester file, and the ones in you request history.
 
 
 ### Requester File Navigation (.pyr extension)
 Try running __Requester: New Requester File__ from the command palette. You'll get a file pointing to an empty env file, with an empty env block, and a link to Requester's syntax at the top. It's ready for starting a new collection of requests.
 
-You'll notice the file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your Requester files with this extension__.
+You'll notice the file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your requester files with this extension__.
 
 Here's why. Run __Requester: New Requester File (Navigation Demo)__ from the command palette. You'll get a new requester file with some stub requests already inserted. Now, run Sublime's __Goto Symbol__ command (<kbd>cmd+r</kbd> on macOS)... You can jump between request groups and individual requests almost instantaneously using fuzzy search!
 

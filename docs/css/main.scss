@@ -25,15 +25,16 @@
   "base"
 ;
 
-$nav-bar-height: 60px;
-$toc-width: 20%;
+$nav-bar-height: 70px;
+$toc-width: 22%;
+$content-width: 60%;
 
 #nav-bar {
   background-color: #eee;
   position: fixed;
   width: 100%;
   top: 0;
-  height: $nav-bar-height;
+  min-height: $nav-bar-height;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -45,17 +46,23 @@ $toc-width: 20%;
       color: $link;
     }
   }
-  .nav-bar-item {
-    flex: .75;
-    a {
-      font-size: 1.25em;
-    }
+  .nav-links {
+    padding-left: 5%;
+    flex: 2;
   }
-  .nav-bar-main-item {
-    flex: 1.25;
-    a {
-      font-size: 1.6em;
-    }
+  .nav-search {
+    flex: 1;
+    display: flex;
+    padding-right: 5%;
+    justify-content: flex-end;
+  }
+  .site-title {
+    font-size: 1.8em;
+    margin-right: 40px;
+  }
+  .external-link {
+    font-size: 1.35em;
+    margin-right: 20px;
   }
 }
 
@@ -94,9 +101,10 @@ $toc-width: 20%;
 }
 
 #content {
-  width: 100% - $toc-width * 2.25;
-  margin-left: $toc-width * 1.5;
-  padding-top: $nav-bar-height;
+  width: $content-width;
+  margin-left: $toc-width + (100% - $toc-width - $content-width) / 2;
+  padding-top: $nav-bar-height * 1.4;
+  margin-bottom: $nav-bar-height;
 }
 
 h1,h2,h3,h4,h5 {
@@ -107,8 +115,8 @@ h1,h2,h3,h4,h5 {
 h2:before,h3:before,h4:before {
   display: block;
   content: " ";
-  margin-top: -$nav-bar-height;
-  height: $nav-bar-height;
+  margin-top: -$nav-bar-height * 1.20;
+  height: $nav-bar-height * 1.20;
   visibility: hidden;
 }
 
@@ -125,24 +133,34 @@ a {
     background-color: #aaa;
     border-bottom: 0px;
   }
+  margin: 0px 10px;
 }
 
 .header {
   h1,a {
     display: inline;
   }
-  a:last-child {
+  a,iframe {
     float: right;
   }
 }
 
 input[type=search]
 {
+  border: 2px solid #888;
+  border-radius: 7px;
   background-color: white;
-  border: solid 1px #BFBDBD;
-  border-radius: 6px;
   height: $nav-bar-height * .6;
-  padding-left: 10px;
-  box-shadow: 2px 2px 0 black inset;
-  width: 200px;
+  padding-left: 15px;
+  width: 150px;
+  -webkit-transition: width .2s ease-in-out;
+  -moz-transition:width .2s ease-in-out;
+  -o-transition: width .2s ease-in-out;
+  transition: width .2s ease-in-out;
+  &:focus {
+    width: 220px;
+    outline: none;
+    border-color: #9ecaed;
+    box-shadow: 0 0 10px #9ecaed;
+  }
 }

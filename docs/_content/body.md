@@ -29,7 +29,7 @@ Tabs will open for all 4 requests (Requester conveniently ignores the blank line
 
 
 ### Jump to Request
-Go back to your Requester file and save it as `<anything>.pyr`. The extension is important. Run Sublime Text's __Goto Symbol__ by pressing <kbd>ctrl+r</kbd> (<kbd>cmd+r</kbd> on macOS). If your Requester file has this extension, you can jump between your requests almost instantaneously.
+Go back to your requester file and save it as `<anything>.pyr`. The extension is important. Run Sublime Text's __Goto Symbol__ by pressing <kbd>ctrl+r</kbd> (<kbd>cmd+r</kbd> on macOS). If your requester file has this extension, you can jump between your requests almost instantaneously.
 
 
 ### Multiline Requests
@@ -266,13 +266,13 @@ get('httpbin.org/cookies', cookies={'url': first_response.json()['url']})
 
 
 ## Navigation and History
-UX is sort of an obsession for me, and it's sacred in Requester. The biggest UX difference between Requester and other HTTP clients is the ease with which you can find, modify and execute your requests — the ones in your Requester file, and the ones in you request history.
+UX is sort of an obsession for me, and it's sacred in Requester. The biggest UX difference between Requester and other HTTP clients is the ease with which you can find, modify and execute your requests — the ones in your requester file, and the ones in you request history.
 
 
 ### Requester File Navigation (.pyr extension)
 Try running __Requester: New Requester File__ from the command palette. You'll get a file pointing to an empty env file, with an empty env block, and a link to Requester's syntax at the top. It's ready for starting a new collection of requests.
 
-You'll notice the file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your Requester files with this extension__.
+You'll notice the file you just created has a special extension, `.pyr`. This is the Python Requester extension. __You should save all your requester files with this extension__.
 
 Here's why. Run __Requester: New Requester File (Navigation Demo)__ from the command palette. You'll get a new requester file with some stub requests already inserted. Now, run Sublime's __Goto Symbol__ command (<kbd>cmd+r</kbd> on macOS)... You can jump between request groups and individual requests almost instantaneously using fuzzy search!
 
