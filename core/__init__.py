@@ -339,7 +339,7 @@ class RequestCommandMixin:
         return '[{}={}]'.format(' ' * before, ' ' * after)
 
 
-def _persist_requests(self, responses):
+def _persist_requests(self, responses, history_path=None):
     """Persist up to N requests to a history file, along with the context
     needed to rebuild the env for these requests. One entry per unique
     request. Old requests are removed when requests exceed file capacity.
@@ -349,7 +349,8 @@ def _persist_requests(self, responses):
     history_file = self.config.get('history_file', None)
     if not history_file:
         return
-    history_path = os.path.join(sublime.packages_path(), 'User', history_file)
+    if not history_path:
+        history_path = os.path.join(sublime.packages_path(), 'User', history_file)
 
     try:
         with open(history_path, 'r') as f:
