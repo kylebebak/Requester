@@ -8,7 +8,7 @@
     {{ content }}
 
     <script>
-      anchors.add('h2, h3, h4, h5, h6');
+      anchors.add('h2, h3, h4, h5');
     </script>
 
     <script src="{{ "/js/shortcuts.js" | prepend: site.baseurl }}"></script>
@@ -21,6 +21,14 @@
         inputSelector: '#q',
         debug: false // Set debug to true if you want to inspect the dropdown
       });
+    </script>
+    <script>
+      function toggleToc(){
+        var toc = document.getElementById('toc-mobile');
+        toc.style.display = toc.style.display === 'none' ? '' : 'none';
+        var toggle = document.getElementById('toggle-toc');
+        toggle.classList.toggle('open');
+      }
     </script>
   </body>
 

@@ -28,6 +28,20 @@
 $nav-bar-height: 70px;
 $toc-width: 22%;
 $content-width: 60%;
+$content-width-small: 92%;
+$break-small: 720px;
+
+.hide-small {
+  @media screen and (max-width: $break-small) {
+    display: none !important;
+  }
+}
+
+.hide-big {
+  @media screen and (min-width: $break-small+1) {
+    display: none !important;
+  }
+}
 
 #nav-bar {
   background-color: #eee;
@@ -46,34 +60,28 @@ $content-width: 60%;
       color: $link;
     }
   }
-  .nav-links {
-    padding-left: 5%;
-    flex: 2;
-  }
-  .nav-search {
-    flex: 1;
-    display: flex;
-    padding-right: 5%;
-    justify-content: flex-end;
-  }
-  .site-title {
-    font-size: 1.8em;
-    margin-right: 40px;
-  }
-  .external-link {
-    font-size: 1.35em;
-    margin-right: 20px;
-  }
 }
 
-#toc {
-  position: fixed;
-  width: $toc-width;
-  overflow-y: scroll;
-  top: $nav-bar-height;
-  bottom: 0;
-  left: 0;
-  border-right: 1px solid #777;
+.nav-links {
+  padding-left: 5%;
+  flex: 2;
+}
+.nav-search {
+  flex: 1;
+  display: flex;
+  padding-right: 5%;
+  justify-content: flex-end;
+}
+.site-title {
+  font-size: 1.8em;
+  margin-right: 40px;
+}
+.external-link {
+  font-size: 1.35em;
+  margin-right: 20px;
+}
+
+@mixin toc {
   ul {
     padding-left: 20px;
     padding-right: 10px;
@@ -100,11 +108,56 @@ $content-width: 60%;
   }
 }
 
+#toc {
+  position: fixed;
+  width: $toc-width;
+  overflow-y: scroll;
+  top: $nav-bar-height;
+  bottom: 0;
+  left: 0;
+  border-right: 1px solid #888;
+  @include toc;
+}
+
+#toggle-toc {
+  margin-top: 10px;
+  font-weight: bold;
+  height: 1.5em;
+  padding: 4px 10px 3px;
+  border: 1px solid #888;
+  border-radius: 5px;
+  span {
+    &::after {
+      content: '☰';
+      text-align: right;
+      float: right;
+    }
+  }
+}
+
+#toggle-toc.open {
+  span {
+    &::after {
+      content: '▴';
+      text-align: right;
+      float: right;
+    }
+  }
+}
+
+#toc-mobile {
+  @include toc;
+}
+
 #content-wrapper {
   width: $content-width;
   margin-left: $toc-width + (100% - $toc-width - $content-width) / 2;
   padding-top: $nav-bar-height * 1.4;
   margin-bottom: $nav-bar-height;
+  @media screen and (max-width: $break-small) {
+    width: $content-width-small;
+    margin-left: (100% - $content-width-small) / 2;
+  }
 }
 
 h1,h2,h3,h4,h5 {
@@ -112,7 +165,7 @@ h1,h2,h3,h4,h5 {
 }
 
 // https://css-tricks.com/hash-tag-links-padding/
-h2:before,h3:before,h4:before {
+h1:before,h2:before,h3:before,h4:before,h5:before {
   display: block;
   content: " ";
   margin-top: -$nav-bar-height * 1.20;
@@ -142,6 +195,9 @@ a {
   }
   a,iframe {
     float: right;
+    @media screen and (max-width: $break-small) {
+      float: none;
+    }
   }
 }
 

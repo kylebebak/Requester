@@ -6,17 +6,17 @@ layout: default
 
   <header id="nav-bar">
     <div class="nav-links">
-      <a class="site-title" href="{{ site.baseurl }}/">Requester</a>
-      <a class="external-link" href="{{ site.github_url }}/">GitHub</a>
+      <a class="site-title" href="{{ site.baseurl }}/#documentation">Requester</a>
+      <a class="external-link hide-small" href="{{ site.github_url }}/">GitHub</a>
       <a class="external-link" href="{{ site.youtube_url }}/">YouTube</a>
     </div>
 
-    <div class="nav-search">
+    <div class="nav-search hide-small">
       <input id="q" type="search" placeholder="&quot;\&quot; to search…" />
     </div>
   </header>
 
-  <nav id="toc">
+  <nav id="toc" class="hide-small">
     {% capture toc %}{% include_relative _content/toc.md %}{% endcapture %}
     {{ toc | markdownify }}
   </nav>
@@ -24,9 +24,16 @@ layout: default
 
   <div id="content-wrapper">
     <div class="header">
-      <h1>Documentation</h1>
+      <h1 id="documentation">Documentation</h1>
       <iframe src="https://ghbtns.com/github-btn.html?user=kylebebak&repo=Requester&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
-      <a class="button" href="https://github.com/kylebebak/Requester/blob/master/docs/_content/body.md">EDIT ON GITHUB</a>
+      <a class="button hide-small" href="https://github.com/kylebebak/Requester/blob/master/docs/_content/body.md">EDIT ON GITHUB</a>
+    </div>
+
+    <div id="toggle-toc" class="hide-big" onclick="toggleToc()">Contents<span></span></div>
+
+    <div id="toc-mobile" style="display: none;" class="hide-big">
+      {% capture toc %}{% include_relative _content/toc.md %}{% endcapture %}
+      {{ toc | markdownify }}
     </div>
 
     {% capture features %}{% include_relative _content/features.md %}{% endcapture %}

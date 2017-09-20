@@ -1,14 +1,24 @@
 # Contributing
 Please do! Possible improvements:
 
-- Add snippets and docs for more auth schemes
-  + OAuth 1
-  + OAuth 2
+- Add snippets and examples for more auth schemes
+  + Requester can import __any Python package__
+    * OAuth 2, using `requests-oauthlib`
+    * Other common auth protocols, using whichever package is best
+  + `RequesterAuthOptionsCommand` for snippets
+  + Examples in documentation
 - More export/import formats
-  + HTTP
-  + Downloads to Wget
-- Improved support for GraphQL
+  + [HTTP](https://tools.ietf.org/html/rfc7230)
 - Randomized requests with benchmark runs (e.g. for fuzz testing)
+  + Execute all requests constructred from an iterable?
+- Improved support for GraphQL
+  + A clone of GraphiQL?
+  + __Documentation Explorer__ and __Autocomplete__
+  + https://github.com/tryolabs/graphql-parser
+  + This is a really big undertaking
+- Improve architecture and test coverage
+  + More pure functions, fewer coupling points to Sublime Text API
+  + Test coverage for syntax files
 - Tell your friends about Requester!
 
 
@@ -21,7 +31,15 @@ The mixin uses the `ResponseThreadPool` class, which wraps a thread pool to exec
 
 Command classes that use this mixin can override `handle_response` and/or `handle_responses`. This way they can handle responses one at a time as they are completed, or as a group when they're all finished. Each response object contains a `req` namedtuple with a bunch of useful properties, the `res` (a __requests.Response__ object), and an `err` string. Responses are sorted by request parsing order.
 
-Command classes __must__ also override `get_requests`, which must return a list of request strings, for example strings parsed from the current view. To simplify this, `core` has a `parsers` module. The important parser is `parse_requests`. It takes a string, such as a selection from a view, and returns a list of all requests in the string.
+
+### Parser
+Command classes __must__ also override `get_requests`, which must return a list of request strings, for example strings parsed from the current view. To simplify this, `core` has a `parsers` module. The important parser is `parse_requests`. It takes a string, such as a selection from a view, and returns a list of all calls to `requests` in the string.
+
+
+### Use of Eval and Exec
+`exec` is used to build an environment dict from a string, in basically the same way `import` populates a variables dict from a module. The `exec`ed string is simply the concatenation of the env block and the env file.
+
+`eval` is used in `prepare_request`, in conjunction with `parse_args`, to parse the args passed to `requests.<method>`. This way Requester can modify, remove, or add to these args before actually calling `requests.<method>`. Much of Requester's most powerful behavior derives from this ability.
 
 
 ### Writing a New Command Class
