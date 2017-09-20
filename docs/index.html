@@ -22,7 +22,7 @@ layout: default
   </nav>
 
 
-  <div id="content">
+  <div id="content-wrapper">
     <div class="header">
       <h1>Documentation</h1>
       <iframe src="https://ghbtns.com/github-btn.html?user=kylebebak&repo=Requester&type=star&count=true&size=large" frameborder="0" scrolling="0" width="160px" height="30px"></iframe>
@@ -32,11 +32,16 @@ layout: default
     {% capture features %}{% include_relative _content/features.md %}{% endcapture %}
     {{ features | markdownify }}
 
-    {% capture body %}{% include_relative _content/body.md %}{% endcapture %}
-    {{ body | markdownify }}
+    <!-- everything under the #content div is indexed -->
+    <!-- https://github.com/algolia/docsearch-configs/blob/master/configs/requester.json -->
+    <div id="content">
+      {% capture body %}{% include_relative _content/body.md %}{% endcapture %}
+      {{ body | markdownify }}
 
-    {% capture footer %}{% include_relative _content/footer.md %}{% endcapture %}
-    {{ footer | markdownify }}
+      {% capture footer %}{% include_relative _content/footer.md %}{% endcapture %}
+      {{ footer | markdownify }}
+    </div>
+
   </div>
 
 </div>

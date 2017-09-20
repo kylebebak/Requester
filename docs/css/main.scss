@@ -100,7 +100,7 @@ $content-width: 60%;
   }
 }
 
-#content {
+#content-wrapper {
   width: $content-width;
   margin-left: $toc-width + (100% - $toc-width - $content-width) / 2;
   padding-top: $nav-bar-height * 1.4;
