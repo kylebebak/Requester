@@ -4,7 +4,7 @@
 # the -e flag in the shebang line ensures that this hook exits if any of its commands exits with a non-zero exit status
 
 python docs/toc.py docs/_content/body.md > docs/_content/toc.md
-BASE='docs/_content' && python docs/build.py $BASE/header.md $BASE/features.md $BASE/toc.md $BASE/body.md $BASE/youtube.md $BASE/footer.md > README.md
+BASE='docs/_content' && python docs/build.py $BASE/header.md $BASE/features.md $BASE/toc.md $BASE/body.md $BASE/youtube.md > README.md
 
 # the -u flag updates and removes index entries, but adds nothing
 git add docs/_content/toc.md

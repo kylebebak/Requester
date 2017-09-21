@@ -7,14 +7,14 @@
 
     {{ content }}
 
+    <script src="{{ "/js/scripts.js" | prepend: site.baseurl }}"></script>
+
     <script>
       anchors.add('h2, h3, h4, h5');
     </script>
 
-    <script src="{{ "/js/shortcuts.js" | prepend: site.baseurl }}"></script>
-
     <script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/2/docsearch.min.js"></script>
-    <script type="text/javascript">
+    <script>
       docsearch({
         apiKey: '9747f37bc60f3c56ae811f34e267626d',
         indexName: 'requester',
@@ -22,14 +22,7 @@
         debug: false // Set debug to true if you want to inspect the dropdown
       });
     </script>
-    <script>
-      function toggleToc(){
-        var toc = document.getElementById('toc-mobile');
-        toc.style.display = toc.style.display === 'none' ? '' : 'none';
-        var toggle = document.getElementById('toggle-toc');
-        toggle.classList.toggle('open');
-      }
-    </script>
+
   </body>
 
 </html>

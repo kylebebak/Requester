@@ -189,9 +189,9 @@ Requests has [excellent support for authentication](http://docs.python-requests.
 
 To use a custom auth scheme with Requester you define the auth class in your env block or env file, then pass an instance of this class to the `auth` argument of a request.
 
-Requester comes with a few pre-written auth classes you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
+Requester comes with a few pre-written auth "plugins" you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
 
->If you want help handling more complicated forms of auth, like OAuth1 and OAuth2, have a look [at this section](#import-any-python-package-with-requester).
+>Handling complicated auth protocols, like OAuth1 and OAuth2, might require Python packages not bundled with Requester. This section explains how to [extend Requester to import any package](#import-any-python-package-with-requester).
 
 
 ### Forms and File Uploads
@@ -339,7 +339,7 @@ Want to see which HTTP verbs a given endpoint accepts? Send an `OPTIONS` request
 
 
 ## Import Any Python Package with Requester
-Requester comes bundled with the `requests` and `jsonschema` packages, but you can trivially extend it to source __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
+Requester comes bundled with the `requests` and `jsonschema` packages, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
 In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
 
@@ -489,7 +489,7 @@ It goes without saying, but please don't use this for DoS attacks on servers you
 
 
 ## Export/Import with cURL, HTTPie
-Need your requests in a more portable format? Requester exports to and import from the ubiquitous [cURL](https://curl.haxx.se/) format.
+Need your requests in a more portable format? Requester can export to and import from the ubiquitous [cURL](https://curl.haxx.se/) format.
 
 This makes it trivial to share requests with teammates who don't use Requester, or execute your requests on any server you like.
 
@@ -593,3 +593,9 @@ It also means Requester uses an extensively documented, battle-tested library fa
 Apart from being feature-rich, __Requester is built for speed and simplicity__. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
 
 Request navigation and history are especially powerful. Finding a request you executed a week ago, editing it and executing it is lightning fast.
+
+The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control.
+
+Need to share requests with someone who doesn't use Requester? Exporting all of your requests to cURL or HTTPie takes a few seconds.
+
+Requester is cross-platform and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use. ✨✨

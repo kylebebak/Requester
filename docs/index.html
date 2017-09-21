@@ -44,9 +44,6 @@ layout: default
     <div id="content">
       {% capture body %}{% include_relative _content/body.md %}{% endcapture %}
       {{ body | markdownify }}
-
-      {% capture footer %}{% include_relative _content/footer.md %}{% endcapture %}
-      {{ footer | markdownify }}
     </div>
 
   </div>

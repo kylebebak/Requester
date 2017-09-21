@@ -8,26 +8,28 @@
 
 __Requester__ is a modern, team-oriented HTTP client for Sublime Text 3 that combines features of apps like Postman, Paw and HTTPie with rock-solid usability and the secret sauce of Requests. 🌟
 
-- [Super classy, well-documented syntax](http://docs.python-requests.org/en/master/user/quickstart/)
+- [Super classy syntax](http://docs.python-requests.org/en/master/user/quickstart/)
   + Easily set request body, query params, custom headers, cookies
   + Support for sessions, authentication
-  + Forms and file uploads, Wget-style downloads  
+  + Forms and file uploads, Wget-style downloads
   + HTTPS, proxies, redirects, and more
 - Intuitive, modern UX
   + Define [__environment variables__](#environment-variables) with regular Python code
   + Execute requests and display responses in parallel, [__or chain requests__](#chaining-by-reference)
   + Edit and replay requests from individual response tabs, page through past requests
-    * [Explore hyperlinked APIs](#explore-hyperlinked-apis-hateoas) from response tabs
-  + Fuzzy search [request navigation and request history](#navigation-and-history)
+    * [__Explore hyperlinked APIs__](#explore-hyperlinked-apis-hateoas) from response tabs
+  + Fuzzy searchable [__request collections and request history__](#navigation-and-history)
   + Formatted, colorized output with automatic syntax highlighting
   + Clear error handling and error messages
-- Perfect for teams
+  + [__Fuzzy searchable documentation__](http://requester.org#documentation)
+- Built for teams
   + Version and share requests however you want (Git, GitHub, etc)
   + Export requests to cURL or HTTPie, import requests from cURL
   + Lightweight, integrated test runner with support for JSON Schema
-    * [__Export Requester tests to a runnable test script__](#export-tests-to-runnable-script)
+    * [__Export Requester tests to runnable test script__](#export-tests-to-runnable-script)
   + [AB-style](https://httpd.apache.org/docs/2.4/programs/ab.html) benchmarking tool
   + Runs on Linux, Windows and macOS/OS X
+- [__Highly extensible__](#import-any-python-package-with-requester)
 
 ---
 
@@ -269,9 +271,9 @@ Requests has [excellent support for authentication](http://docs.python-requests.
 
 To use a custom auth scheme with Requester you define the auth class in your env block or env file, then pass an instance of this class to the `auth` argument of a request.
 
-Requester comes with a few pre-written auth classes you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
+Requester comes with a few pre-written auth "plugins" you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
 
->If you want help handling more complicated forms of auth, like OAuth1 and OAuth2, have a look [at this section](#import-any-python-package-with-requester).
+>Handling complicated auth protocols, like OAuth1 and OAuth2, might require Python packages not bundled with Requester. This section explains how to [extend Requester to import any package](#import-any-python-package-with-requester).
 
 
 ### Forms and File Uploads
@@ -419,7 +421,7 @@ Want to see which HTTP verbs a given endpoint accepts? Send an `OPTIONS` request
 
 
 ## Import Any Python Package with Requester
-Requester comes bundled with the `requests` and `jsonschema` packages, but you can trivially extend it to source __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
+Requester comes bundled with the `requests` and `jsonschema` packages, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
 In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
 
@@ -569,7 +571,7 @@ It goes without saying, but please don't use this for DoS attacks on servers you
 
 
 ## Export/Import with cURL, HTTPie
-Need your requests in a more portable format? Requester exports to and import from the ubiquitous [cURL](https://curl.haxx.se/) format.
+Need your requests in a more portable format? Requester can export to and import from the ubiquitous [cURL](https://curl.haxx.se/) format.
 
 This makes it trivial to share requests with teammates who don't use Requester, or execute your requests on any server you like.
 
@@ -674,12 +676,11 @@ Apart from being feature-rich, __Requester is built for speed and simplicity__. 
 
 Request navigation and history are especially powerful. Finding a request you executed a week ago, editing it and executing it is lightning fast.
 
-
-[![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester")
-
-
 The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control.
 
 Need to share requests with someone who doesn't use Requester? Exporting all of your requests to cURL or HTTPie takes a few seconds.
 
 Requester is cross-platform and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use. ✨✨
+
+
+[![Requester](https://raw.githubusercontent.com/kylebebak/Requester/master/assets/requester.png)](https://www.youtube.com/watch?v=kVO5AWIsmF0 "Requester")
