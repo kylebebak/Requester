@@ -167,8 +167,8 @@ class RequestCommandMixin:
         """
         env_strings = []
         packages_path = self.config.get('packages_path', '')
-        if packages_path:  # makes it possible to import any Python package in env
-            env_strings.append("import sys\nsys.path.append('{}')".format(packages_path))
+        if packages_path and packages_path not in sys.path:  # makes it possible to import any Python package in env
+            sys.path.append(packages_path)
 
         env_strings.append(self.view.settings().get('requester.env_string', None))
 
