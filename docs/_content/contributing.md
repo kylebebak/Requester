@@ -1,7 +1,7 @@
 # Contributing
 Please do! Possible improvements:
 
-- Add snippets and examples for more auth schemes
+- Snippets and examples for more auth schemes
   + Requester can import __any Python package__
     * OAuth 2, using `requests-oauthlib`
     * Other common auth protocols, using whichever package is best

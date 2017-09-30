@@ -66,6 +66,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
 - [Import Any Python Package with Requester](#import-any-python-package-with-requester)
   + [Pip3 Quickstart](#pip3-quickstart)
   + [OAuth1 and OAuth2](#oauth1-and-oauth2)
+  + [Cookies Interceptor](#cookies-interceptor)
 - [Test Runner](#test-runner)
   + [Making Assertions About Response Structure](#making-assertions-about-response-structure)
   + [Export Tests to Runnable Script](#export-tests-to-runnable-script)
@@ -434,6 +435,8 @@ Here are a couple of no-brainers:
 ### Pip3 Quickstart
 If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
 
+>Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advide: don't bother unless you really want to use one of these packages.
+
 Then run `pip3 install requests-oauthlib`, `pip3 install requests-toolbelt`, and so on for whatever packages you'd like to use with Requester.
 
 Finally, run `pip3 show requests-oauthlib`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
@@ -475,6 +478,12 @@ get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackov
 ~~~
 
 Python has auth libraries for authenticating with a wide variety of APIs. With `pip` and the `packages_path` setting Requester can access them all.
+
+
+### Cookies Interceptor
+Want to use sessions currently open in your browser in requests sent by Requester? Look for __Requester: Authentication Options__ and choose __Cookies Interceptor__.
+
+This depends on the [browsercookie](https://github.com/requests/toolbelt) package, which must be installed with the same version of Python 3 as the one used by Sublime Text. See the __Note__ in the [pip3 quickstart section](#pip3-quickstart).
 
 
 ## Test Runner

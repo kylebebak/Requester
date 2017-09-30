@@ -63,4 +63,15 @@ auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackoverflow&count=100', auth=auth)
 """
     ),
+    (
+        'Cookies Interceptor',
+        """###env
+import browsercookie
+cj = browsercookie.load()  # grabs cookies from firefox and chrome
+###env
+
+# if you're currently logged in to github, this request will be logged in as well
+get('https://github.com/<myuser>/<myrepo>', cookies=cj)
+"""
+    ),
 ]
