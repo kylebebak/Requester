@@ -338,6 +338,50 @@ Execute the request above. In the response tab, try highlighting each of the URL
 Want to see which HTTP verbs a given endpoint accepts? Send an `OPTIONS` request to the endpoint. Requester makes this ridiculously easy -- from a response tab, just press <kbd>ctrl+o</kbd> (<kbd>cmd+o</kbd> on macOS).
 
 
+## GraphQL
+Requester provides support for GraphQL. It provides a shorthand for the `query`, `variables`, and `operationName` params described in the [GraphQL spec](http://graphql.org/learn/serving-over-http/), for both __GET__ and __POST__ requests, via the `gql`, `gqlv`, `gqlo` kwargs.
+
+`gqlv` and `gqlo` have no effect unless `gql` is also passed. For GET requests, the params are URL encoded and added to the query string. For POST requests, they get JSON encoded and added to the request body, as described in the spec.
+
+Here are some examples, hitting [this graphloc API](https://graphloc.com/). The following requests look up country info for the specified IP address.
+
+~~~py
+requests.get('https://api.graphloc.com/graphql', gql="""
+{
+  getLocation(ip: "189.59.228.170") {
+    country {
+      geoname_id
+      iso_code
+    }
+    location {
+      latitude
+      longitude
+    }
+  }
+}
+""")
+
+requests.post('https://api.graphloc.com/graphql', gql="""
+query Location($ip: String!) {
+  getLocation(ip: $ip) {
+    country {
+      geoname_id
+      iso_code
+    }
+    location {
+      latitude
+      longitude
+    }
+  }
+}
+""", gqlv="""
+{
+  "ip": "189.59.228.170"
+}
+""")
+~~~
+
+
 ## Import Any Python Package with Requester
 Requester comes bundled with the `requests` and `jsonschema` packages, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
@@ -354,7 +398,7 @@ If you don't have `virtualenv` or you're not comfortable using it, the quick sol
 
 >Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advide: don't bother unless you really want to use one of these packages.
 
-Then run `pip3 install requests-oauthlib`, `pip3 install requests-toolbelt`, and so on for whatever packages you'd like to use with Requester.
+Then run `pip3 install requests-oauthlib`, `pip3 install requests-toolbelt`, `pip3 install graphql-py`, and so on for whatever packages you'd like to use with Requester.
 
 Finally, run `pip3 show requests-oauthlib`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
 
@@ -514,6 +558,7 @@ Requester's syntax is basically identical to Requests' syntax, but it adds suppo
 - __filename__: downloads the response to the specied path
 - __streamed__: performs a streaming upload of the specified file
 - __chunked__: performs a chunked upload, with a progress indicator, of the specified file
+- __gql__, __gqlv__, __gqlo__: adds the specified string to `query`, `variables` and `operationName` params, for GET and POST requests to GraphQL endpoints
 
 
 ## Commands

@@ -24,6 +24,7 @@
     * [Page Through Past Requests](#page-through-past-requests)
   + [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
   + [Options Requests](#options-requests)
+- [GraphQL](#graphql)
 - [Import Any Python Package with Requester](#import-any-python-package-with-requester)
   + [Pip3 Quickstart](#pip3-quickstart)
   + [OAuth1 and OAuth2](#oauth1-and-oauth2)

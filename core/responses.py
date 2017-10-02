@@ -222,8 +222,13 @@ def prepare_request(request, env, ordering):
 
     error = None
     fmt = kwargs.pop('fmt', settings.get('fmt', None))
+    if fmt not in ('raw', 'indent', 'indent_sort'):
+        error = 'invalid `fmt`, must be one of ("raw", "indent", "indent_sort")'
+        sublime.error_message('PrepareRequest Error: {}\n{}'.format(error, truncate(req, 150)))
+
     name = kwargs.pop('name', None)  # cache response to "chain" requests
     skwargs = {'fmt': fmt, 'name': name}
+
     if 'filename' in kwargs:
         skwargs['filename'] = str(kwargs.pop('filename'))
     if 'streamed' in kwargs:
@@ -231,9 +236,17 @@ def prepare_request(request, env, ordering):
     if 'chunked' in kwargs:
         skwargs['chunked'] = str(kwargs.pop('chunked'))
 
-    if fmt not in ('raw', 'indent', 'indent_sort'):
-        error = 'invalid `fmt`, must be one of ("raw", "indent", "indent_sort")'
-        sublime.error_message('PrepareRequest Error: {}\n{}'.format(error, truncate(req, 150)))
+    if 'gql' in kwargs:
+        gqlargs = {'query': kwargs.pop('gql')}
+        if 'gqlv' in kwargs:
+            gqlargs['variables'] = kwargs.pop('gqlv')
+        if 'gqlo' in kwargs:
+            gqlargs['operationName'] = kwargs.pop('gqlo')
+        if method == 'GET':
+            kwargs['params'] = gqlargs
+        if method == 'POST':
+            kwargs['json'] = gqlargs
+
     if 'timeout' not in kwargs:
         kwargs['timeout'] = settings.get('timeout', None)
     if 'allow_redirects' not in kwargs:

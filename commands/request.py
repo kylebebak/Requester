@@ -21,15 +21,14 @@ platform = sublime.platform()
 def response_tab_command_bindings():
     """Returns string with special key bindings for response tab commands.
     """
-    replay_binding = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
-    nav_binding = '[ctrl+alt+ ←/→]'
-    explore_binding = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
-    options_binding = '[cmd+o]' if platform == 'osx' else '[ctrl+o]'
-    pin_binding = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
+    replay = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
+    nav = '[ctrl+alt+ ←/→]'
+    explore = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
+    options = '[cmd+o]' if platform == 'osx' else '[ctrl+o]'
+    pin = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
 
-    return '{} replay request, {} prev/next request, {} pin/unpin tab, {} explore URL, {} options'.format(
-        replay_binding, nav_binding, pin_binding, explore_binding, options_binding
-    )
+    return '{} replay request, {} prev/next request, {} pin/unpin tab, ' \
+        '{} explore URL, {} options'.format(replay, nav, pin, explore, options)
 
 
 def get_content(res, fmt):

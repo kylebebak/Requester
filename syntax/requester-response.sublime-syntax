@@ -16,8 +16,6 @@ contexts:
           set: http-status
 
   http-status:
-    - match: '\[.*replay request.*$\n'
-      scope: storage.type.commands
     - match: (\[)\s*(=)\s*(\])
       scope: meta.response-pending
       captures:
