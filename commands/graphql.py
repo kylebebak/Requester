@@ -15,6 +15,7 @@ from ..core.parsers import parse_requests
 from ..core.responses import prepare_request
 
 
+placeholder = '__introspection_placeholder'
 introspection_query = """
 query IntrospectionQuery {
   __schema {
@@ -129,7 +130,7 @@ def set_graphql_on_view(view, req):
 
 
 class RequesterGqlAutocompleteListener(sublime_plugin.ViewEventListener):
-    def on_modified(self):
+    def on_modified_async(self):
         schema = self.view.settings().get('requester.gql_schema', None)
         if not schema:
             return
@@ -138,7 +139,7 @@ class RequesterGqlAutocompleteListener(sublime_plugin.ViewEventListener):
         if m is None:
             return
 
-        offset, pos = m.end(), self.view.sel()[0].begin()
+        offset, idx = m.end(), self.view.sel()[0].begin()
 
         try:
             request = parse_requests(content, n=1)[0]
@@ -149,8 +150,36 @@ class RequesterGqlAutocompleteListener(sublime_plugin.ViewEventListener):
                 )
             req = prepare_request(request, self.view._env, 1)
             gql = req.skwargs['gql']
+            get_autocomplete_options(gql, idx-offset, schema)
         except Exception as e:
             print('GraphQL Error: {}'.format(e))
             return
 
-        print(gql, gql[pos-offset])
+
+def get_autocomplete_options(gql, idx, schema):
+    start, end = slurp_word(gql, idx)
+    gql_parser = GraphQLParser()
+    gql[start:end]
+    ast = gql_parser.parse(gql[:start] + placeholder + gql[end:])
+    print(ast)
+
+
+def slurp_word(s, idx):
+    alnum = r'[A-Za-z0-9_]'
+    try:
+        start, end = idx, idx
+        while True:
+            if re.match(alnum, s[start-1]):
+                start -= 1
+            else:
+                break
+        end = idx
+        while True:
+            if re.match(alnum, s[end]):
+                end += 1
+            else:
+                break
+    except:
+        return None, None
+    else:
+        return start, end
