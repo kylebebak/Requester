@@ -25,11 +25,10 @@ def response_tab_command_bindings():
     replay = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     nav = '[ctrl+alt+ ←/→]'
     explore = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
-    options = '[cmd+o]' if platform == 'osx' else '[ctrl+o]'
     pin = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
 
-    return '{} replay request, {} prev/next request, {} pin/unpin tab, ' \
-        '{} explore URL, {} options'.format(replay, nav, pin, explore, options)
+    return '{} replay request, {} prev/next request, {} pin/unpin tab, {} explore URL'.format(
+        replay, nav, pin, explore)
 
 
 def get_content(res, fmt):
@@ -396,7 +395,7 @@ class RequesterUrlOptionsCommand(sublime_plugin.WindowCommand):
     def show_options(self, url, view):
         """Send options request to `url` and display results in pop-up.
         """
-        res = options(url, timeout=5)
+        res = options(url, timeout=3)
         if not res.ok:
             return
         names = ['Allow', 'Access-Control-Allow-Methods', 'Access-Control-Max-Age']
