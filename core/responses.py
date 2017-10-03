@@ -237,7 +237,8 @@ def prepare_request(request, env, ordering):
         skwargs['chunked'] = str(kwargs.pop('chunked'))
 
     if 'gql' in kwargs:
-        gqlargs = {'query': kwargs.pop('gql')}
+        skwargs['gql'] = kwargs.pop('gql')
+        gqlargs = {'query': skwargs['gql']}
         if 'gqlv' in kwargs:
             gqlargs['variables'] = kwargs.pop('gqlv')
         if 'gqlo' in kwargs:

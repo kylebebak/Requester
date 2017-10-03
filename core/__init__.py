@@ -200,7 +200,7 @@ class RequestCommandMixin:
         """
         self._env, self._env_string = self.get_env()
 
-    def set_env_settings_on_view(self, view):
+    def set_env_on_view(self, view):
         """Convenience method that copies env settings from this view to `view`.
         """
         for setting in ['requester.file', 'requester.env_string', 'requester.env_file']:

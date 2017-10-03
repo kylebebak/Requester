@@ -8,6 +8,7 @@ from sys import maxsize
 from urllib import parse
 from collections import namedtuple
 
+from .graphql import set_graphql_on_view
 from ..core import RequestCommandMixin
 from ..core.parsers import parse_requests
 from ..core.responses import prepare_request
@@ -181,6 +182,7 @@ class RequestsMixin:
                 view.run_command('requester_replace_view_text', {'text': '{}\n\n{}\n'.format(
                     req.request, activity
                 )})
+                break  # do this for first view only
 
     def response_views_with_matching_request(self, method, url):
         """Get all response views whose request matches `request`.
@@ -232,27 +234,27 @@ class RequestsMixin:
             pinned = self.config.get('pin_tabs_by_default', False)
             if pinned:
                 view.settings().set('requester.response_pinned', True)
-            views = [view]
+        else:
+            view = views[0]
         window.focus_sheet(requester_sheet)  # keep focus on requester view
 
-        for view in views:
-            self._response_view = view  # cache this to change focus after all responses return
-            view.set_scratch(True)
+        self._response_view = view  # cache this to change focus after all responses return
+        view.set_scratch(True)
 
-            # this setting allows keymap to target response views separately
-            view.settings().set('requester.response_view', True)
-            self.set_env_settings_on_view(view)
+        # this setting allows keymap to target response views separately
+        view.settings().set('requester.response_view', True)
+        self.set_env_on_view(view)
 
-            content, point = get_response_view_content(response)
-            view.run_command('requester_replace_view_text', {'text': content, 'point': point})
-            view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
-            self.set_request_setting_on_view(view, res)
+        content, point = get_response_view_content(response)
+        view.run_command('requester_replace_view_text', {'text': content, 'point': point})
+        view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
+        set_request_on_view(view, res)
 
         # should response tabs be reordered after requests return?
         if self.config.get('reorder_tabs_after_requests', False):
             self.view.run_command('requester_reorder_response_tabs')
-        for view in views:
-            set_response_view_name(view, res)
+        set_response_view_name(view, res)
+        set_graphql_on_view(view, req)
 
     def handle_responses(self, responses):
         """Change focus after request returns? `handle_response` must be called
@@ -265,14 +267,6 @@ class RequestsMixin:
         if not responses[0].err and responses[0].res is not None:
             if hasattr(self, '_response_view'):
                 self.view.window().focus_view(self._response_view)
-
-    @staticmethod
-    def set_request_setting_on_view(view, res):
-        """For reordering requests, showing pending activity for requests, and
-        jumping to matching response tabs after requests return.
-        """
-        view.settings().set('requester.request_method', res.request.method)
-        view.settings().set('requester.request_url', res.url.split('?')[0])
 
 
 class RequesterCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
@@ -325,10 +319,11 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         content, point = get_response_view_content(response)
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
-        self.set_request_setting_on_view(view, res)
+        set_request_on_view(view, res)
         view.settings().erase('requester.request_history_index')
         view.settings().set('requester.history_view', False)
         set_response_view_name(view, res)
+        set_graphql_on_view(view, req)
 
 
 class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
@@ -372,15 +367,16 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
             return
 
         view = self.view.window().new_file()
-        self.set_env_settings_on_view(view)
+        self.set_env_on_view(view)
         view.settings().set('requester.response_view', True)
         view.set_scratch(True)
 
         content, point = get_response_view_content(response)
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
-        self.set_request_setting_on_view(view, res)
+        set_request_on_view(view, res)
         set_response_view_name(view, res)
+        set_graphql_on_view(view, req)
 
     def persist_requests(self, responses):
         """Don't do this for exploratory requests.
@@ -516,3 +512,11 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
         window.set_view_index(self.view, group, index)
         for v in views:
             window.set_view_index(v.view, group, index)
+
+
+def set_request_on_view(view, res):
+    """For reordering requests, showing pending activity for requests, and
+    jumping to matching response tabs after requests return.
+    """
+    view.settings().set('requester.request_method', res.request.method)
+    view.settings().set('requester.request_url', res.url.split('?')[0])
