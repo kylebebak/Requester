@@ -102,14 +102,8 @@ def set_graphql_on_view(view, req):
         return
 
     def _set(view, url):
-        """Creates dict of this form:
-            `type -> [type, name, description]`
-        and converts it to this form:
-            `name -> [type, name, description]`
-
-        It does this by creating a mapping of `type` to `name`s that use this
-        type. If the GraphQL schema has the same name pointing to different types,
-        this method produces incorrect results.
+        """Change list of types and sub list of fields on each type to dicts in
+        which each type and subfield can be looked up by name.
         """
         kwargs = dict(req.kwargs)
         kwargs.pop('params', None)
@@ -119,24 +113,14 @@ def set_graphql_on_view(view, req):
 
         schema = response.json()['data']['__schema']  # get root `Query` type
         query_type = schema['queryType']['name']
-        types = schema['types']
 
-        fields = defaultdict(list)
-        type_name = defaultdict(list)
+        types = {}
+        for t in schema['types']:
+            types[t['name']] = t
+            fields = {f['name']: f for f in (t['fields'] or [])}
+            t['fields'] = fields
 
-        for t in types:
-            name = t['name']
-            if t.get('fields', None) is None:
-                continue
-            for f in t['fields']:
-                entry = {'name': f['name'], 'type': f['type']['name'], 'description': f['description']}
-                fields[name].append(entry)
-
-                # type_name[f['type']['name']].append(f['name'])
-                type_name[f['type']['name']] = f['name']
-
-        name_fields = {type_name.get(t) or t: entries for t, entries in fields.items()}
-        view.settings().set('requester.gql_schema', (query_type, name_fields))
+        view.settings().set('requester.gql_schema', (query_type, types))
 
     thread = Thread(target=lambda: _set(view, req.url.split('?')[0]))
     thread.start()
@@ -188,12 +172,17 @@ def get_autocomplete_options(gql, idx, schema):
         if path is not None:
             break
 
-    query_type, fields = schema
-    if len(path) < 2:
-        name = query_type
-    else:
-        name = path[-2]
-    return fields[name]
+    query_type, types = schema
+    t = resolve_type(path, types, query_type)
+    print(t)
+
+
+def resolve_type(path, types, query_type):
+    t = query_type
+    for f in path[:-1]:  # stop before reaching placeholder
+        field = types[t]['fields'][f]
+        t = field['type']['name']
+    return t
 
 
 def placeholder_path(field, placeholder):
