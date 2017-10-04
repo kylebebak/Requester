@@ -84,7 +84,7 @@ fragment TypeRef on __Type {
 """
 
 
-def set_graphql_on_view(view, req):
+def set_graphql_schema_on_view(view, req):
     """If request was to a GraphQL endpoint, send introspection query on a separate
     thread, parse response and set it on view.
     """
@@ -122,12 +122,13 @@ def set_graphql_on_view(view, req):
 
 class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
-        """Runs on all views, but is NOOP unless gql schema has been cached on
+        """Runs on all views, but is NOOP unless view is response view or history
         view. Inside gql query string, only completions returned by this method
         are shown.
         """
-        schema = view.settings().get('requester.gql_schema', None)
-        if not schema:
+        response_view = view.settings().get('requester.response_view', False)
+        history_view = view.settings().get('requester.history_view', False)
+        if not response_view and not history_view:
             return None
 
         content = view.substr(sublime.Region(0, view.size()))
@@ -145,6 +146,12 @@ class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
                    view.settings().get('requester.env_string', None)
                 )
             req = prepare_request(request, view._env, 1)
+
+            schema = view.settings().get('requester.gql_schema', None)
+            if not schema:  # let user know schema is being retrieved
+                set_graphql_schema_on_view(view, req)
+                raise Exception('Loading GraphQL schema info')
+
             gql = req.skwargs['gql']
             completions = get_completions(gql, idx-offset, schema)
             return completions

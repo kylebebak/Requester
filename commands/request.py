@@ -8,7 +8,7 @@ from sys import maxsize
 from urllib import parse
 from collections import namedtuple
 
-from .graphql import set_graphql_on_view
+from .graphql import set_graphql_schema_on_view
 from ..core import RequestCommandMixin
 from ..core.parsers import parse_requests
 from ..core.responses import prepare_request
@@ -253,7 +253,7 @@ class RequestsMixin:
         if self.config.get('reorder_tabs_after_requests', False):
             self.view.run_command('requester_reorder_response_tabs')
         set_response_view_name(view, res)
-        set_graphql_on_view(view, req)
+        set_graphql_schema_on_view(view, req)
 
     def handle_responses(self, responses):
         """Change focus after request returns? `handle_response` must be called
@@ -322,7 +322,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         view.settings().erase('requester.request_history_index')
         view.settings().set('requester.history_view', False)
         set_response_view_name(view, res)
-        set_graphql_on_view(view, req)
+        set_graphql_schema_on_view(view, req)
 
 
 class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
@@ -375,7 +375,7 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         set_request_on_view(view, res)
         set_response_view_name(view, res)
-        set_graphql_on_view(view, req)
+        set_graphql_schema_on_view(view, req)
 
     def persist_requests(self, responses):
         """Don't do this for exploratory requests.

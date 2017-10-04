@@ -475,7 +475,7 @@ Autocomplete depends on [graphql-py](https://github.com/ivelum/graphql-py/), a p
 
 >If autocomplete doesn't work, it's probably being overridden by another autocomplete package, like [All Autocomplete](https://github.com/alienhard/SublimeAllAutocomplete), [Djaneiro](https://github.com/squ1b3r/Djaneiro), [tern_for_sublime](https://github.com/ternjs/tern_for_sublime), etc. Remove these packages, or disable them for Requester response views if possible.
 
->GraphQL autocomplete is guaranteed not to override autocomplete from your other packages.
+>GraphQL autocomplete will never override autocomplete from your other packages.
 
 
 ## Import Any Python Package with Requester
@@ -493,13 +493,13 @@ Here are a couple of no-brainers:
 ### Pip3 Quickstart
 If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
 
->Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advide: don't bother unless you really want to use one of these packages.
-
 Then run `pip3 install requests-oauthlib`, `pip3 install requests-toolbelt`, `pip3 install graphql-py`, and so on for whatever packages you'd like to use with Requester.
 
 Finally, run `pip3 show requests-oauthlib`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
 
 Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
+
+>Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advide: don't bother unless you really want to use one of these packages.
 
 
 ### OAuth1 and OAuth2
