@@ -65,7 +65,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
   + [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
   + [Options Requests](#options-requests)
 - [GraphQL](#graphql)
-  + [Autocomplete and Autosuggest](#autocomplete-and-autosuggest)
+  + [Autocomplete and Linting](#autocomplete-and-linting)
 - [Import Any Python Package with Requester](#import-any-python-package-with-requester)
   + [Pip3 Quickstart](#pip3-quickstart)
   + [OAuth1 and OAuth2](#oauth1-and-oauth2)
@@ -468,8 +468,10 @@ query Location($ip: String!) {
 ~~~
 
 
-### Autocomplete and Autosuggest
-Requester also provides autocomplete and autosuggest for GraphQL queries, like [GraphiQL](https://github.com/graphql/graphiql). Simply run a request with the `gql` arg. Then, from the response tab, __start typing the name of a field in your gql string__, or from an __empty line in your gql string__, press <kbd>ctrl+space</kbd> to get a list of valid fields that can be inserted at your cursor's position.
+### Autocomplete and Linting
+Requester also provides autocomplete/autosuggest and linting for GraphQL queries, like [GraphiQL](https://github.com/graphql/graphiql). Simply run a request with the `gql` arg. Then, from the response tab, __start typing the name of a field in your gql string__, or from an __empty line in your gql string__, press <kbd>ctrl+space</kbd> to get a list of valid fields that can be inserted at your cursor's position.
+
+Requester lints your query and displays syntax errors with their line and column numbers. More detailed debug information is printed to the Sublime Text console.
 
 Autocomplete depends on [graphql-py](https://github.com/ivelum/graphql-py/), a package you can install as an extension to Requester. See [this section](#import-any-python-package-with-requester) for more details.
 
