@@ -85,17 +85,19 @@ fragment TypeRef on __Type {
 
 
 def set_graphql_on_view(view, req):
-    """If request was to a GQL endpoint, send introspection query on a separate
+    """If request was to a GraphQL endpoint, send introspection query on a separate
     thread, parse response and set it on view.
-
-    { name: [type, name, description] }
     """
     if not req.skwargs.get('gql'):
         return
 
     def _set(view, url):
-        """Change list of types and sub list of fields on each type to dicts in
-        which each type and subfield can be looked up by name.
+        """Ensure types and fields within types can be looked up quickly by name.
+
+        `types` dict has the following format:
+            typeName -> typeDict
+        Within `typeDict`, `fields` dict has similar format:
+            fieldName -> fieldDict
         """
         kwargs = dict(req.kwargs)
         kwargs.pop('params', None)
@@ -120,6 +122,10 @@ def set_graphql_on_view(view, req):
 
 class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
     def on_query_completions(self, view, prefix, locations):
+        """Runs on all views, but is NOOP unless gql schema has been cached on
+        view. Inside gql query string, only completions returned by this method
+        are shown.
+        """
         schema = view.settings().get('requester.gql_schema', None)
         if not schema:
             return None
@@ -140,19 +146,20 @@ class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
                 )
             req = prepare_request(request, view._env, 1)
             gql = req.skwargs['gql']
-            options = get_autocomplete_options(gql, idx-offset, schema)
-            return options
+            completions = get_completions(gql, idx-offset, schema)
+            return completions
         except:
             print('GraphQL Error:')
             traceback.print_exc(file=sys.stdout)
             return None
 
 
-def get_autocomplete_options(gql, idx, schema):
-    """This method doesn't protect against exceptions. They should be handled by
-    calling code.
+def get_completions(gql, idx, schema):
+    """Creates AST from `gql` query string, finds out exactly where cursor is in
+    string, and uses `schema` to get appropriate completions. Deson't protect
+    against exceptions. They should be handled by calling code.
     """
-    try:
+    try:  # at module import time this package is not available
         from graphql.parser import GraphQLParser
     except ImportError:
         print('Install graphql-py with pip for GraphQL autocomplete')
@@ -170,14 +177,17 @@ def get_autocomplete_options(gql, idx, schema):
     query_type, types = schema
     t = resolve_type(path, types, query_type)
     fields = types[t]['fields']
-    options = [f['name'] for f in fields.values()]
+    completions = [f['name'] for f in fields.values()]
     return (
-        zip(options, options),
+        zip(completions, completions),
         sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS
     )
 
 
 def resolve_type(path, types, query_type):
+    """Moves back and forth between field names in `path` and GraphQL types to
+    find type name of leaf node in path.
+    """
     t = query_type
     for f in path[:-1]:  # stop before reaching placeholder
         field = types[t]['fields'][f]
@@ -205,7 +215,7 @@ def placeholder_path(field, placeholder):
 
 
 def slurp_word(s, idx):
-    """Return index boundaries of word adjacent to `idx` in `s`.
+    """Returns index boundaries of word adjacent to `idx` in `s`.
     """
     alnum = r'[A-Za-z0-9_]'
     start, end = idx, idx

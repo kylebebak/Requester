@@ -382,10 +382,14 @@ query Location($ip: String!) {
 ~~~
 
 
-### Autosuggest and Autocomplete
-Requester also provides autosuggest and autocomplete for GraphQL queries, like [GraphiQL](https://github.com/graphql/graphiql). Simply run a request with the `gql` arg. Then, from the response tab, __start typing the name of a field in your gql string__, or from an __empty line in your gql string__, press <kbd>ctrl+space</kbd> to get a list of valid fields that can be inserted at your cursor's position.
+### Autocomplete and Autosuggest
+Requester also provides autocomplete and autosuggest for GraphQL queries, like [GraphiQL](https://github.com/graphql/graphiql). Simply run a request with the `gql` arg. Then, from the response tab, __start typing the name of a field in your gql string__, or from an __empty line in your gql string__, press <kbd>ctrl+space</kbd> to get a list of valid fields that can be inserted at your cursor's position.
 
-Autosuggest depends on [graphql-py](https://github.com/ivelum/graphql-py/), a package you can install as an extension to Requester. See [this section](#import-any-python-package-with-requester) for more details.
+Autocomplete depends on [graphql-py](https://github.com/ivelum/graphql-py/), a package you can install as an extension to Requester. See [this section](#import-any-python-package-with-requester) for more details.
+
+>If autocomplete doesn't work, it's probably being overridden by another autocomplete package, like [All Autocomplete](https://github.com/alienhard/SublimeAllAutocomplete), [Djaneiro](https://github.com/squ1b3r/Djaneiro), [tern_for_sublime](https://github.com/ternjs/tern_for_sublime), etc. Remove these packages, or disable them for Requester response views if possible.
+
+>GraphQL autocomplete is guaranteed not to override autocomplete from your other packages.
 
 
 ## Import Any Python Package with Requester
@@ -397,7 +401,7 @@ Here are a couple of no-brainers:
 
 - [requests-oauthlib](https://github.com/requests/requests-oauthlib)
 - [requests-toolbelt](https://github.com/requests/toolbelt)
-- [graphql-py](https://github.com/ivelum/graphql-py/), to enable GraphQL autosuggest
+- [graphql-py](https://github.com/ivelum/graphql-py/), to enable GraphQL autocomplete
 
 
 ### Pip3 Quickstart
@@ -602,7 +606,7 @@ The following commands are only available in response tabs. The key bindings lis
 - __cmd+t__: pin/unpin tab
 - __cmd+e__: explore URL
 - __cmd+o__: options
-- __ctrl+space__: GraphQL autosuggest
+- __ctrl+space__: GraphQL autocomplete
 
 If you try to execute one of these commands and nothing happens, you've already mapped the binding to another command. Run __Preferences: Key Bindings__ from the command palette, find the conflicting key combination, add the following `context` to the binding, and restart Sublime Text.
 
