@@ -148,26 +148,34 @@ class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
             gql = req.skwargs['gql']
             completions = get_completions(gql, idx-offset, schema)
             return completions
-        except:
+        except Exception as e:
             print('GraphQL Error:')
             traceback.print_exc(file=sys.stdout)
-            return None
+            return (
+                [[str(e), ' '], ['...', ' ']],
+                sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS
+            )
 
 
 def get_completions(gql, idx, schema):
     """Creates AST from `gql` query string, finds out exactly where cursor is in
-    string, and uses `schema` to get appropriate completions. Deson't protect
+    string, and uses `schema` to get appropriate completions. Doesn't protect
     against exceptions. They should be handled by calling code.
     """
     try:  # at module import time this package is not available
         from graphql.parser import GraphQLParser
+        from graphql.lexer import GraphQLLexer
     except ImportError:
-        print('Install graphql-py with pip for GraphQL autocomplete')
-        return None
+        raise Exception('Install graphql-py with pip for GraphQL autocomplete')
+
+    try:
+        delattr(GraphQLLexer, 't_NULL')
+    except AttributeError:
+        pass
 
     start, end = slurp_word(gql, idx)
     gql_parser = GraphQLParser()
-    ast = gql_parser.parse(gql[:start] + placeholder + gql[end:])
+    ast = gql_parser.parse(gql[:start] + placeholder + gql[end:], lexer=GraphQLLexer())
 
     for query in ast.definitions:  # get path if it exists
         path = placeholder_path(query, placeholder)
