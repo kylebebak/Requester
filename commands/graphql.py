@@ -5,13 +5,8 @@ import re
 import sys
 import traceback
 from threading import Thread
-from collections import defaultdict
 
 import requests
-try:
-    from graphql.parser import GraphQLParser
-except ImportError:
-    GraphQLParser = None
 
 from ..core import RequestCommandMixin
 from ..core.parsers import parse_requests
@@ -95,9 +90,6 @@ def set_graphql_on_view(view, req):
 
     { name: [type, name, description] }
     """
-    if GraphQLParser is None:
-        print('Install graphql-py with pip for GraphQL autocomplete')
-        return
     if not req.skwargs.get('gql'):
         return
 
@@ -126,45 +118,48 @@ def set_graphql_on_view(view, req):
     thread.start()
 
 
-class RequesterGqlAutocompleteListener(sublime_plugin.ViewEventListener):
-    def on_modified_async(self):
-        schema = self.view.settings().get('requester.gql_schema', None)
+class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
+    def on_query_completions(self, view, prefix, locations):
+        schema = view.settings().get('requester.gql_schema', None)
         if not schema:
-            return
+            return None
 
-        content = self.view.substr(sublime.Region(0, self.view.size()))
+        content = view.substr(sublime.Region(0, view.size()))
         m = re.search(r'\bgql\s*=\s*("|\')+', content)
         if m is None:
-            return
+            return None
 
-        offset, idx = m.end(), self.view.sel()[0].begin()
+        offset, idx = m.end(), view.sel()[0].begin()
 
         try:
             request = parse_requests(content, n=1)[0]
 
-            if getattr(self.view, '_env', None) is None:
-                self.view._env = RequestCommandMixin.get_env_dict_from_string(
-                   self.view.settings().get('requester.env_string', None)
+            if getattr(view, '_env', None) is None:
+                view._env = RequestCommandMixin.get_env_dict_from_string(
+                   view.settings().get('requester.env_string', None)
                 )
-            req = prepare_request(request, self.view._env, 1)
+            req = prepare_request(request, view._env, 1)
             gql = req.skwargs['gql']
             options = get_autocomplete_options(gql, idx-offset, schema)
-            print(options)
+            return options
         except:
             print('GraphQL Error:')
             traceback.print_exc(file=sys.stdout)
-            return
+            return None
 
 
 def get_autocomplete_options(gql, idx, schema):
     """This method doesn't protect against exceptions. They should be handled by
     calling code.
     """
+    try:
+        from graphql.parser import GraphQLParser
+    except ImportError:
+        print('Install graphql-py with pip for GraphQL autocomplete')
+        return None
+
     start, end = slurp_word(gql, idx)
-    if start == end:
-        return []
     gql_parser = GraphQLParser()
-    field = gql[start:end]
     ast = gql_parser.parse(gql[:start] + placeholder + gql[end:])
 
     for query in ast.definitions:  # get path if it exists
@@ -174,7 +169,12 @@ def get_autocomplete_options(gql, idx, schema):
 
     query_type, types = schema
     t = resolve_type(path, types, query_type)
-    print(t)
+    fields = types[t]['fields']
+    options = [f['name'] for f in fields.values()]
+    return (
+        zip(options, options),
+        sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS
+    )
 
 
 def resolve_type(path, types, query_type):
@@ -192,15 +192,13 @@ def placeholder_path(field, placeholder):
     """
     path = None
 
-    def get_path(selection, placeholder, seen=None):
-        seen = seen or []
+    def get_path(selection, placeholder, seen=tuple()):
         for sel in selection.selections:
-            seen_ = list(seen)
-            seen_.append(sel.name)
+            seen_next = seen + (sel.name,)
             if sel.name == placeholder:
                 nonlocal path
-                path = seen_
-            get_path(sel, placeholder, seen_)
+                path = seen_next
+            get_path(sel, placeholder, seen_next)
 
     get_path(field, placeholder)
     return path
@@ -210,20 +208,18 @@ def slurp_word(s, idx):
     """Return index boundaries of word adjacent to `idx` in `s`.
     """
     alnum = r'[A-Za-z0-9_]'
-    try:
-        start, end = idx, idx
-        while True:
-            if re.match(alnum, s[start-1]):
-                start -= 1
-            else:
-                break
-        end = idx
-        while True:
-            if re.match(alnum, s[end]):
-                end += 1
-            else:
-                break
-    except:
-        return None, None
-    else:
-        return start, end
+    start, end = idx, idx
+
+    while True:
+        if re.match(alnum, s[start-1]):
+            start -= 1
+        else:
+            break
+    end = idx
+    while True:
+        if re.match(alnum, s[end]):
+            end += 1
+        else:
+            break
+
+    return start, end
