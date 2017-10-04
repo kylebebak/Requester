@@ -177,9 +177,20 @@ def get_completions(gql, idx, schema):
     query_type, types = schema
     t = resolve_type(path, types, query_type)
     fields = types[t]['fields']
-    completions = [f['name'] for f in fields.values()]
+
+    completions = []
+    for f in fields.values():
+        name = f['name']
+        args = [a['name'] + ':' for a in f['args']]
+        args_string = '({})'.format(', '.join(args)) if args else ''
+        type_name = resolve_field_type(f)
+        completions.append([
+            '{}{}\t{}'.format(name, args_string, type_name),
+            '{}{}'.format(name, args_string),
+        ])
+
     return (
-        zip(completions, completions),
+        completions,
         sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS
     )
 
@@ -191,8 +202,20 @@ def resolve_type(path, types, query_type):
     t = query_type
     for f in path[:-1]:  # stop before reaching placeholder
         field = types[t]['fields'][f]
-        t = field['type']['name']
+        t = resolve_field_type(field)
     return t
+
+
+def resolve_field_type(field):
+    """Keep digging into field type until finding a non-null `name`.
+    """
+    type_ = field['type']
+    while type_['name'] is None:
+        try:
+            type_ = type_['ofType']
+        except:
+            return None
+    return type_['name']
 
 
 def placeholder_path(field, placeholder):
