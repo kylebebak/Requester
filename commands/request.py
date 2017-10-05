@@ -3,7 +3,6 @@ import sublime_plugin
 
 from requests import options
 
-import os
 import json
 from sys import maxsize
 from urllib import parse
@@ -260,31 +259,7 @@ class RequestsMixin:
             self.view.run_command('requester_reorder_response_tabs')
         set_response_view_name(view, res)
         set_graphql_schema_on_view(view, req)
-        self.set_binding_info_on_view(view, req)
-
-    def set_binding_info_on_view(self, view, req):
-        """Find last modified timestamp of Requester file, along with start index
-        and end index of request string in file, set these on view.
-        """
-        if self.view.is_dirty():
-            return
-        file = self.view.settings().get('requester.file', None)
-        if file is None:
-            return
-        try:
-            with open(file, 'r', encoding='utf-8') as f:
-                try:
-                    request = req.request[len('requests.'):]
-                    start_index = (f.read()).index(request)
-                except ValueError as e:
-                    print('Binding Error: {}'.format(e))
-                    return
-                end_index = start_index + len(request)
-                last_modified = int(os.path.getmtime(file))
-                view.settings().set('requester.binding_info', (file, last_modified, start_index, end_index))
-        except (IOError, OSError) as e:
-            print('Binding Error: {}'.format(e))
-            return
+        set_binding_info_on_view(self.view, view, req)
 
     def handle_responses(self, responses):
         """Change focus after request returns? `handle_response` must be called
@@ -480,6 +455,29 @@ class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
         set_response_view_name(view)
 
 
+class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
+    """
+    """
+    def run(self):
+        view = self.window.active_view()
+        binding_info = view.settings().get('requester.binding_info', None)
+        if binding_info is None:
+            return
+        try:
+            request = parse_requests(view.substr(sublime.Region(0, view.size())), n=1)[0]
+        except Exception as e:
+            sublime.error_message('Save Error: there are no valid requests in your response view: {}'.format(e))
+        if request.startswith('requests.'):
+            request = request[len('requests.'):]
+        file, old_content, start_index, end_index = binding_info
+
+        requester_view = self.window.open_file(file)
+        content = requester_view.substr(sublime.Region(0, view.size()))
+        if old_content != content:
+            sublime.error_message("Save Error: Requester file content has changed since request was sent")
+            return
+
+
 class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Reorders open response tabs to match order of requests in current view.
     """
@@ -550,3 +548,23 @@ def set_request_on_view(view, res):
     """
     view.settings().set('requester.request_method', res.request.method)
     view.settings().set('requester.request_url', res.url.split('?')[0])
+
+
+def set_binding_info_on_view(requester_view, view, req):
+    """Find start index and end index of request string in requester view, set
+    these on view.
+    """
+    file = requester_view.settings().get('requester.file', None)
+    if file is None:
+        return
+    content = requester_view.substr(sublime.Region(0, view.size()))
+    request = req.request
+    if request.startswith('requests.'):
+        request = request[len('requests.'):]
+    try:
+        start_index = content.index(request)
+    except ValueError as e:
+        print('Binding Error: {}'.format(e))
+        return
+    end_index = start_index + len(request)
+    view.settings().set('requester.binding_info', (file, content, start_index, end_index))

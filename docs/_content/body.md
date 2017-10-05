@@ -580,6 +580,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester__
 - __requester_replay_request__
 - __requester_explore_url__: explore url in response tab
+- __requester_save_request__: save request to Requester file
 - __requester_history__: search and re-execute past requests
 - __requester_cancel_requests__: cancel all outstanding requests
 - __requester_cancel_downloads__: cancel outstanding file downloads
@@ -609,6 +610,7 @@ The following commands are only available in response tabs. The key bindings lis
 - __cmd+e__: explore URL
 - __cmd+o__: options
 - __ctrl+space__: GraphQL autocomplete
+- __shift+cmd+s__: save request back to Requester file
 
 If you try to execute one of these commands and nothing happens, you've already mapped the binding to another command. Run __Preferences: Key Bindings__ from the command palette, find the conflicting key combination, add the following `context` to the binding, and restart Sublime Text.
 

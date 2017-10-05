@@ -41,5 +41,13 @@
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
     ]
+  },
+
+  {
+    "keys": ["shift+super+s"],
+    "command": "requester_save_request",
+    "context": [
+      { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
+    ]
   }
 ]

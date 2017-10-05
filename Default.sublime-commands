@@ -29,6 +29,11 @@
   },
 
   {
+    "caption": "Requester: Save Request to Requester File",
+    "command": "requester_save_request"
+  },
+
+  {
     "caption": "Requester: Request History",
     "command": "requester_history"
   },
