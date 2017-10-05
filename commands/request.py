@@ -3,6 +3,7 @@ import sublime_plugin
 
 from requests import options
 
+import os
 import json
 from sys import maxsize
 from urllib import parse
@@ -259,7 +260,7 @@ class RequestsMixin:
             self.view.run_command('requester_reorder_response_tabs')
         set_response_view_name(view, res)
         set_graphql_schema_on_view(view, req)
-        set_binding_info_on_view(self.view, view, req)
+        set_binding_info_on_view(self.view, view, req.request)
 
     def handle_responses(self, responses):
         """Change focus after request returns? `handle_response` must be called
@@ -455,29 +456,6 @@ class RequesterResponseTabTogglePinnedCommand(sublime_plugin.WindowCommand):
         set_response_view_name(view)
 
 
-class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
-    """
-    """
-    def run(self):
-        view = self.window.active_view()
-        binding_info = view.settings().get('requester.binding_info', None)
-        if binding_info is None:
-            return
-        try:
-            request = parse_requests(view.substr(sublime.Region(0, view.size())), n=1)[0]
-        except Exception as e:
-            sublime.error_message('Save Error: there are no valid requests in your response view: {}'.format(e))
-        if request.startswith('requests.'):
-            request = request[len('requests.'):]
-        file, old_content, start_index, end_index = binding_info
-
-        requester_view = self.window.open_file(file)
-        content = requester_view.substr(sublime.Region(0, view.size()))
-        if old_content != content:
-            sublime.error_message("Save Error: Requester file content has changed since request was sent")
-            return
-
-
 class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, sublime_plugin.TextCommand):
     """Reorders open response tabs to match order of requests in current view.
     """
@@ -542,23 +520,51 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
             window.set_view_index(v.view, group, index)
 
 
-def set_request_on_view(view, res):
-    """For reordering requests, showing pending activity for requests, and
-    jumping to matching response tabs after requests return.
+class RequesterSaveRequestCommand(sublime_plugin.TextCommand):
     """
-    view.settings().set('requester.request_method', res.request.method)
-    view.settings().set('requester.request_url', res.url.split('?')[0])
+    """
+    def run(self, edit):
+        view = self.view
+        binding_info = view.settings().get('requester.binding_info', None)
+        if binding_info is None:
+            return
+
+        try:
+            request = parse_requests(view.substr(sublime.Region(0, view.size())), n=1)[0]
+        except Exception as e:
+            sublime.error_message('Save Error: there are no valid requests in your response view: {}'.format(e))
+        if request.startswith('requests.'):
+            request = request[len('requests.'):]
+        file, old_content, start_index, end_index = binding_info
+
+        if not os.path.isfile(file):
+            sublime.error_message('Save Error: Requester file <{}> no longer exists.'.format(file))
+            return
+
+        requester_view = view.window().open_file(file)
+        content = requester_view.substr(sublime.Region(0, requester_view.size()))
+        if old_content != content:
+            sublime.error_message('Save Error: Requester file content has changed since request was sent')
+            return
+
+        # this is necessary for reasons due to undocumented behavior in ST API (probably a bug)
+        # simply calling `requester_view.replace` corrupts `view`s settings
+        requester_view.run_command(
+            'requester_replace_text', {'text': request, 'start_index': start_index, 'end_index': end_index})
+        requester_view.sel().clear()
+        requester_view.sel().add(sublime.Region(start_index))
+        requester_view.show_at_center(start_index)
+        set_binding_info_on_view(requester_view, view, request)
 
 
-def set_binding_info_on_view(requester_view, view, req):
+def set_binding_info_on_view(requester_view, view, request):
     """Find start index and end index of request string in requester view, set
     these on view.
     """
-    file = requester_view.settings().get('requester.file', None)
+    file = view.settings().get('requester.file', None)
     if file is None:
         return
-    content = requester_view.substr(sublime.Region(0, view.size()))
-    request = req.request
+    content = requester_view.substr(sublime.Region(0, requester_view.size()))
     if request.startswith('requests.'):
         request = request[len('requests.'):]
     try:
@@ -568,3 +574,11 @@ def set_binding_info_on_view(requester_view, view, req):
         return
     end_index = start_index + len(request)
     view.settings().set('requester.binding_info', (file, content, start_index, end_index))
+
+
+def set_request_on_view(view, res):
+    """For reordering requests, showing pending activity for requests, and
+    jumping to matching response tabs after requests return.
+    """
+    view.settings().set('requester.request_method', res.request.method)
+    view.settings().set('requester.request_url', res.url.split('?')[0])

@@ -44,7 +44,7 @@
   },
 
   {
-    "keys": ["shift+super+s"],
+    "keys": ["super+s"],
     "command": "requester_save_request",
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }

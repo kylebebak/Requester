@@ -4,6 +4,13 @@ import sublime_plugin
 import webbrowser
 
 
+class RequesterReplaceTextCommand(sublime_plugin.TextCommand):
+    """`TextCommand` to replace region from start index to end index with `text`.
+    """
+    def run(self, edit, text, start_index, end_index):
+        self.view.replace(edit, sublime.Region(start_index, end_index), text)
+
+
 class RequesterReplaceViewTextCommand(sublime_plugin.TextCommand):
     """`TextCommand` to replace all text in view, without selecting text after.
     Optionally leave cursor at `point`.
