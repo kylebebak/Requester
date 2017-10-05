@@ -29,7 +29,7 @@
   },
 
   {
-    "caption": "Requester: Save Request to Requester File",
+    "caption": "Requester: Save Request Back To Requester File",
     "command": "requester_save_request"
   },
 

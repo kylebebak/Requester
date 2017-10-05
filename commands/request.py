@@ -5,6 +5,7 @@ from requests import options
 
 import os
 import json
+import time
 from sys import maxsize
 from urllib import parse
 from collections import namedtuple
@@ -25,8 +26,9 @@ def response_tab_command_bindings():
     """
     replay = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     nav = '[ctrl+alt+ ←/→]'
-    explore = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
     pin = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
+    # save = '[cmd+s]' if platform == 'osx' else '[ctrl+s]'
+    explore = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
 
     return '{} replay request, {} prev/next request, {} pin/unpin tab, {} explore URL'.format(
         replay, nav, pin, explore)
@@ -520,11 +522,13 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
             window.set_view_index(v.view, group, index)
 
 
-class RequesterSaveRequestCommand(sublime_plugin.TextCommand):
+class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
+    """Works only from response views, and not those loaded from history. Replaces
+    original request in requester file with modified request from respones tab, as
+    long as requester file's content hasn't been changed in the meantime.
     """
-    """
-    def run(self, edit):
-        view = self.view
+    def run(self):
+        view = self.window.active_view()
         binding_info = view.settings().get('requester.binding_info', None)
         if binding_info is None:
             return
@@ -538,23 +542,34 @@ class RequesterSaveRequestCommand(sublime_plugin.TextCommand):
         file, old_content, start_index, end_index = binding_info
 
         if not os.path.isfile(file):
-            sublime.error_message('Save Error: Requester file <{}> no longer exists.'.format(file))
+            sublime.error_message('Save Error: requester file\n"{}"\nno longer exists'.format(file))
             return
 
         requester_view = view.window().open_file(file)
-        content = requester_view.substr(sublime.Region(0, requester_view.size()))
-        if old_content != content:
-            sublime.error_message('Save Error: Requester file content has changed since request was sent')
-            return
 
-        # this is necessary for reasons due to undocumented behavior in ST API (probably a bug)
-        # simply calling `requester_view.replace` corrupts `view`s settings
-        requester_view.run_command(
-            'requester_replace_text', {'text': request, 'start_index': start_index, 'end_index': end_index})
-        requester_view.sel().clear()
-        requester_view.sel().add(sublime.Region(start_index))
-        requester_view.show_at_center(start_index)
-        set_binding_info_on_view(requester_view, view, request)
+        def save_request():
+            """Wait on another thread for view to load on main thread, then save.
+            """
+            for i in range(40):  # don't wait more than 2s
+                if requester_view.is_loading():
+                    time.sleep(.05)
+                else:
+                    break
+            content = requester_view.substr(sublime.Region(0, requester_view.size()))
+            if old_content != content or not old_content or not content:
+                sublime.error_message('Save Error: requester file content has changed since request was sent')
+                return
+
+            # this is necessary for reasons due to undocumented behavior in ST API (probably a bug)
+            # simply calling `requester_view.replace` corrupts `view`s settings
+            requester_view.run_command(
+                'requester_replace_text', {'text': request, 'start_index': start_index, 'end_index': end_index})
+            requester_view.sel().clear()
+            requester_view.sel().add(sublime.Region(start_index))
+            requester_view.show_at_center(start_index)
+            set_binding_info_on_view(requester_view, view, request)
+
+        sublime.set_timeout_async(save_request, 0)
 
 
 def set_binding_info_on_view(requester_view, view, request):

@@ -1,0 +1,7 @@
+# New Features
+You can save a modified request in a response tab back to the Requester file from which you sent it!
+  - Can be used repeatedly in response view.
+  - Guaranteed to old overwrite old request and nothing else.
+
+# Bug Fixes
+Requester doesn't print error messages to status bar if requester file contains non-ascii chars.

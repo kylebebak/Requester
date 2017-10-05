@@ -77,8 +77,18 @@ When you execute a request, Requester overwrites response tabs that have the sam
 In a response tab, go to the command palette and look for __Requester: Pin/Unpin Response Tab__, or look in the response tab for the keyboard shortcut to __pin/unpin tab__.
 
 
+### Save Request Back To Requester File
+Imagine you're debugging a request in a response tab, replaying and modifying the request as you go. Requester lets you save this modified request back to the requester file from which you sent it.
+
+In a response tab, go to the command palette and look for __Requester: Save Request Back To Requester File__, or look in the response tab for the keyboard shortcut to __save request__.
+
+If the requester file still exists and it hasn't been changed since you sent your request, Requester will overwrite the old request with the modified one from your response tab.
+
+>Note: you can't save back requests loaded from Requester's history.
+
+
 ### Environment Variables
-It's time to refactor your requests to use environment variables. Requester has a powerful scripting language for env vars... Python!
+Requester has a powerful scripting language for env vars... Python!
 
 You can define them directly in your requester file. Just put your variables in a code block fenced by __###env__ lines. Try executing these requests.
 
@@ -580,7 +590,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester__
 - __requester_replay_request__
 - __requester_explore_url__: explore url in response tab
-- __requester_save_request__: save request to Requester file
+- __requester_save_request__: save request back to requester file
 - __requester_history__: search and re-execute past requests
 - __requester_cancel_requests__: cancel all outstanding requests
 - __requester_cancel_downloads__: cancel outstanding file downloads
@@ -610,7 +620,7 @@ The following commands are only available in response tabs. The key bindings lis
 - __cmd+e__: explore URL
 - __cmd+o__: options
 - __ctrl+space__: GraphQL autocomplete
-- __cmd+s__: save request back to Requester file
+- __cmd+s__: save request back to requester file
 
 If you try to execute one of these commands and nothing happens, you've already mapped the binding to another command. Run __Preferences: Key Bindings__ from the command palette, find the conflicting key combination, add the following `context` to the binding, and restart Sublime Text.
 
