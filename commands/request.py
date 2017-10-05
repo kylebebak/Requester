@@ -3,6 +3,7 @@ import sublime_plugin
 
 from requests import options
 
+import os
 import json
 from sys import maxsize
 from urllib import parse
@@ -207,8 +208,8 @@ class RequestsMixin:
         return views
 
     def handle_response(self, response):
-        """Create a response view and insert response content into it. Ensure that
-        response tab comes after (to the right of) all other response tabs.
+        """Create a response view. Ensure that response tab comes after (to the
+        right of) all other response tabs.
 
         Don't create new response tab if a response tab matching request is open.
         """
@@ -236,7 +237,12 @@ class RequestsMixin:
         else:
             view = views[0]
         window.focus_sheet(requester_sheet)  # keep focus on requester view
+        self.prepare_response_view(view, response)
 
+    def prepare_response_view(self, view, response):
+        """Insert response content into response view, and set settings on it.
+        """
+        req, res, err = response
         self._response_view = view  # cache this to change focus after all responses return
         view.set_scratch(True)
 
@@ -254,6 +260,31 @@ class RequestsMixin:
             self.view.run_command('requester_reorder_response_tabs')
         set_response_view_name(view, res)
         set_graphql_schema_on_view(view, req)
+        self.set_binding_info_on_view(view, req)
+
+    def set_binding_info_on_view(self, view, req):
+        """Find last modified timestamp of Requester file, along with start index
+        and end index of request string in file, set these on view.
+        """
+        if self.view.is_dirty():
+            return
+        file = self.view.settings().get('requester.file', None)
+        if file is None:
+            return
+        try:
+            with open(file, 'r', encoding='utf-8') as f:
+                try:
+                    request = req.request[len('requests.'):]
+                    start_index = (f.read()).index(request)
+                except ValueError as e:
+                    print('Binding Error: {}'.format(e))
+                    return
+                end_index = start_index + len(request)
+                last_modified = int(os.path.getmtime(file))
+                view.settings().set('requester.binding_info', (file, last_modified, start_index, end_index))
+        except (IOError, OSError) as e:
+            print('Binding Error: {}'.format(e))
+            return
 
     def handle_responses(self, responses):
         """Change focus after request returns? `handle_response` must be called

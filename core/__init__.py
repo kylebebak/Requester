@@ -177,7 +177,7 @@ class RequestCommandMixin:
             file = self.view.settings().get('requester.file', None)
             if file:
                 try:
-                    with open(file, 'r') as f:
+                    with open(file, 'r', encoding='utf-8') as f:
                         text = f.read()
                 except Exception as e:
                     self.add_error_status_bar(str(e))
