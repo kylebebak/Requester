@@ -244,8 +244,8 @@ class TestHelpers(unittest.TestCase):
         pass
 
     def test_truncate(self):
-        s = helpers.truncate('hello there', 7)
-        self.assertEqual(s, 'hello t...')
+        s = helpers.truncate('hello there', 7, '…')
+        self.assertEqual(s, 'hello t…')
         s = helpers.truncate('hello there', 20)
         self.assertEqual(s, 'hello there')
 

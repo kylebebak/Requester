@@ -11,11 +11,6 @@ Please do! Possible improvements:
   + [HTTP](https://tools.ietf.org/html/rfc7230)
 - Randomized requests with benchmark runs (e.g. for fuzz testing)
   + Execute all requests constructred from an iterable?
-- Improved support for GraphQL
-  + A clone of GraphiQL?
-  + __Documentation Explorer__ and __Autocomplete__
-  + https://github.com/tryolabs/graphql-parser
-  + This is a really big undertaking
 - Improve architecture and test coverage
   + More pure functions, fewer coupling points to Sublime Text API
   + Test coverage for syntax files
@@ -45,7 +40,7 @@ Command classes __must__ also override `get_requests`, which must return a list 
 ### Writing a New Command Class
 If you want to write a new command class for Requester, check out how `RequesterCommand` works; it simply uses the mixin and overrides `get_requests` and `handle_response`.
 
-If you want a better understanding of the details, dive into `core` directory. This is where the heavy lifting is done.
+If you want a better understanding of the details, dive into the `core` directory. This is where the heavy lifting is done.
 
 
 ## Installing the `pre-commit` Git hook
