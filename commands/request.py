@@ -21,17 +21,20 @@ Content = namedtuple('Content', 'content, point')
 platform = sublime.platform()
 
 
-def response_tab_command_bindings():
+def response_tab_bindings(can_save=False):
     """Returns string with special key bindings for response tab commands.
     """
     replay = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     nav = '[ctrl+alt+ ←/→]'
     pin = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
-    # save = '[cmd+s]' if platform == 'osx' else '[ctrl+s]'
     explore = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
+    save = '[cmd+s]' if platform == 'osx' else '[ctrl+s]'
 
-    return '{} replay request, {} prev/next request, {} pin/unpin tab, {} explore URL'.format(
+    bindings = '{} replay request, {} prev/next request, {} pin/unpin tab, {} explore URL'.format(
         replay, nav, pin, explore)
+    if can_save:
+        bindings += ', {} save request'.format(save)
+    return bindings
 
 
 def get_content(res, fmt):
@@ -71,7 +74,7 @@ def get_content(res, fmt):
         return res.text
 
 
-def get_response_view_content(response):
+def get_response_view_content(response, bindings):
     """Returns a response string that includes metadata, headers and content,
     and the index of the string at which response content begins.
     """
@@ -97,7 +100,7 @@ def get_response_view_content(response):
         req.request,
         header,
         'Request Headers: {}'.format(res.request.headers),
-        response_tab_command_bindings(),
+        bindings,
         headers
     ]
     try:
@@ -119,6 +122,8 @@ def get_response_view_content(response):
 def set_response_view_name(view, res=None):
     """Set name for `view` with content from `response`.
     """
+    config = sublime.load_settings('Requester.sublime-settings')
+    max_len = int(config.get('response_tab_name_length', 32))
     try:  # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
         path = parse.urlparse(res.url).path
         if path and path[-1] == '/':
@@ -130,7 +135,7 @@ def set_response_view_name(view, res=None):
         view.settings().set('requester.name', name)
 
     pinned = view.settings().get('requester.response_pinned', False)
-    view.set_name('{}{}'.format('** ' if pinned else '', name))
+    view.set_name('{}{}'.format('** ' if pinned else '', truncate(name, max_len)))
 
 
 class RequestsMixin:
@@ -252,7 +257,7 @@ class RequestsMixin:
         view.settings().set('requester.response_view', True)
         self.set_env_on_view(view)
 
-        content, point = get_response_view_content(response)
+        content, point = get_response_view_content(response, response_tab_bindings(True))
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         set_request_on_view(view, res)
@@ -324,7 +329,9 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         if err:
             return
 
-        content, point = get_response_view_content(response)
+        history_view = view.settings().get('requester.history_view', False)
+        content, point = get_response_view_content(response, response_tab_bindings(not history_view))
+
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         set_request_on_view(view, res)
@@ -379,7 +386,7 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
         view.settings().set('requester.response_view', True)
         view.set_scratch(True)
 
-        content, point = get_response_view_content(response)
+        content, point = get_response_view_content(response, response_tab_bindings())
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         set_request_on_view(view, res)

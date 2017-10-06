@@ -28,6 +28,9 @@
   // requests with the same method and URL
   "pin_tabs_by_default": false,
 
+  // max length of name of response tabs
+  "response_tab_name_length": 32,
+
   // name of history file, this is stored in User directory
   "history_file": "Requester.history.json",
 

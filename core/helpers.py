@@ -3,7 +3,7 @@ import sublime
 import os
 
 
-def truncate(s, l, ellipsis='...'):
+def truncate(s, l, ellipsis='…'):
     """Truncates string to length `l` if need be and adds `ellipsis`.
     """
     try:

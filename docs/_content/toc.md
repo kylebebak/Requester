@@ -26,7 +26,7 @@
   + [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
   + [Options Requests](#options-requests)
 - [GraphQL](#graphql)
-  + [Autocomplete and Linting](#autocomplete-and-linting)
+  + [Browsing GraphQL APIs: Autocomplete and Linting](#browsing-graphql-apis-autocomplete-and-linting)
 - [Import Any Python Package with Requester](#import-any-python-package-with-requester)
   + [Pip3 Quickstart](#pip3-quickstart)
   + [OAuth1 and OAuth2](#oauth1-and-oauth2)

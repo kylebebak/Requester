@@ -13,7 +13,7 @@ __Requester__ is a modern, team-oriented HTTP client for Sublime Text 3 that com
   + Fuzzy searchable [__request collections and request history__](#navigation-and-history)
   + Formatted, colorized output with automatic syntax highlighting
   + Clear error handling and error messages
-  + Powerful GraphQL support
+  + [__Full GraphQL support__](#graphql)
   + [__Fuzzy searchable documentation__](http://requester.org#documentation)
 - Built for teams
   + Version and share requests however you want (Git, GitHub, etc)

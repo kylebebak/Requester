@@ -63,7 +63,7 @@ get('http://headers.jsontest.com/', fmt='raw')
 
 
 ### Ergonomic GET Requests
-Try sending the following requests. This is obviously not valid Python syntax, but Requester has a shortuct for basic GET requets. If you run Requester on a URL like the one below, it automatically wraps it like so: `requests.get('<url>')`. And it doesn't wrap the URL in quotes if it's already got them.
+Try sending the following requests. This is obviously not valid Python syntax, but Requester has a shortuct for basic GET requests. If you run Requester on a URL like the one below, it automatically wraps it like so: `requests.get('<url>')`. And it doesn't wrap the URL in quotes if it's already got them.
 
 ~~~py
 httpbin.com/get
@@ -84,7 +84,7 @@ In a response tab, go to the command palette and look for __Requester: Save Requ
 
 If the requester file still exists and it hasn't been changed since you sent your request, Requester will overwrite the old request with the modified one from your response tab.
 
->Note: you can't save back requests loaded from Requester's history.
+>Note: you can't save back exploratory requests, or requests loaded from Requester's history.
 
 
 ### Environment Variables
@@ -349,7 +349,7 @@ Want to see which HTTP verbs a given endpoint accepts? Send an `OPTIONS` request
 
 
 ## GraphQL
-Requester provides support for GraphQL. It provides a shorthand for the `query`, `variables`, and `operationName` params described in the [GraphQL spec](http://graphql.org/learn/serving-over-http/), for both __GET__ and __POST__ requests, via the `gql`, `gqlv`, `gqlo` kwargs.
+Requester provides full support for GraphQL. It provides a shorthand for the `query`, `variables`, and `operationName` params described in the [GraphQL spec](http://graphql.org/learn/serving-over-http/), for both __GET__ and __POST__ requests, via the `gql`, `gqlv`, `gqlo` kwargs.
 
 `gqlv` and `gqlo` have no effect unless `gql` is also passed. For GET requests, the params are URL encoded and added to the query string. For POST requests, they get JSON encoded and added to the request body, as described in the spec.
 
@@ -392,16 +392,16 @@ query Location($ip: String!) {
 ~~~
 
 
-### Autocomplete and Linting
-Requester also provides autocomplete/autosuggest and linting for GraphQL queries, like [GraphiQL](https://github.com/graphql/graphiql). Simply run a request with the `gql` arg. Then, from the response tab, __start typing the name of a field in your gql string__, or from an __empty line in your gql string__, press <kbd>ctrl+space</kbd> to get a list of valid fields that can be inserted at your cursor's position.
+### Browsing GraphQL APIs: Autocomplete and Linting
+Requester provides autocomplete/autosuggest and linting for GraphQL queries, like [GraphiQL](https://github.com/graphql/graphiql), which makes browsing GraphQL APIs a breeze. Simply run a request with the `gql` arg. Then, from the response tab, __start typing the name of a field in your gql string__, or from an __empty line in your gql string__, press <kbd>ctrl+space</kbd> to get a list of valid fields that can be inserted at your cursor's position.
 
-Requester lints your query and displays syntax errors with their line and column numbers. More detailed debug information is printed to the Sublime Text console.
+Requester lints your query and displays syntax errors with their line and column numbers. More detailed debug information is printed to the Sublime Text console. Try it on one of the requests above.
 
 Autocomplete depends on [graphql-py](https://github.com/ivelum/graphql-py/), a package you can install as an extension to Requester. See [this section](#import-any-python-package-with-requester) for more details.
 
 >If autocomplete doesn't work, it's probably being overridden by another autocomplete package, like [All Autocomplete](https://github.com/alienhard/SublimeAllAutocomplete), [Djaneiro](https://github.com/squ1b3r/Djaneiro), [tern_for_sublime](https://github.com/ternjs/tern_for_sublime), etc. Remove these packages, or disable them for Requester response views if possible.
 
->GraphQL autocomplete will never override autocomplete from your other packages.
+>GraphQL autocomplete will never override autocompletions defined by your other packages.
 
 
 ## Import Any Python Package with Requester
@@ -645,6 +645,7 @@ Requester's modifiable settings, and their default values. You can override any 
 - __change_focus_after_request__, `true`: if a single request is executed, change focus to response tab after request returns
 - __reorder_tabs_after_requests__, `false`: if multiple requests are executed, automatically reorder response tabs based on requests in requester file after requests return
 - __pin_tabs_by_default__, `false`: pin newly opened response tabs by default, so they aren't overwritten by requests with the same method and URL
+- __response_tab_name_length__, `32`: max length of name of response tabs
 - __history_file__, `"Requester.history.json"`: name of request history file, stored in User directory
 - __history_max_entries__, `250`: max number of requests in history file
 - __chunk_size__, `1024`: chunk size for file downloads (bytes)
