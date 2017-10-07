@@ -169,7 +169,7 @@ Imagine you're debugging a request in a response tab, replaying and modifying th
 
 In a response tab, go to the command palette and look for __Requester: Save Request Back To Requester File__, or look in the response tab for the keyboard shortcut to __save request__.
 
-If the requester file still exists and your original request hasn't been changed since you first sent it, Requester will overwrite the it with the modified one from your response tab.
+If the requester file exists and you haven't changed your original request since you sent it, Requester opens the requester file, scrolls to the original request, and overwrites it with the modified one from your response tab. You can repeatedly save back a request as you edit it in the response tab. ✨✨
 
 
 ### Environment Variables
@@ -739,7 +739,7 @@ Requester's modifiable settings, and their default values. You can override any 
 
 
 ## Contributing and Tests
-[See here](https://github.com/kylebebak/Requester/blob/master/docs/_content/contributing.md).
+[See here](https://github.com/kylebebak/Requester/blob/master/CONTRIBUTING.md).
 
 
 ## Inspired By

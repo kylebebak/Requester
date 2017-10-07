@@ -548,7 +548,8 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
             sublime.error_message('Save Error: requester file\n"{}"\nno longer exists'.format(file))
             return
 
-        requester_view = view.window().open_file(file)
+        is_open = bool(self.window.find_open_file(file))
+        requester_view = self.window.open_file(file)
 
         def save_request():
             """Wait on another thread for view to load on main thread, then save.
@@ -572,6 +573,10 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
                 {'text': request, 'start_index': start_index, 'end_index': start_index + len(request)})
             requester_view.sel().clear()
             requester_view.sel().add(sublime.Region(start_index))
+            if not is_open:  # hacky trick to make sure scroll works
+                time.sleep(.2)
+            else:
+                time.sleep(.1)
             requester_view.show_at_center(start_index)
             set_save_info_on_view(view, request)
 

@@ -1,0 +1,6 @@
+# New Features/Bug Fix
+Not exactly new features or a bug fixes, but saving requests back to the requester file was significantly improved and simplified.
+
+- You can save back requests even if your requester file has been modified in the meantime. Save will only fail if the original request itself has been modified.
+- You can now save back requests that you load from your history file.
+- Scrolling to the original request now works reliably even if the requester file isn't currently open when you save back your request.
