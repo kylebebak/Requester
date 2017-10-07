@@ -82,9 +82,7 @@ Imagine you're debugging a request in a response tab, replaying and modifying th
 
 In a response tab, go to the command palette and look for __Requester: Save Request Back To Requester File__, or look in the response tab for the keyboard shortcut to __save request__.
 
-If the requester file still exists and it hasn't been changed since you sent your request, Requester will overwrite the old request with the modified one from your response tab.
-
->Note: you can't save back exploratory requests, or requests loaded from Requester's history.
+If the requester file still exists and your original request hasn't been changed since you first sent it, Requester will overwrite the it with the modified one from your response tab.
 
 
 ### Environment Variables

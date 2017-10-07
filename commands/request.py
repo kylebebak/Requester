@@ -27,14 +27,11 @@ def response_tab_bindings(can_save=False):
     replay = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     nav = '[ctrl+alt+ ←/→]'
     pin = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
-    explore = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
     save = '[cmd+s]' if platform == 'osx' else '[ctrl+s]'
+    explore = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
 
-    bindings = '{} replay request, {} prev/next request, {} pin/unpin tab, {} explore URL'.format(
-        replay, nav, pin, explore)
-    if can_save:
-        bindings += ', {} save request'.format(save)
-    return bindings
+    return '{} replay request, {} prev/next request, {} pin/unpin tab, {} save request, {} explore URL'.format(
+        replay, nav, pin, save, explore)
 
 
 def get_content(res, fmt):
@@ -74,7 +71,7 @@ def get_content(res, fmt):
         return res.text
 
 
-def get_response_view_content(response, bindings):
+def get_response_view_content(response):
     """Returns a response string that includes metadata, headers and content,
     and the index of the string at which response content begins.
     """
@@ -100,7 +97,7 @@ def get_response_view_content(response, bindings):
         req.request,
         header,
         'Request Headers: {}'.format(res.request.headers),
-        bindings,
+        response_tab_bindings(),
         headers
     ]
     try:
@@ -257,7 +254,7 @@ class RequestsMixin:
         view.settings().set('requester.response_view', True)
         self.set_env_on_view(view)
 
-        content, point = get_response_view_content(response, response_tab_bindings(True))
+        content, point = get_response_view_content(response)
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         set_request_on_view(view, res)
@@ -267,7 +264,7 @@ class RequestsMixin:
             self.view.run_command('requester_reorder_response_tabs')
         set_response_view_name(view, res)
         set_graphql_schema_on_view(view, req)
-        set_binding_info_on_view(self.view, view, req.request)
+        set_save_info_on_view(view, req.request)
 
     def handle_responses(self, responses):
         """Change focus after request returns? `handle_response` must be called
@@ -329,8 +326,7 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         if err:
             return
 
-        history_view = view.settings().get('requester.history_view', False)
-        content, point = get_response_view_content(response, response_tab_bindings(not history_view))
+        content, point = get_response_view_content(response)
 
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
@@ -386,7 +382,7 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
         view.settings().set('requester.response_view', True)
         view.set_scratch(True)
 
-        content, point = get_response_view_content(response, response_tab_bindings())
+        content, point = get_response_view_content(response)
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
         set_request_on_view(view, res)
@@ -530,9 +526,9 @@ class RequesterReorderResponseTabsCommand(RequestsMixin, RequestCommandMixin, su
 
 
 class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
-    """Works only from response views, and not those loaded from history. Replaces
+    """Works only from response views, and not exploratory requests. Replaces
     original request in requester file with modified request from respones tab, as
-    long as requester file's content hasn't been changed in the meantime.
+    long as this original request hasn't changed in the meantime.
     """
     def run(self):
         view = self.window.active_view()
@@ -546,7 +542,7 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
             sublime.error_message('Save Error: there are no valid requests in your response view: {}'.format(e))
         if request.startswith('requests.'):
             request = request[len('requests.'):]
-        file, old_content, start_index, end_index = binding_info
+        file, old_request = binding_info
 
         if not os.path.isfile(file):
             sublime.error_message('Save Error: requester file\n"{}"\nno longer exists'.format(file))
@@ -563,39 +559,34 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
                 else:
                     break
             content = requester_view.substr(sublime.Region(0, requester_view.size()))
-            if old_content != content or not old_content or not content:
-                sublime.error_message('Save Error: requester file content has changed since request was sent')
+            try:
+                start_index = content.index(old_request)
+            except ValueError as e:
+                sublime.error_message('Save Error: your original request was modified since you first sent it!')
                 return
 
             # this is necessary for reasons due to undocumented behavior in ST API (probably a bug)
             # simply calling `requester_view.replace` corrupts `view`s settings
             requester_view.run_command(
-                'requester_replace_text', {'text': request, 'start_index': start_index, 'end_index': end_index})
+                'requester_replace_text',
+                {'text': request, 'start_index': start_index, 'end_index': start_index + len(request)})
             requester_view.sel().clear()
             requester_view.sel().add(sublime.Region(start_index))
             requester_view.show_at_center(start_index)
-            set_binding_info_on_view(requester_view, view, request)
+            set_save_info_on_view(view, request)
 
         sublime.set_timeout_async(save_request, 0)
 
 
-def set_binding_info_on_view(requester_view, view, request):
-    """Find start index and end index of request string in requester view, set
-    these on view.
+def set_save_info_on_view(view, request):
+    """Set file name and request string on view.
     """
     file = view.settings().get('requester.file', None)
     if file is None:
         return
-    content = requester_view.substr(sublime.Region(0, requester_view.size()))
     if request.startswith('requests.'):
         request = request[len('requests.'):]
-    try:
-        start_index = content.index(request)
-    except ValueError as e:
-        print('Binding Error: {}'.format(e))
-        return
-    end_index = start_index + len(request)
-    view.settings().set('requester.binding_info', (file, content, start_index, end_index))
+    view.settings().set('requester.binding_info', (file, request))
 
 
 def set_request_on_view(view, res):

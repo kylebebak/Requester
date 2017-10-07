@@ -32,12 +32,13 @@ def populate_staging_view(view, index, total,
                           meta=None, file=None, env_string=None, env_file=None):
     """Populate staging view with historical request string/metadata.
     """
-    from .request import response_tab_bindings
+    from .request import response_tab_bindings, set_save_info_on_view
     view.settings().set('requester.response_view', True)
     view.settings().set('requester.history_view', True)
     view.settings().set('requester.env_string', env_string)
     view.settings().set('requester.file', file)
     view.settings().set('requester.env_file', env_file)
+    set_save_info_on_view(view, request)
 
     meta_parts = [
         '{} {}{}'.format(code, method, ' ({})'.format(meta) if meta else ''),
