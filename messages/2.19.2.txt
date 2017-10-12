@@ -1,0 +1,4 @@
+# Bug Fix
+It's taken me a while to get "save request back to requester file" exactly right, but it's finally good to go.
+
+This fixes a bug that would replace either too many or too few characters in the original response view.

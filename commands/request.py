@@ -570,7 +570,7 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
             # simply calling `requester_view.replace` corrupts `view`s settings
             requester_view.run_command(
                 'requester_replace_text',
-                {'text': request, 'start_index': start_index, 'end_index': start_index + len(request)})
+                {'text': request, 'start_index': start_index, 'end_index': start_index + len(old_request)})
             requester_view.sel().clear()
             requester_view.sel().add(sublime.Region(start_index))
             if not is_open:  # hacky trick to make sure scroll works

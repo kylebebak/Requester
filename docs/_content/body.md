@@ -397,9 +397,9 @@ Requester lints your query and displays syntax errors with their line and column
 
 Autocomplete depends on [graphql-py](https://github.com/ivelum/graphql-py/), a package you can install as an extension to Requester. See [this section](#import-any-python-package-with-requester) for more details.
 
->If autocomplete doesn't work, it's probably being overridden by another autocomplete package, like [All Autocomplete](https://github.com/alienhard/SublimeAllAutocomplete), [Djaneiro](https://github.com/squ1b3r/Djaneiro), [tern_for_sublime](https://github.com/ternjs/tern_for_sublime), etc. Remove these packages, or disable them for Requester response views if possible.
+>If autocomplete doesn't work, it's probably being overridden by another autocomplete package, like __All Autocomplete__, __tern_for_sublime__, etc. Remove these packages, or disable them for Requester response views if possible.
 
->GraphQL autocomplete will never override autocompletions defined by your other packages.
+>GraphQL autocomplete will never override autocompletions provided by your other packages.
 
 
 ## Import Any Python Package with Requester
