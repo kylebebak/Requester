@@ -56,7 +56,7 @@ class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
             webbrowser.open_new_tab('http://requester.org')
             return
         show_read_only_doc_view(self.window.new_file(),
-                                sublime.load_resource('Packages/Requester/README.md'),
+                                sublime.load_resource('Packages/Requester/docs/_content/body.md'),
                                 'Requester Documentation')
 
 

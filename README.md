@@ -76,6 +76,7 @@ If you're looking for an HTTP client you should try Requester __even if you've n
   + [Export Tests to Runnable Script](#export-tests-to-runnable-script)
 - [Benchmarking Tool](#benchmarking-tool)
 - [Export/Import with cURL, HTTPie](#exportimport-with-curl-httpie)
+  + [Debugging/Exploring Network Activity](#debuggingexploring-network-activity)
 - [Special Keyword Arguments](#special-keyword-arguments)
 - [Commands](#commands)
 - [Response Tab Commands](#response-tab-commands)
@@ -656,6 +657,14 @@ This makes it trivial to share requests with teammates who don't use Requester, 
 Prefer [HTTPie](https://httpie.org/) instead of cURL? You can also export requests to HTTPie!
 
 Exporting works seamlessly with env vars. Just highlight a group of requests and look for __Requester: Export To cURL__ or __Requester: Export To HTTPie__ in the command palette. For importing it's __Requester: Import From cURL__. Exporting to HTTPie supports a bunch of features, including basic and digest authentication, file downloads, and even sessions. For sessions, just highlight your env block along with the requests you want to export.
+
+
+### Debugging/Exploring Network Activity
+cURL is the lingua franca of HTTP clients. Want to explore requests made by some site you're trying to scrape or reverse-engineer?
+
+Open your browser's developer tools, go to the network tab, filter on `XHR` if you want, and refresh the page. Find the request you're looking for and copy it as cURL. Bring it into Sublime, run __Requester: Import From cURL__, and run your request.
+
+In less than a minute you can pull requests, credentials and all, out of your browser and into your laboratory.
 
 
 ## Special Keyword Arguments

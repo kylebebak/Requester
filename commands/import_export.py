@@ -152,7 +152,7 @@ class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
         view = self.view.window().new_file()
         view.run_command('requester_replace_view_text',
                          {'text': header + '\n\n\n' + '\n\n\n'.join(requests) + '\n', 'point': 0})
-        view.set_syntax_file('Packages/Python/Python.sublime-syntax')
+        view.set_syntax_file('Packages/Requester/syntax/requester-source.sublime-syntax')
         view.set_name('requests')
         view.set_scratch(True)
 

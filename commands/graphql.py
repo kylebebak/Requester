@@ -175,7 +175,7 @@ def get_completions(gql, idx, schema):
     except ImportError:
         raise Exception('Install graphql-py with pip for GraphQL autocomplete')
 
-    try:
+    try:  # monkey-patch this class, the `t_NULL` method breaks parsing
         delattr(GraphQLLexer, 't_NULL')
     except AttributeError:
         pass

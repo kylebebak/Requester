@@ -21,7 +21,7 @@ Content = namedtuple('Content', 'content, point')
 platform = sublime.platform()
 
 
-def response_tab_bindings(can_save=False):
+def response_tab_bindings():
     """Returns string with special key bindings for response tab commands.
     """
     replay = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
@@ -122,9 +122,12 @@ def set_response_view_name(view, res=None):
     config = sublime.load_settings('Requester.sublime-settings')
     max_len = int(config.get('response_tab_name_length', 32))
     try:  # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
-        path = parse.urlparse(res.url).path
+        parsed = parse.urlparse(res.url)
+        path = parsed.path
         if path and path[-1] == '/':
             path = path[:-1]
+        if not path:
+            path = parsed.netloc
         name = '{}: {}'.format(res.request.method, path)
     except:
         name = view.settings().get('requester.name')
@@ -535,6 +538,9 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
         binding_info = view.settings().get('requester.binding_info', None)
         if binding_info is None:
             return
+        file, old_request = binding_info
+        if not file or not old_request:
+            return
 
         try:
             request = parse_requests(view.substr(sublime.Region(0, view.size())), n=1)[0]
@@ -542,7 +548,6 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
             sublime.error_message('Save Error: there are no valid requests in your response view: {}'.format(e))
         if request.startswith('requests.'):
             request = request[len('requests.'):]
-        file, old_request = binding_info
 
         if not os.path.isfile(file):
             sublime.error_message('Save Error: requester file\n"{}"\nno longer exists'.format(file))
@@ -587,8 +592,6 @@ def set_save_info_on_view(view, request):
     """Set file name and request string on view.
     """
     file = view.settings().get('requester.file', None)
-    if file is None:
-        return
     if request.startswith('requests.'):
         request = request[len('requests.'):]
     view.settings().set('requester.binding_info', (file, request))

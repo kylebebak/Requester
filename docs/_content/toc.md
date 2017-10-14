@@ -36,6 +36,7 @@
   + [Export Tests to Runnable Script](#export-tests-to-runnable-script)
 - [Benchmarking Tool](#benchmarking-tool)
 - [Export/Import with cURL, HTTPie](#exportimport-with-curl-httpie)
+  + [Debugging/Exploring Network Activity](#debuggingexploring-network-activity)
 - [Special Keyword Arguments](#special-keyword-arguments)
 - [Commands](#commands)
 - [Response Tab Commands](#response-tab-commands)
