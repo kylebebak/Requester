@@ -274,7 +274,7 @@ get('httpbin.org/cookies', cookies={'url': first_response.json()['url']})
 
 
 ## Navigation and History
-UX is sort of an obsession for me, and it's sacred in Requester. The biggest UX difference between Requester and other HTTP clients is the ease with which you can find, modify and execute your requests — the ones in your requester file, and the ones in you request history.
+UX is central to Requester's design. The biggest UX difference between Requester and other HTTP clients is the ease with which you can find, modify and execute your requests — the ones in your requester file, and the ones in your request history.
 
 
 ### Requester File Navigation (.pyr extension)
@@ -306,7 +306,7 @@ Notice the key bindings for __prev/next request__ in response tabs? Give them a 
 
 These commands let you page through past requests one at a time, and can be used from any response tab. __Combine them with fuzzy search for request searching nirvana__.
 
-Imagine you want to find a GET request you ran when you were working with the Twitter API over the weekend. You open search with __Requester: Request History__ and type _twitter_, and see a bunch of requests from around 3 days ago. You're not sure which is the right one, so you hit enter to get a better look.
+Imagine you want to find a GET request you ran when you were working with the Twitter API over the weekend. You open search with __Requester: Request History__ and type _twitter_, and see a bunch of requests from around 3 days ago. You're not sure which is the right one, so you hit Enter to get a better look.
 
 From here, you begin to page back, past a few 40Xs, some POSTs, then boom, the elusive 200 GET is right in front of you. You replay it, and now it's back on top of your request history. Next time you want it it'll take 1 second to find instead of 10.
 
@@ -665,23 +665,5 @@ Requester's modifiable settings, and their default values. You can override any 
 
 ## Inspired By
 - [Requests](http://docs.python-requests.org/en/master/) — Requester sends all its requests using this amazing library.
-- [HTTPie](https://github.com/jakubroztocil/httpie) — A truly "Pythonic" tool. Its focus on intuitiveness and ergonomics inspired many of Requester's features, including its [docs site](http://requester.org).
+- [HTTPie](https://github.com/jakubroztocil/httpie) — A truly Pythonic tool. Its focus on intuitiveness and ergonomics inspired many of Requester's features, including its [docs site](http://requester.org).
 - [Postman](https://www.getpostman.com/) — A strong influence on much of Requester's "managed" UI.
-
-
-## Why Requester?
-Requester combines features from applications like Postman, Paw, Insomnia and HTTPie with the elegance and power of Requests and rock-solid UX of Sublime Text.
-
-Requester leans on [Requests](http://docs.python-requests.org/en/master/user/quickstart/) as much as possible. This means Requester does most anything Requests does, which means it does most anything you need to explore, debug, and test a modern API.
-
-It also means Requester uses an extensively documented, battle-tested library famed for its beauty. If you don't know how to do something with Requester, there are thousands of blog posts, articles and answers on Stack Overflow that explain how to do it.
-
-Apart from being feature-rich, __Requester is built for speed and simplicity__. I was a Postman user before writing Requester, and I got tired of, for example, having to click in 4 places to add or change an env var. With Requester you might have to move your cursor up a few lines.
-
-Request navigation and history are especially powerful. Finding a request you executed a week ago, editing it and executing it is lightning fast.
-
-The paid collaboration features of HTTP client apps, such as sharing and versioning, are not only free in Requester, they're better. Requester works with text files, and as good as the developers at Postman and Paw are, they don't beat GitHub at collaboration, and they don't beat Git at version control.
-
-Need to share requests with someone who doesn't use Requester? Exporting all of your requests to cURL or HTTPie takes a few seconds.
-
-Requester is cross-platform and built for teams. If you debug web APIs for work or for fun, try it. __Try it even if you don't use Sublime Text__. You'll have to switch between two text editors, but you already have to switch between your editor and your HTTP client. Sublime Text running Requester probably has a smaller footprint than your HTTP client, and it's probably a lot easier to use. ✨✨

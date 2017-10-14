@@ -43,4 +43,3 @@
 - [Settings](#settings)
 - [Contributing and Tests](#contributing-and-tests)
 - [Inspired By](#inspired-by)
-- [Why Requester?](#why-requester)

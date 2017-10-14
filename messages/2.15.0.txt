@@ -2,7 +2,7 @@
 Requester's on fire! Request history has been totally revamped for this version, combining fuzzy search with paging for request history nirvana.
 
 ## Request History
-If you run __Requester: Request History__ from the command palette (add this to your key bindings, the command is "requester_history"), you get the usual fuzzy searchable list of requests. But now, if you select one of these requests and hit enter, Requester doesn't execute the request.
+If you run __Requester: Request History__ from the command palette (add this to your key bindings, the command is "requester_history"), you get the usual fuzzy searchable list of requests. But now, if you select one of these requests and hit Enter, Requester doesn't execute the request.
 
 Instead, it "stages" the request into a "request history" tab, from which you can look at the request and edit it before you execute it. And if you press `ctrl+alt+ ←/→`, you can page between requests that were executed before and after this historical request.
 
