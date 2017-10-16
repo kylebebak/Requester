@@ -8,21 +8,17 @@ post('jsonplaceholder.typicode.com/posts')  # as is the URL scheme
 """
 Place your cursor on one of the lines above and hit `ctrl+alt+r` (`ctrl+r` on macOS). Or, look for __Requester: Run Requests__ in the command palette and hit Enter. A response tab will appear, with a name like __GET: /albums__.
 
->If this doesn't work, __and you're seeing errors__ every time you run a request, this probably means the __requests__ dependency wasn't installed successfully. To fix this, look for __Package Control: Satisfy Dependencies__ in the command palette, run it, and restart Sublime Text.
+>If this doesn't work, and you're seeing errors every time you run a request, this probably means the __requests__ dependency wasn't installed successfully. To fix this, look for __Package Control: Satisfy Dependencies__ in the command palette, run it, and restart Sublime Text.
 
-Head to the response tab and check out the response. Hit `ctrl+alt+r` or `ctrl+r` (`ctrl+r` or `cmd+r` on macOS) to replay the request. You can edit the request, which is at the top of the file, before replaying it.
+Head to the response tab and check out the response. Hit <kbd>ctrl+alt+r</kbd> or <kbd>ctrl+r</kbd> (<kbd>ctrl+r</kbd> or <kbd>cmd+r</kbd> on macOS) to replay the request. You can edit the request, which is at the top of the file, before replaying it.
 
-Now, go back to the requester file and highlight all 5 lines, and once again execute the requests.
+Now, go back to the requester file and highlight all 5 lines, and once again execute the requests. Nice, huh?
 
-Tabs will open for all 4 requests (Requester conveniently ignores the blank line). Before checking out these tabs, execute the requests yet again. You'll notice duplicate requests don't create a mess of new tabs, but simply overwrite the content in the matching response tabs.
-
-Want to see something nifty? Mix up the order of the 4 open response tabs, come back to the tutorial tab, and run __Requester: Reorder Response Tabs__.
-
-Want to see something __even better__? Press `ctrl+r` (`cmd+r` on macOS) and try using fuzzy search to jump around your requests. This is what the special .pyr extension is all about. Save all your requester files with this extension!
+Want to see something even better? Press `ctrl+r` (`cmd+r` on macOS) and try using fuzzy search to jump around the requests defined in this file. This is what the special .pyr extension is all about. Save all your requester files with this extension.
 """
 
 
-### Multiline Requests
+### Multiline Requests, Request Body, Query Params
 """
 For executing requests defined over multiple lines, you have two options:
 
@@ -30,25 +26,22 @@ For executing requests defined over multiple lines, you have two options:
 - place your cursor on the __first line__ of a request and execute it
 """
 
-get(
-    'https://jsonplaceholder.typicode.com/posts'
-)
 post(
-    'jsonplaceholder.typicode.com/posts'
+    'httpbin.org/post',
+    json={'name': 'Jimbo', 'age': 35, 'married': False, 'hobbies': ['wiki', 'pedia']}
+)
+
+get(
+    'httpbin.org/get',
+    params={'key1': 'value1', 'key2': 'value2'}
 )
 
 """
+Body, Query Params, Headers and Cookies are passed to __requests__ as dictionaries. And for executing requests defined over multiple lines, you have two options:
+
 Notice that if a URL scheme isn't supplied, Requester sets it as `http` by default.
 
 If you want to close all open tabs, look for __Requester: Close All Response Tabs__ in the command palette.
-"""
-
-
-### Pinned Response Tabs
-"""
-When you execute a request, Requester overwrites response tabs that have the same request method and URL as the request you're executing. Hmmm... Does this mean you can't open multiple response tabs for the same request?
-
-Of course not! In the response tab, go the command palette and look for __Requester: Pin/Unpin Response Tab__, or look in the response tab for the keyboard shortcut to __pin/unpin tab__. Try it: pin a response tab, go to the requester file, and execute the same request again.
 """
 
 
@@ -73,14 +66,7 @@ The __###env__ lines must have no leading or trailing spaces. Only the first env
 """
 
 
-### Request Body, Query Params, Custom Headers, Cookies
-post('httpbin.org/post', data={'key1': 'value1', 'key2': 'value2'})
-
-post('httpbin.org/post', json=[1, 2, 3])
-post('httpbin.org/post', json={'name': 'Jimbo', 'age': 35, 'married': False, 'hobbies': ['wiki', 'pedia']})
-
-get('httpbin.org/get', params={'key1': 'value1', 'key2': 'value2'})
-
+### Custom Headers, Cookies
 get('httpbin.org/headers', headers={'key1': 'value1', 'key2': 'value2'})
 
 get('httpbin.org/cookies', cookies={'key1': 'value1', 'key2': 'value2'})
@@ -89,11 +75,9 @@ get('httpbin.org/redirect-to?url=foo')
 # response tab shows redirects
 
 """
-Body, Query Params, Headers and Cookies can be passed to __requests__ as dictionaries.
-
 If you execute the last request, you'll notice the response tab shows the series of redirects followed by the browser. If you want to disallow redirects by default, simply change Requester's `allow_redirects` setting to `false`.
 
-__Requester's syntax is Requests syntax__. If you don't know how to do something, just have a look at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
+__Requester's syntax is Requests' syntax__. If you don't know how to do something, just have a look at the [Requests Quickstart](http://docs.python-requests.org/en/master/user/quickstart/).
 """
 
 
@@ -105,5 +89,5 @@ Want to start a new collection of requests? Run __Requester: New Requester File_
 
 ## More Info
 """
-This tutorial is not meant to be complete, and if you have doubts about how Requester works the README has the goods. Check it out [here](https://github.com/kylebebak/Requester) or by running __Requester: Show Documentation__!
+This tutorial is not meant to be complete, and if you have doubts about how Requester works the README has the goods. Check it out [here](https://github.com/kylebebak/Requester) or by running __Requester: Show Documentation__.
 """
