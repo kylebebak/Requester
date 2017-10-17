@@ -1,0 +1,4 @@
+# Bug Fixes
+Much better syntax highlighting for requester files, thanks to @jcberquist!
+
+Also, fixed bug in explore request command, which choked on requests with a dangling, trailing comma.

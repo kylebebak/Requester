@@ -13,8 +13,11 @@ contexts:
           push: env
         - match: "^(?=##)"
           push: header
-        - match: ^(?=([\w_][\w\d_]*\.)?(get|options|head|post|put|patch|delete))
-          push: identifier
+        - match: ^([\w_][\w\d_]*\.)?(get|options|head|post|put|patch|delete)\s*(\()
+          captures:
+            2: variable.function.python
+            3: punctuation.section.arguments.begin.python
+          push: [function-call, identifier]
 
   env:
     - match: "\n"
@@ -28,13 +31,16 @@ contexts:
     - match: .*
       scope: storage.header.requester
 
-  identifier:
-    - meta_content_scope: meta.identifier.requester
-    - match: "[,)]"
+  function-call:
+    - meta_scope: meta.function-call.python
+    - match: \)
+      scope: punctuation.section.arguments.end.python
       pop: true
-    - match: "'.*?'"
-      scope: string.quoted.single.python
-    - match: '".*?"'
-      scope: string.quoted.double.python
-    - match: '\+'
-      scope: keyword.operator.arithmetic.python
+    - include: "Packages/Python/Python.sublime-syntax#arguments"
+
+  identifier:
+    - meta_scope: meta.identifier.requester
+    - match: (?=[,)])
+      pop: true
+    - include: "Packages/Python/Python.sublime-syntax#arguments"
+
