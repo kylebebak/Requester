@@ -344,7 +344,7 @@ def _persist_requests(self, responses, history_path=None):
     needed to rebuild the env for these requests. One entry per unique
     request. Old requests are removed when requests exceed file capacity.
 
-    Requests in history are keyed for uniqueness on request string.
+    Requests in history are keyed for uniqueness on request string + file.
     """
     history_file = self.config.get('history_file', None)
     if not history_file:
@@ -377,13 +377,14 @@ def _persist_requests(self, responses, history_path=None):
             meta = 'download: {}'.format(req.skwargs['filename'] or './')
 
         method, url = res.request.method, res.url
-        key = req.request
+        file = self.view.settings().get('requester.file', None)
+        key = '{};;{}'.format(req.request, os.path.realpath(file)) if file else req.request
         if key in rh:
             rh.pop(key, None)  # remove duplicate requests
         rh[key] = {
             'ts': int(time()),
             'env_string': self.view.settings().get('requester.env_string', None),
-            'file': self.view.settings().get('requester.file', None),
+            'file': file,
             'env_file': self.view.settings().get('requester.env_file', None),
             'method': method,
             'meta': meta,

@@ -40,6 +40,9 @@ def populate_staging_view(view, index, total,
     view.settings().set('requester.env_file', env_file)
     set_save_info_on_view(view, request)
 
+    config = sublime.load_settings('Requester.sublime-settings')
+    max_len = int(config.get('response_tab_name_length', 32))
+
     meta_parts = [
         '{} {}{}'.format(code, method, ' ({})'.format(meta) if meta else ''),
         url,
@@ -53,7 +56,7 @@ def populate_staging_view(view, index, total,
     path = parse.urlparse(url).path
     if path and path[-1] == '/':
         path = path[:-1]
-    view.set_name('({}) {}: {}'.format(index+1, method, path))
+    view.set_name(truncate('({}) {}: {}'.format(index+1, method, path), max_len))
     view.set_syntax_file('Packages/Requester/syntax/requester-history.sublime-syntax')
     view.set_scratch(True)
 

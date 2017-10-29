@@ -618,7 +618,7 @@ Commands defined by this package, in case you want to add or change key bindings
 
 
 ## Response Tab Commands
-The following commands are only available in response tabs. The key bindings listed below are for macOS. Every response tab shows these key bindings.
+The following commands are only available in response tabs. The key bindings listed below are for macOS. Response tabs show (most of) these key bindings.
 
 - __cmd+r__: replay request
 - __ctrl+alt+ ←/→__: prev/next request
