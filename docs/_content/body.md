@@ -298,6 +298,8 @@ Choose an old request and select it. A special response tab will open, with the 
 
 Replay the chosen request. It runs as if it were executed from its original requester file, but it also pulls in up-to-date env vars from the env block and the env file.
 
+>Requests are keyed for uniqueness on `(request_string, requester_file)`, which allows you to persist identical request strings from different requester files.
+
 
 #### Page Through Past Requests
 Notice the key bindings for __prev/next request__ in response tabs? Give them a try.
@@ -319,6 +321,10 @@ Open your keymap from the command palette by running __Preferences: Key Bindings
 ~~~json
 { "keys": ["ctrl+h"], "command": "requester_history" },
 ~~~
+
+
+#### Delete Requests From History
+This command isn't 
 
 
 ### Explore Hyperlinked APIs (HATEOAS)
@@ -598,6 +604,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_explore_url__: explore url in response tab
 - __requester_save_request__: save request back to requester file
 - __requester_history__: search and re-execute past requests
+- __requester_delete_request_history__: delete request from history (history tab only)
 - __requester_cancel_requests__: cancel all outstanding requests
 - __requester_cancel_downloads__: cancel outstanding file downloads
 - __requester_cancel_uploads__: cancel outstanding file uploads
@@ -622,6 +629,7 @@ The following commands are only available in response tabs. The key bindings lis
 
 - __cmd+r__: replay request
 - __ctrl+alt+ ←/→__: prev/next request
+- __ctrl+alt+ backspace__: delete request from history (only works in history tab)
 - __cmd+t__: pin/unpin tab
 - __cmd+e__: explore URL
 - __cmd+o__: options

@@ -39,6 +39,11 @@
   },
 
   {
+    "caption": "Requester: Delete Request From History (History Tab)",
+    "command": "requester_delete_request_history"
+  },
+
+  {
     "caption": "Requester: Cancel Requests",
     "command": "requester_cancel_requests"
   },

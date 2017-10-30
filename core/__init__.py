@@ -258,11 +258,11 @@ class RequestCommandMixin:
 
     def persist_requests(self, responses):
         """Persisting requests is NOT thread safe, so this wrapper locks access to
-        the module-scoped `_persist_requests`. Failure to do this results in
-        corruption of the history file sooner or later.
+        `persist_requests`. Failure to do this results in corruption of the
+        history file sooner or later.
         """
         with self.LOCK:
-            _persist_requests(self, responses)
+            persist_requests(self, responses)
 
     def add_error_status_bar(self, error):
         """Logs error to console, and adds error in status bar. Not as obtrusive
@@ -339,7 +339,7 @@ class RequestCommandMixin:
         return '[{}={}]'.format(' ' * before, ' ' * after)
 
 
-def _persist_requests(self, responses, history_path=None):
+def persist_requests(self, responses, history_path=None):
     """Persist up to N requests to a history file, along with the context
     needed to rebuild the env for these requests. One entry per unique
     request. Old requests are removed when requests exceed file capacity.
@@ -378,7 +378,7 @@ def _persist_requests(self, responses, history_path=None):
 
         method, url = res.request.method, res.url
         file = self.view.settings().get('requester.file', None)
-        key = '{};;{}'.format(req.request, os.path.realpath(file)) if file else req.request
+        key = '{};;{}'.format(req.request, file) if file else req.request
         if key in rh:
             rh.pop(key, None)  # remove duplicate requests
         rh[key] = {

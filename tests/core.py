@@ -28,7 +28,7 @@ def handle_special(self, req):
     return False
 ResponseThreadPool.handle_special = handle_special
 
-from core import RequestCommandMixin, _persist_requests, helpers, parsers, responses
+from core import RequestCommandMixin, persist_requests, helpers, parsers, responses
 
 
 # mock `sublime` module
@@ -229,7 +229,7 @@ class TestCore(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as d:
             path = os.path.join(d, 'history')
-            _persist_requests(c, c._responses, path)
+            persist_requests(c, c._responses, path)
             with open(path, 'r') as f:
                 rh = json.loads(f.read() or '{}', object_pairs_hook=OrderedDict)
                 self.assertEqual(len(rh), 2)

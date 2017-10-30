@@ -190,36 +190,51 @@ class RequesterPageRequestHistoryCommand(sublime_plugin.TextCommand):
 
 class RequesterDeleteRequestHistoryCommand(sublime_plugin.TextCommand):
     """`TextCommand` to delete a staged request from history, using the same key
-    used to persist requests.
+    used to persist requests. Locks access to `delete_request`, using same lock
+    that protects `persist_requests`.
     """
     def run(self, edit):
         from . import RequestCommandMixin
-        view = self.view
-        if not view.settings().get('requester.response_view') or not view.settings().get('requester.history_view'):
-            return
-
-        reqs = load_history(rev=False)
-        index = view.settings().get('requester.request_history_index', None)
-        if index is None:
-            sublime.error_message("History Error: request index doesn't exist")
-            return
-
-        try:
-            params_dict = reqs[index][1]
-        except IndexError as e:
-            sublime.error_message('RequestHistory Error: {}'.format(e))
-            return
-
-        request = params_dict['request']
-        file = params_dict['file']
-        key = '{};;{}'.format(request, os.path.realpath(file)) if file else request
-        rh = load_history(as_dict=True)
-        del rh[key]
-
-        config = sublime.load_settings('Requester.sublime-settings')
-        history_file = config.get('history_file', None)
         with RequestCommandMixin.LOCK:
-            write_json_file(rh, os.path.join(sublime.packages_path(), 'User', history_file))
+            delete_request(self.view)
+
+
+def delete_request(view, history_path=None):
+    """Delete request in this staging `view` from request history.
+    """
+    if not view.settings().get('requester.response_view') or not view.settings().get('requester.history_view'):
+        return
+
+    reqs = load_history(rev=False)
+    index = view.settings().get('requester.request_history_index', None)
+    if index is None:
+        sublime.error_message("History Error: request index doesn't exist")
+        return
+
+    try:
+        params_dict = reqs[index][1]
+    except IndexError as e:
+        sublime.error_message('RequestHistory Error: {}'.format(e))
+        return
+
+    request = params_dict['request']
+    file = params_dict['file']
+    key = '{};;{}'.format(request, file) if file else request
+    rh = load_history(as_dict=True)
+    try:
+        del rh[key]
+    except KeyError:
+        pass
+    try:
+        del rh[request]  # also delete identical requests not sent from any file
+    except KeyError:
+        pass
+
+    config = sublime.load_settings('Requester.sublime-settings')
+    history_file = config.get('history_file', None)
+    if not history_path:
+        history_path = os.path.join(sublime.packages_path(), 'User', history_file)
+    write_json_file(rh, history_path)
 
 
 def write_json_file(data, path):

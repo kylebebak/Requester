@@ -23,6 +23,7 @@
   + [Requester File Navigation (.pyr extension)](#requester-file-navigation-pyr-extension)
   + [Request History](#request-history)
     * [Page Through Past Requests](#page-through-past-requests)
+    * [Delete Requests From History](#delete-requests-from-history)
   + [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
   + [Options Requests](#options-requests)
 - [GraphQL](#graphql)
