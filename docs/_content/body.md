@@ -232,12 +232,12 @@ As with streamed and chunked uploads, `filename` can be an absolute path, or a p
 
 
 #### Downloaded File Name
-If you pass a value for `filename` that has no __basename__, Requester infers the name of the file from the URL. Examples of such `filename`s: __''__, __relative/path/__, __/absolute/path/__.
+If you pass the path of an existing directory for `filename`, Requester will download the file to this directory and infer the name of the file from the URL.
 
 In this mode, if the file name already exists, Requester adds a suffix to make the file name unique. Try downloading this file several times in succession.
 
 ~~~py
-get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='')
+get('http://www.nationalgeographic.com/content/dam/animals/thumbs/rights-exempt/mammals/d/domestic-dog_thumb.jpg', filename='~/Desktop')
 ~~~
 
 

@@ -44,7 +44,7 @@ class Download(RequestsMixin, RequestCommandMixin):
         self.download_file(res, filename)
 
     def download_file(self, res, filename):
-        filename = absolute_path(filename, self.view)
+        filename = absolute_path(os.path.expanduser(filename), self.view)  # attempts to resolve '~'
         if filename is None:
             sublime.error_message('Download Error: requester file must be saved to use relative path')
             return
@@ -72,10 +72,11 @@ class Download(RequestsMixin, RequestCommandMixin):
             else:
                 view.set_status('requester.download', 'Requester Download Completed: {}'.format(filename))
 
-        if not basename:
+        if not basename or os.path.isdir(filename):
             count, suffix = 1, ''
             filename = os.path.join(filename, res.url.split('/')[-1])
             file, extension = os.path.splitext(filename)
+            extension = extension.split('?')[0]
             while True:
                 try:
                     download(file + suffix + extension)
