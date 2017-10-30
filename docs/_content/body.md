@@ -324,7 +324,9 @@ Open your keymap from the command palette by running __Preferences: Key Bindings
 
 
 #### Delete Requests From History
-This command isn't 
+Iterating on a request to get it right can take time. You might inadvertently fill your request history with requests you'd rather not remember.
+
+Fortunately, you can delete these requests from your history by pressing <kbd>ctrl+alt+backspace</kbd> in the request's history tab. For __UNDO__, just replay the request before closing the history tab.
 
 
 ### Explore Hyperlinked APIs (HATEOAS)
