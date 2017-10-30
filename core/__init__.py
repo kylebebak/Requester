@@ -409,11 +409,17 @@ def _persist_requests(self, responses, history_path=None):
                 del rh[key]
             except KeyError:
                 pass
+    write_json_file(rh, history_path)
 
-    # write all requests to history file: https://stackoverflow.com/questions/1812115/how-to-safely-write-to-a-file
-    history_path_temp = history_path + '.tmp'
-    history_path_backup = history_path + '.bkp'
-    with open(history_path_temp, 'w') as f:
-        f.write(json.dumps(rh))  # write to temp file to ensure no data loss if exception raised here
-    os.rename(history_path, history_path_backup)  # create backup file in case rename is unsuccessful
-    os.rename(history_path_temp, history_path)
+
+def write_json_file(data, path):
+    """Safely write `data` to file at `path`.
+
+    https://stackoverflow.com/questions/1812115/how-to-safely-write-to-a-file
+    """
+    path_temp = path + '.tmp'
+    path_backup = path + '.bkp'
+    with open(path_temp, 'w') as f:
+        f.write(json.dumps(data))  # write to temp file to ensure no data loss if exception raised here
+    os.rename(path, path_backup)  # create backup file in case rename is unsuccessful
+    os.rename(path_temp, path)

@@ -10,7 +10,7 @@ from collections import OrderedDict
 from ..core.helpers import truncate
 
 
-def load_history(rev=True):
+def load_history(rev=True, as_dict=False):
     """Returns list of past requests. Raises exception if history file doesn't
     exist.
     """
@@ -21,6 +21,8 @@ def load_history(rev=True):
     history_path = os.path.join(sublime.packages_path(), 'User', history_file)
     with open(history_path, 'r') as f:
         rh = json.loads(f.read() or '{}', object_pairs_hook=OrderedDict)
+    if as_dict:
+        return rh
     requests = list(rh.items())
     if rev:
         requests.reverse()
@@ -35,8 +37,8 @@ def populate_staging_view(view, index, total,
     from .request import response_tab_bindings, set_save_info_on_view
     view.settings().set('requester.response_view', True)
     view.settings().set('requester.history_view', True)
-    view.settings().set('requester.env_string', env_string)
     view.settings().set('requester.file', file)
+    view.settings().set('requester.env_string', env_string)
     view.settings().set('requester.env_file', env_file)
     set_save_info_on_view(view, request)
 
@@ -184,3 +186,50 @@ class RequesterPageRequestHistoryCommand(sublime_plugin.TextCommand):
             return
         view.settings().set('requester.request_history_index', index)
         populate_staging_view(view, total-index-1, total, **params_dict)
+
+
+class RequesterDeleteRequestHistoryCommand(sublime_plugin.TextCommand):
+    """`TextCommand` to delete a staged request from history, using the same key
+    used to persist requests.
+    """
+    def run(self, edit):
+        from . import RequestCommandMixin
+        view = self.view
+        if not view.settings().get('requester.response_view') or not view.settings().get('requester.history_view'):
+            return
+
+        reqs = load_history(rev=False)
+        index = view.settings().get('requester.request_history_index', None)
+        if index is None:
+            sublime.error_message("History Error: request index doesn't exist")
+            return
+
+        try:
+            params_dict = reqs[index][1]
+        except IndexError as e:
+            sublime.error_message('RequestHistory Error: {}'.format(e))
+            return
+
+        request = params_dict['request']
+        file = params_dict['file']
+        key = '{};;{}'.format(request, os.path.realpath(file)) if file else request
+        rh = load_history(as_dict=True)
+        del rh[key]
+
+        config = sublime.load_settings('Requester.sublime-settings')
+        history_file = config.get('history_file', None)
+        with RequestCommandMixin.LOCK:
+            write_json_file(rh, os.path.join(sublime.packages_path(), 'User', history_file))
+
+
+def write_json_file(data, path):
+    """Safely write `data` to file at `path`.
+
+    https://stackoverflow.com/questions/1812115/how-to-safely-write-to-a-file
+    """
+    path_temp = path + '.tmp'
+    path_backup = path + '.bkp'
+    with open(path_temp, 'w') as f:
+        f.write(json.dumps(data))  # write to temp file to ensure no data loss if exception raised here
+    os.rename(path, path_backup)  # create backup file in case rename is unsuccessful
+    os.rename(path_temp, path)

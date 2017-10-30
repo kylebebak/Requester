@@ -38,6 +38,14 @@
   },
 
   {
+    "keys": ["ctrl+alt+backspace"],
+    "command": "requester_delete_request_history",
+    "context": [
+      { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
+    ]
+  },
+
+  {
     "keys": ["ctrl+e"],
     "command": "requester_explore_url",
     "context": [
