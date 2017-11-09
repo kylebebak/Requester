@@ -378,6 +378,11 @@ def persist_requests(self, responses, history_path=None):
 
         method, url = res.request.method, res.url
         file = self.view.settings().get('requester.file', None)
+        original_request = None
+        binding_info = self.view.settings().get('requester.binding_info', None)
+        if binding_info is not None:
+            _, original_request = binding_info
+
         key = '{};;{}'.format(req.request, file) if file else req.request
         if key in rh:
             rh.pop(key, None)  # remove duplicate requests
@@ -390,7 +395,8 @@ def persist_requests(self, responses, history_path=None):
             'meta': meta,
             'url': url,
             'code': res.status_code,
-            'request': req.request
+            'request': req.request,
+            'original_request': original_request,
         }
 
     # remove oldest requests if number of requests has exceeded `history_max_entries`

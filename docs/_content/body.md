@@ -15,8 +15,8 @@ Open a file and insert the following.
 requests.get('https://jsonplaceholder.typicode.com/albums')
 requests.post('https://jsonplaceholder.typicode.com/albums')
 
-get('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optional
-post('jsonplaceholder.typicode.com/posts')  # as is the URL scheme
+post('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optional
+get('jsonplaceholder.typicode.com/posts')  # as is the URL scheme
 ~~~
 
 Place your cursor on one of the lines and hit <kbd>ctrl+alt+r</kbd> (<kbd>ctrl+r</kbd> on macOS). Or, look for __Requester: Run Requests__ in the command palette <kbd>shift+cmd+p</kbd> and hit Enter. A response tab will appear, with a name like __GET: /albums__.
@@ -324,9 +324,9 @@ Open your keymap from the command palette by running __Preferences: Key Bindings
 
 
 #### Delete Requests From History
-Iterating on a request to get it right can take time. You might inadvertently fill your request history with requests you'd rather not remember.
+Iterating on a request to get it right can take time. You might inadvertently fill your request history with requests you'd rather forget.
 
-Fortunately, you can delete these requests from your history by pressing <kbd>ctrl+alt+backspace</kbd> in the request's history tab. For __UNDO__, just replay the request before closing the history tab.
+You can delete a request from your history by pressing <kbd>ctrl+alt+backspace</kbd> in the history tab. To undo your delete, just replay the request before closing the history tab.
 
 
 ### Explore Hyperlinked APIs (HATEOAS)

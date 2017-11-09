@@ -541,8 +541,8 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
         binding_info = view.settings().get('requester.binding_info', None)
         if binding_info is None:
             return
-        file, old_request = binding_info
-        if not file or not old_request:
+        file, original_request = binding_info
+        if not file or not original_request:
             return
 
         try:
@@ -569,7 +569,7 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
                     break
             content = requester_view.substr(sublime.Region(0, requester_view.size()))
             try:
-                start_index = content.index(old_request)
+                start_index = content.index(original_request)
             except ValueError as e:
                 sublime.error_message('Save Error: your original request was modified since you first sent it!')
                 return
@@ -578,7 +578,7 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
             # simply calling `requester_view.replace` corrupts `view`s settings
             requester_view.run_command(
                 'requester_replace_text',
-                {'text': request, 'start_index': start_index, 'end_index': start_index + len(old_request)})
+                {'text': request, 'start_index': start_index, 'end_index': start_index + len(original_request)})
             requester_view.sel().clear()
             requester_view.sel().add(sublime.Region(start_index))
             if not is_open:  # hacky trick to make sure scroll works

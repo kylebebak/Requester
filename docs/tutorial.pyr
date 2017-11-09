@@ -2,8 +2,8 @@
 requests.get('https://jsonplaceholder.typicode.com/albums')
 requests.post('https://jsonplaceholder.typicode.com/albums')
 
-get('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optional
-post('jsonplaceholder.typicode.com/posts')  # as is the URL scheme
+post('https://jsonplaceholder.typicode.com/posts')  # 'requests.' prefix is optional
+get('jsonplaceholder.typicode.com/posts')  # as is the URL scheme
 
 """
 Place your cursor on one of the lines above and hit `ctrl+alt+r` (`ctrl+r` on macOS). Or, look for __Requester: Run Requests__ in the command palette and hit Enter. A response tab will appear, with a name like __GET: /albums__.

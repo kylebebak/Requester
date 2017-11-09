@@ -31,7 +31,7 @@ def load_history(rev=True, as_dict=False):
 
 def populate_staging_view(view, index, total,
                           request, method, url, code, ts,
-                          meta=None, file=None, env_string=None, env_file=None):
+                          meta=None, file=None, env_string=None, env_file=None, original_request=None):
     """Populate staging view with historical request string/metadata.
     """
     from .request import response_tab_bindings, set_save_info_on_view
@@ -40,7 +40,7 @@ def populate_staging_view(view, index, total,
     view.settings().set('requester.file', file)
     view.settings().set('requester.env_string', env_string)
     view.settings().set('requester.env_file', env_file)
-    set_save_info_on_view(view, request)
+    set_save_info_on_view(view, original_request or request)
 
     config = sublime.load_settings('Requester.sublime-settings')
     max_len = int(config.get('response_tab_name_length', 32))
