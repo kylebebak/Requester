@@ -1,0 +1,2 @@
+# Optimization
+Requester doesn't save `original_request` to history file if it's the same as `request`. This decreases size of Requester file.

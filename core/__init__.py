@@ -10,7 +10,7 @@ from threading import Thread, Lock
 from time import time
 from queue import Queue
 
-from .responses import ResponseThreadPool
+from .responses import ResponseThreadPool, prepend_library
 
 
 class RequestCommandMixin:
@@ -378,10 +378,9 @@ def persist_requests(self, responses, history_path=None):
 
         method, url = res.request.method, res.url
         file = self.view.settings().get('requester.file', None)
-        original_request = None
-        binding_info = self.view.settings().get('requester.binding_info', None)
-        if binding_info is not None:
-            _, original_request = binding_info
+        _, original_request = self.view.settings().get('requester.binding_info', [None, None])
+        if original_request is not None and prepend_library(original_request) == req.request:
+            original_request = None  # don't waste space in hist file if these requests are identical
 
         key = '{};;{}'.format(req.request, file) if file else req.request
         if key in rh:
