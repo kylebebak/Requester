@@ -8,3 +8,7 @@ get('127.0.0.1:8000/get')
 
 requests.get(base_url, params={'key1': 'value1'})
 requests.post('http://127.0.0.1:8000/anything')
+
+requests.get(
+    '127.0.0.1:8000/get'
+)

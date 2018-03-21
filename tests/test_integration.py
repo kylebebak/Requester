@@ -122,6 +122,15 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')
         self._test_name_in_view(self.window.active_view(), 'GET: /get')
 
+    def test_single_request_on_multiple_lines(self):
+        """Request on multiple lines.
+        """
+        select_line_beginnings(self.view, 13)
+        self.view.run_command('requester')
+        yield self.WAIT_MS
+        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')
+        self._test_name_in_view(self.window.active_view(), 'GET: /get')
+
     def test_single_request_with_env_block(self):
         """From env block.
         """

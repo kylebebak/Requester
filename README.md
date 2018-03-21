@@ -80,7 +80,7 @@ get(
 Body, Query Params, and Headers are passed to __requests__ as dictionaries. And for executing requests defined over multiple lines, you have two options:
 
 - fully highlight one or more requests and execute them
-- place your cursor on the __first line__ of a request and execute it
+- place your cursor inside of a request and execute it
 
 Try it out.
 

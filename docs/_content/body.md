@@ -36,7 +36,7 @@ Go back to your requester file and save it as `<anything>.pyr`. The extension is
 For executing requests defined over multiple lines, you have two options:
 
 - fully highlight one or more requests and execute them
-- place your cursor on the __first line__ of a request and execute it
+- place your cursor inside of a request and execute it
 
 ~~~py
 get(

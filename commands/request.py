@@ -141,6 +141,7 @@ def set_response_view_name(view, res=None):
 class RequestsMixin:
     def get_requests(self):
         """Parses requests from multiple selections. If nothing is highlighted,
+        checks for request containing cursor's current position, otherwise
         cursor's current line is taken as selection.
         """
         view = self.view
@@ -148,6 +149,17 @@ class RequestsMixin:
         for region in view.sel():
             if not region.empty():
                 selection = view.substr(region)
+                try:
+                    requests_ = parse_requests(selection)
+                except Exception as e:
+                    sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
+                    print(e)
+                    continue
+            elif view.match_selector(region.begin(), 'source.requester meta.function-call.python'):
+                for func_region in view.find_by_selector('source.requester meta.function-call.python'):
+                    if func_region.contains(region):
+                        selection = view.substr(func_region)
+                        break
                 try:
                     requests_ = parse_requests(selection)
                 except Exception as e:
