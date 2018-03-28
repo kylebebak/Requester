@@ -33,10 +33,11 @@ Go back to your requester file and save it as `<anything>.pyr`. The extension is
 
 
 ### Multiline Requests
-For executing requests defined over multiple lines, you have two options:
+For executing requests defined over multiple lines, you have three options:
 
 - fully highlight one or more requests and execute them
-- place your cursor inside of a request and execute it
+- place your cursor on the first line of a request and execute it
+- place your cursor __anywhere inside__ a request and execute it (super convenient, and works as long as the view's syntax recognizes Python function calls)
 
 ~~~py
 get(

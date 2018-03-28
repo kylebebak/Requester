@@ -1,5 +1,5 @@
 # flake8: noqa
-"""Usage: from repo root, run `python -m unittest tests.core -v`
+"""Usage: from repo root, run `python3 -m unittest tests.core -v`
 
 This test module makes sure that the `commands` packages is not imported
 """
