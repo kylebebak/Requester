@@ -1,2 +1,7 @@
 [flake8]
+ignore =
+  C812,
+  C813,
+  C814,
+  E226
 max-line-length = 120

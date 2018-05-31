@@ -47,7 +47,7 @@ def get_transfer_indicator(filename, transferred, total, spaces=50):
     transferred = min(transferred, total)
     spaces_filled = int(spaces * transferred/total)
     return '{}, [{}] {}kB'.format(
-        filename, '·'*spaces_filled + ' '*(spaces-spaces_filled-1), transferred//1024
+        filename, '·'*spaces_filled + ' '*(spaces-spaces_filled-1), transferred//1024,
     )
 
 

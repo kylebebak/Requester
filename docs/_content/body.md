@@ -432,7 +432,7 @@ Finally, run `pip3 show requests-oauthlib`, and look for the __LOCATION__ field 
 
 Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
 
->Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advide: don't bother unless you really want to use one of these packages.
+>Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advice: don't bother unless you really want to use one of these packages.
 
 
 ### OAuth1 and OAuth2

@@ -249,5 +249,5 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             return '?'
         spaces_filled = int(spaces * count/total)
         return '{} requests, [{}] {} completed'.format(
-            total, '·'*spaces_filled + ' '*(spaces-spaces_filled-1), count
+            total, '·'*spaces_filled + ' '*(spaces-spaces_filled-1), count,
         )

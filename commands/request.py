@@ -84,8 +84,19 @@ def get_response_view_content(response):
     redirects = [response.url for response in res.history]  # URLs traversed due to redirects
     redirects.append(res.url)  # final URL
 
+    if read_content:
+        content_length = len(res.content)
+    else:
+        try:
+            content_length = int(res.headers.get('content-length'))
+        except:
+            try:
+                content_length = len(res.content)
+            except:
+                content_length = '?'
+
     header = '{} {}\n{}s, {}B\n{}'.format(
-        res.status_code, res.reason, res.elapsed.total_seconds(), len(res.content) if read_content else '?',
+        res.status_code, res.reason, res.elapsed.total_seconds(), content_length,
         ' -> '.join(redirects)
     )
     headers = '\n'.join(

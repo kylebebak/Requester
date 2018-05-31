@@ -78,7 +78,7 @@ def approximate_age(from_stamp, to_stamp=None, precision=2):
 
     def subtract(rem, div):
         n = int(rem // div)
-        return n,  rem - n * div
+        return n, rem - n * div
 
     seconds, rem = divide(rem, 60)
     minutes, rem = divide(rem, 60)

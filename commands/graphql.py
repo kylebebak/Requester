@@ -143,7 +143,7 @@ class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
 
             if getattr(view, '_env', None) is None:
                 view._env = RequestCommandMixin.get_env_dict_from_string(
-                   view.settings().get('requester.env_string', None)
+                    view.settings().get('requester.env_string', None)
                 )
             req = prepare_request(request, view._env, 1)
 
