@@ -220,8 +220,16 @@ def request_to_curl(request):
     headers = ["'{}: {}'".format(k, v) for k, v in req.headers.items()]
     headers = " -H ".join(sorted(headers))
 
-    return "curl -X {method}{headers}{cookies}{data} '{url}{qs}'".format(
+    auth_string = ''
+    auth = kwargs.get('auth', None)
+    if isinstance(auth, tuple):
+        auth_string = " -u '{}:{}'".format(auth[0], auth[1])
+    elif isinstance(auth, HTTPBasicAuth):
+        auth_string = " -u '{}:{}'".format(auth.username, auth.password)
+
+    return "curl -X {method}{auth}{headers}{cookies}{data} '{url}{qs}'".format(
         method=req.method,
+        auth=auth_string,
         headers=' -H {}'.format(headers) if headers else '',
         cookies=" -b '{}'".format(cookies) if cookies else '',
         data=" -d '{}'".format(data) if data else '',
