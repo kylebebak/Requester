@@ -484,6 +484,11 @@ Requester has a built-in test runner! Copy and paste this into an empty file.
 ###env
 base_url = 'https://jsonplaceholder.typicode.com'
 prop = 'status_code'
+
+
+def email_is_correct(res):
+    import re
+    return re.match(r'[^@]+@[^@]+\.[^@]+', res.json()[0]['email']) is not None
 ###env
 
 # first request
@@ -496,13 +501,25 @@ get(base_url + '/profile')
 # third request
 get(base_url + '/comments')
 assert {'status_code': 500}
+
+# fourth request, using a user-defined validation function
+get(base_url + '/comments')
+assert {'function': email_is_correct}
 ~~~
 
-Highlight all the requests, look for __Requester: Run Tests__ in the command palette, and run it. You'll notice that test results are displayed for the first and third requests.
+Highlight all the requests, look for __Requester: Run Tests__ in the command palette, and run it. You'll notice that test results are displayed for the first, third and fourth requests.
 
-What's going on here? If a request has an assertion below it, the `key, value` pair in the assertion is compared with the returned `Response` object. If `key` is a valid property of the `Response` object, `value` is compared with the property. If they're not equal discrepancies are displayed.
+What's going on here? If a request has an assertion below it, the `key, value` pair in the assertion is compared with the returned `Response` object. For the first and third requests, if `key` is a valid property of the `Response` object, `value` is compared with the property. If they're not equal discrepancies are displayed.
 
 Some valid properties: `apparent_encoding`, `cookies`, `encoding`, `headers`, `history`, `is_permanent_redirect`, `is_redirect`, `json`, `links`, `reason`, `status_code`, `text`, `content`.
+
+
+### Custom Validation Functions
+Notice the assertion in the fourth request, `assert {'function': email_is_correct}`? If your assertion key starts with "function", then the corresponding value must be a function that is defined in your env block or your env file.
+
+The function receives [the response object](http://docs.python-requests.org/en/master/api/#requests.Response) as its only argument, and must return `True` or `False`. If it returns `False`, the test fails, else it passes.
+
+Take a closer look at the definition of `email_is_correct`... __Custom validation functions__ allow you to make assertions about any aspect of your response object, using anything that Python has to offer!
 
 
 ### Making Assertions About Response Structure
@@ -510,7 +527,7 @@ Some valid properties: `apparent_encoding`, `cookies`, `encoding`, `headers`, `h
 
 Including one of these in an assertion will validate the corresponding property with [jsonschema.validate](https://github.com/Julian/jsonschema). __This lets you describe the structure of cookies, headers, and JSON responses returned by your API__. Look at the example below. The test fails because we assert that the `userId` for each object in the array of results has a type of `string`, and this isn't true.
 
-If you have a JSON API, [JSON Schema](http://json-schema.org/) is an excellent way to describe your API's data format. Use it.
+If you have a JSON API, [JSON Schema](http://json-schema.org/) is an excellent way to describe your API's data format.
 
 ~~~py
 get('https://jsonplaceholder.typicode.com/posts')

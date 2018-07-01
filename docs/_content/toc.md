@@ -33,6 +33,7 @@
   + [OAuth1 and OAuth2](#oauth1-and-oauth2)
   + [Cookies Interceptor](#cookies-interceptor)
 - [Test Runner](#test-runner)
+  + [Custom Validation Functions](#custom-validation-functions)
   + [Making Assertions About Response Structure](#making-assertions-about-response-structure)
   + [Export Tests to Runnable Script](#export-tests-to-runnable-script)
 - [Benchmarking Tool](#benchmarking-tool)
