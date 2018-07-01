@@ -115,12 +115,28 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
         req, res, err = response
         result = '{}\nassert {}\n'.format(req.request, assertion)
         errors = []
-        count = 0
+        count = len(assertion)
 
         assertion = {str(k): v for k, v in assertion.items()}  # make sure keys can be ordered
         for prop, expected in sorted(assertion.items()):
-            if prop in ('cookies_schema', 'json_schema', 'headers_schema'):  # jsonschema validation
-                count += 1
+            if prop.startswith('function'):
+                try:
+                    name = expected.__name__
+                    value = expected(res)
+                except Exception as e:
+                    error = 'Function Error "{}": {}'.format(name, e)
+                    sublime.error_message(error)
+                    errors.append(Error('', '', '', error))
+                    continue
+                if not isinstance(value, bool):
+                    error = 'Function Error: "{}" must return "True" or "False"'.format(name)
+                    sublime.error_message(error)
+                    errors.append(Error('', '', '', error))
+                    continue
+                if value is False:
+                    errors.append(Error(prop, True, False, 'function "{}" validation failed'.format(name)))
+
+            elif prop in ('cookies_schema', 'json_schema', 'headers_schema'):  # jsonschema validation
                 from jsonschema import validate, ValidationError
 
                 if prop == 'cookies_schema':
@@ -135,11 +151,11 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
                 except ValidationError as e:
                     errors.append(Error(prop, expected, got, e))
                 except Exception as e:
-                    sublime.error_message('Schema Error: {}'.format(e))
-                    continue
+                    error = 'Schema Error: {}'.format(e)
+                    errors.append(Error('', '', '', error))
+                    sublime.error_message(error)
 
             elif prop in ('cookies', 'json'):  # method equality validation
-                count += 1
                 if prop == 'cookies':
                     got = res.cookies.get_dict()
                 if prop == 'json':
@@ -149,11 +165,11 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
 
             else:  # prop equality validation
                 if not hasattr(res, prop):
-                    continue
-                count += 1
-                got = getattr(res, prop)
-                if got != expected:
-                    errors.append(Error(prop, expected, got, 'not equal'))
+                    errors.append(Error('', '', '', '"{}" prop does not exist on response object'.format(prop)))
+                else:
+                    got = getattr(res, prop)
+                    if got != expected:
+                        errors.append(Error(prop, expected, got, 'not equal'))
 
         result = result + '{} assertion{}, {} error{}\n'.format(
             count, '' if count == 1 else 's',
@@ -256,7 +272,13 @@ class RequesterExportTestsCommand(TestParserMixin, RequestCommandMixin, sublime_
         method = ['def {}(self):'.format(name), 'res = {}'.format(req.request)]
         assertion = {str(k): v for k, v in test.assertion.items()}  # make sure keys can be ordered
         for prop, expected in sorted(assertion.items()):
-            if prop in ('cookies_schema', 'json_schema', 'headers_schema'):  # jsonschema validation
+            if prop.startswith('function'):
+                if not hasattr(expected, '__name__'):
+                    sublime.error_message('"{}" is not a function'.format(expected))
+                    return
+                s = 'self.assertTrue({}(res))'.format(expected.__name__)
+
+            elif prop in ('cookies_schema', 'json_schema', 'headers_schema'):  # jsonschema validation
                 self.jsi = True
                 if prop == 'cookies_schema':
                     got = 'res.cookies.get_dict()'
