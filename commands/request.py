@@ -127,11 +127,26 @@ def get_response_view_content(response):
     return Content(before_content + '\n\n' + content, len(before_content) + 2)
 
 
-def set_response_view_name(view, res=None):
+def set_response_view_name(view, response=None):
     """Set name for `view` with content from `response`.
     """
     config = sublime.load_settings('Requester.sublime-settings')
     max_len = int(config.get('response_tab_name_length', 32))
+
+    def helper(name):
+        view.settings().set('requester.name', name)
+        pinned = view.settings().get('requester.response_pinned', False)
+        view.set_name('{}{}'.format('** ' if pinned else '', truncate(name, max_len)))
+
+    if response is None:
+        return helper(view.settings().get('requester.name'))
+    req, res, err = response
+    if req.skwargs.get('tabname'):
+        try:
+            return helper(str(req.skwargs.get('tabname')))
+        except:
+            pass
+
     try:  # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
         parsed = parse.urlparse(res.url)
         path = parsed.path
@@ -142,11 +157,8 @@ def set_response_view_name(view, res=None):
         name = '{}: {}'.format(res.request.method, path)
     except:
         name = view.settings().get('requester.name')
-    else:
-        view.settings().set('requester.name', name)
 
-    pinned = view.settings().get('requester.response_pinned', False)
-    view.set_name('{}{}'.format('** ' if pinned else '', truncate(name, max_len)))
+    helper(name)
 
 
 class RequestsMixin:
@@ -196,7 +208,7 @@ class RequestsMixin:
         """
         for req in requests:
             for view in self.response_views_with_matching_request(
-                req.method, req.url
+                req.method, req.url, req.skwargs.get('tabname')
             ):
                 # view names set BEFORE view content is set, otherwise
                 # activity indicator in view names seems to lag a little
@@ -214,7 +226,7 @@ class RequestsMixin:
                 )})
                 break  # do this for first view only
 
-    def response_views_with_matching_request(self, method, url):
+    def response_views_with_matching_request(self, method, url, tabname=None):
         """Get all response views whose request matches `request`.
         """
         if self.view.settings().get('requester.response_view', False):
@@ -229,6 +241,11 @@ class RequestsMixin:
                 continue
 
             if view.settings().get('requester.response_view', False):
+                if tabname:
+                    if view.settings().get('requester.tabname') == tabname:
+                        views.append(view)
+                    continue
+
                 view_method = view.settings().get('requester.request_method', None)
                 view_url = view.settings().get('requester.request_url', None)
                 if not view_method or not view_url:
@@ -258,7 +275,7 @@ class RequestsMixin:
                 last_sheet = sheet
         window.focus_sheet(last_sheet)  # make sure new tab is opened after last open response view
 
-        views = self.response_views_with_matching_request(method, url)
+        views = self.response_views_with_matching_request(method, url, req.skwargs.get('tabname'))
         if not len(views):  # if there are no matching response tabs, create a new one
             view = window.new_file()
             pinned = self.config.get('pin_tabs_by_default', False)
@@ -283,12 +300,12 @@ class RequestsMixin:
         content, point = get_response_view_content(response)
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
-        set_request_on_view(view, res)
+        set_request_on_view(view, response)
 
         # should response tabs be reordered after requests return?
         if self.config.get('reorder_tabs_after_requests', False):
             self.view.run_command('requester_reorder_response_tabs')
-        set_response_view_name(view, res)
+        set_response_view_name(view, response)
         set_graphql_schema_on_view(view, req)
         set_save_info_on_view(view, req.request)
 
@@ -356,10 +373,10 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
 
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
-        set_request_on_view(view, res)
+        set_request_on_view(view, response)
         view.settings().erase('requester.request_history_index')
         view.settings().set('requester.history_view', False)
-        set_response_view_name(view, res)
+        set_response_view_name(view, response)
         set_graphql_schema_on_view(view, req)
 
 
@@ -414,8 +431,8 @@ class RequesterExploreUrlCommand(RequesterReplayRequestCommand):
         content, point = get_response_view_content(response)
         view.run_command('requester_replace_view_text', {'text': content, 'point': point})
         view.set_syntax_file('Packages/Requester/syntax/requester-response.sublime-syntax')
-        set_request_on_view(view, res)
-        set_response_view_name(view, res)
+        set_request_on_view(view, response)
+        set_response_view_name(view, response)
         set_graphql_schema_on_view(view, req)
 
     def persist_requests(self, responses):
@@ -623,9 +640,11 @@ def set_save_info_on_view(view, request):
     view.settings().set('requester.binding_info', (file, request))
 
 
-def set_request_on_view(view, res):
+def set_request_on_view(view, response):
     """For reordering requests, showing pending activity for requests, and
     jumping to matching response tabs after requests return.
     """
+    req, res, err = response
     view.settings().set('requester.request_method', res.request.method)
     view.settings().set('requester.request_url', res.url.split('?')[0])
+    view.settings().set('requester.tabname', req.skwargs.get('tabname'))

@@ -78,6 +78,10 @@ When you execute a request, Requester overwrites response tabs that have the sam
 In a response tab, go to the command palette and look for __Requester: Pin/Unpin Response Tab__, or look in the response tab for the keyboard shortcut to __pin/unpin tab__.
 
 
+### Custom Tab Name
+Use the `tabname` argument to specify a custom response tab name for your request. The response in this tab can only be overwritten by a request with the same value for the `tabname` argument. This is useful for differentiating requests whose method and URL are the same but whose meaning is different. GraphQL requests, whose meaning is encoded in the query string, are one example.
+
+
 ### Save Request Back To Requester File
 Imagine you're debugging a request in a response tab, replaying and modifying the request as you go. Requester lets you save this modified request back to the requester file from which you sent it.
 
@@ -610,7 +614,8 @@ Requester's syntax is basically identical to Requests' syntax, but it adds suppo
 
 - __fmt__: one of ('raw', 'indent', 'indent_sort'), controls formatting of JSON responses
 - __name__: binds name to response object so that it can be referenced by subsequent serially executed requests
-- __filename__: downloads the response to the specied path
+- __tabname__: specifies name of response tab, and ensures tab can only be overwritten by requests with the same __tabname__
+- __filename__: downloads the response to the specified path
 - __streamed__: performs a streaming upload of the specified file
 - __chunked__: performs a chunked upload, with a progress indicator, of the specified file
 - __gql__, __gqlv__, __gqlo__: adds the specified string to `query`, `variables` and `operationName` params, for GET and POST requests to GraphQL endpoints

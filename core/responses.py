@@ -227,7 +227,8 @@ def prepare_request(request, env, ordering):
         sublime.error_message('PrepareRequest Error: {}\n{}'.format(error, truncate(req, 150)))
 
     name = kwargs.pop('name', None)  # cache response to "chain" requests
-    skwargs = {'fmt': fmt, 'name': name}
+    tabname = kwargs.pop('tabname', None)  # custom response tab name
+    skwargs = {'fmt': fmt, 'name': name, 'tabname': tabname}
 
     if 'filename' in kwargs:
         skwargs['filename'] = str(kwargs.pop('filename'))

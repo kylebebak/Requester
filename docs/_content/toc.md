@@ -5,6 +5,7 @@
   + [JSON Response Formatting](#json-response-formatting)
   + [Ergonomic GET Requests](#ergonomic-get-requests)
   + [Pinned Response Tabs](#pinned-response-tabs)
+  + [Custom Tab Name](#custom-tab-name)
   + [Save Request Back To Requester File](#save-request-back-to-requester-file)
   + [Environment Variables](#environment-variables)
 - [Advanced Features](#advanced-features)
