@@ -1,0 +1,4 @@
+# New Features
+The __tabname__ argument is now included in the fuzzy searchable request history, which makes is considerably more useful.
+
+Check out the __Custom Tab Name__ section of the docs for more info.

@@ -31,7 +31,7 @@ def load_history(rev=True, as_dict=False):
 
 def populate_staging_view(view, index, total,
                           request, method, url, code, ts,
-                          meta=None, file=None, env_string=None, env_file=None, original_request=None):
+                          meta=None, file=None, env_string=None, env_file=None, original_request=None, tabname=None):
     """Populate staging view with historical request string/metadata.
     """
     from .request import response_tab_bindings, set_save_info_on_view
@@ -129,12 +129,17 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
     def get_entry_parts(self, req):
         """Display request and other properties for each entry.
         """
+        tabname = req[1].get('tabname', None)
         meta = req[1].get('meta', None)
+
         header = '{}{}: {}'.format(
             req[1]['method'].upper(),
             ' ({})'.format(meta) if meta else '',
             req[1]['url']
         )
+        if tabname:
+            header = '{} - {}'.format(tabname, header)
+
         try:  # in case, e.g., schema has changed
             return [
                 truncate(header, 100),

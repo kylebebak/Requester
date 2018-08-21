@@ -142,10 +142,7 @@ def set_response_view_name(view, response=None):
         return helper(view.settings().get('requester.name'))
     req, res, err = response
     if req.skwargs.get('tabname'):
-        try:
-            return helper(str(req.skwargs.get('tabname')))
-        except:
-            pass
+        return helper(req.skwargs.get('tabname'))
 
     try:  # short but descriptive, to facilitate navigation between response tabs, e.g. using Goto Anything
         parsed = parse.urlparse(res.url)

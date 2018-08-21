@@ -376,6 +376,7 @@ def persist_requests(self, responses, history_path=None):
         if 'filename' in req.skwargs:
             meta = 'download: {}'.format(req.skwargs['filename'] or './')
 
+        tabname = req.skwargs.get('tabname')
         method, url = res.request.method, res.url
         file = self.view.settings().get('requester.file', None)
         _, original_request = self.view.settings().get('requester.binding_info', [None, None])
@@ -396,6 +397,7 @@ def persist_requests(self, responses, history_path=None):
             'code': res.status_code,
             'request': req.request,
             'original_request': original_request,
+            'tabname': tabname,
         }
 
     # remove oldest requests if number of requests has exceeded `history_max_entries`

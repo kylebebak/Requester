@@ -79,7 +79,18 @@ In a response tab, go to the command palette and look for __Requester: Pin/Unpin
 
 
 ### Custom Tab Name
-Use the `tabname` argument to specify a custom response tab name for your request. The response in this tab can only be overwritten by a request with the same value for the `tabname` argument. This is useful for differentiating requests whose method and URL are the same but whose meaning is different. GraphQL requests, whose meaning is encoded in the query string, are one example.
+Use the `tabname` argument to specify a custom response tab name for your request. The response in this tab can only be overwritten by a request with the same value for the `tabname` argument.
+
+Check out the requests below. Execute the first one, wait for the response tab to open, then execute the second one.
+
+~~~py
+post('httpbin.org/post', json={'a': 'b'}, tabname='ab')
+post('httpbin.org/post', json={'c': 'd'}, tabname='cd')
+~~~
+
+This is useful for differentiating requests whose method and URL are the same but whose meaning is different. GraphQL requests, whose meaning is encoded in the query string, are one example.
+
+The `tabname` is also included in the fuzzy searchable request history. After executing one of the above requests, try searching your request history for "cd -".
 
 
 ### Save Request Back To Requester File
@@ -304,6 +315,8 @@ Choose an old request and select it. A special response tab will open, with the 
 Replay the chosen request. It runs as if it were executed from its original requester file, but it also pulls in up-to-date env vars from the env block and the env file.
 
 >Requests are keyed for uniqueness on `(request_string, requester_file)`, which allows you to persist identical request strings from different requester files.
+
+>If you use the `tabname` argument with your request, this argument is also fuzzy searchable. See [this section](#custom-tab-name) for more details.
 
 
 #### Page Through Past Requests
@@ -614,7 +627,7 @@ Requester's syntax is basically identical to Requests' syntax, but it adds suppo
 
 - __fmt__: one of ('raw', 'indent', 'indent_sort'), controls formatting of JSON responses
 - __name__: binds name to response object so that it can be referenced by subsequent serially executed requests
-- __tabname__: specifies name of response tab, and ensures tab can only be overwritten by requests with the same __tabname__
+- __tabname__: specifies name of response tab, and ensures tab can only be overwritten by requests with the same __tabname__; is included in fuzzy searchable request history
 - __filename__: downloads the response to the specified path
 - __streamed__: performs a streaming upload of the specified file
 - __chunked__: performs a chunked upload, with a progress indicator, of the specified file
