@@ -185,7 +185,6 @@ class RequesterImportFromCurlCommand(sublime_plugin.TextCommand):
         curls = []
         curl = None
         for line in s.splitlines(True):
-            line = line.split('#')[0]  # remove everything after comment in each line
             if re.match('curl ', line):
                 if curl is not None:
                     curls.append(curl)
@@ -331,7 +330,7 @@ def curl_to_request(curl):
     parser.add_argument('--data-binary', default=None)
     parser.add_argument('--compressed', action='store_true')
 
-    tokens = shlex.split(curl)
+    tokens = shlex.split(curl, comments=True)
     parsed_args = parser.parse_args(tokens)
 
     method = 'get'
