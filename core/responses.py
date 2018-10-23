@@ -282,6 +282,9 @@ def same_domain(e_url, url):
     This list suggests that public APIs overwhelmingly have gTLDs without '.' chars.
     """
     e_netloc, netloc = parse.urlparse(e_url).netloc, parse.urlparse(url).netloc
+    if e_netloc == netloc:
+        return True
+
     d, dd = sorted([n.split('.') for n in (e_netloc, netloc)], key=lambda d: len(d))
     parts = max(2, len(dd)-1)
     if len(d) < 2:  # not a valid URL, but this method not responsible for raising exception
