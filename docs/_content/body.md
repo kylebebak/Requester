@@ -67,8 +67,8 @@ get('http://headers.jsontest.com/', fmt='raw')
 Try sending the following requests. This is obviously not valid Python syntax, but Requester has a shortuct for basic GET requests. If you run Requester on a URL like the one below, it automatically wraps it like so: `requests.get('<url>')`. And it doesn't wrap the URL in quotes if it's already got them.
 
 ~~~py
-httpbin.com/get
-'httpbin.com/headers'
+httpbin.org/get
+'httpbin.org/headers'
 ~~~
 
 

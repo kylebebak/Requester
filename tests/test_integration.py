@@ -59,7 +59,7 @@ def get_line(view, line):
 
 class TestRequesterMixin:
 
-    WAIT_MS = 500  # wait in ms for responses to return
+    WAIT_MS = 750  # wait in ms for responses to return
 
     def setUp(self):
         self.config = sublime.load_settings('Requester.sublime-settings')
@@ -131,6 +131,15 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')
         self._test_name_in_view(self.window.active_view(), 'GET: /get')
 
+    def test_single_request_commented_out(self):
+        """Commented out request on one line.
+        """
+        select_line_beginnings(self.view, 16)
+        self.view.run_command('requester')
+        yield self.WAIT_MS
+        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')
+        self._test_name_in_view(self.window.active_view(), 'GET: /get')
+
     def test_single_request_with_env_block(self):
         """From env block.
         """
@@ -175,7 +184,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
 class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
 
     REQUESTER_FILE = 'Packages/Requester/tests/requester.py'
-    WAIT_MS = 500
+    WAIT_MS = 750
 
     def test_multiple_requests(self):
         """Tests the following:

@@ -47,7 +47,7 @@ To run `core` tests, execute `python3 -m unittest tests.core -v` from the root o
 
 To run the integration tests, install __UnitTesting__ via Package Control. Read more about [UnitTesting](https://github.com/randy3k/UnitTesting-example). Also, make sure you've cloned the Requester repo into your __Packages__ directory.
 
-Run integration tests before committing changes. Look for __UnitTesting__ in the command palette, hit Enter, and type `Requester`. Or, if you've created a project for Requester, run __UnitTesting: Test Current Project__.
+Run integration tests before committing changes. Look for __UnitTesting__ in the command palette, hit Enter, and type `Requester`. Or, if you've created a project for Requester, run __UnitTesting: Test Current Package__.
 
 
 ### Docs

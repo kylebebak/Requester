@@ -39,9 +39,7 @@ def parse_tests(s):
             break
         else:
             if s.type == 'request' and next_s.type == 'assertion':
-                tests.append(RequestAssertion(
-                    s.selection.selection, next_s.selection.selection
-                ))
+                tests.append(RequestAssertion(s.selection.selection, next_s.selection.selection))
     return tests
 
 
@@ -63,13 +61,20 @@ def parse(s, open_bracket, close_bracket, match_patterns, n=None, es=None):
         if n and len(start_indices) >= n:
             break
         for pattern in match_patterns:
+            # for multiline requests, match must occur at start of line,
+            # to diminish risk of matching something like 'get(' in the middle of a string
             if re.match(pattern, line):
                 start_indices.append(index)
                 break
         index += len(line)
 
     if not start_indices and len(lines) == 1:  # shorthand syntax for basic, one-line GET requests
-        return [Selection("get('{}')".format(prepend_scheme(s.strip().strip('"').strip("'"))), 0)]
+        # if selection has only one line, we can safely search for start index of first match,
+        # even if it's not at start of line
+        match = re.search(pattern, line)
+        if not match:
+            return [Selection("get('{}')".format(prepend_scheme(s.strip().strip('"').strip("'"))), 0)]
+        start_indices.append(match.start())
     if es:  # replace selection with extended selection AFTER `start_indices` have been found
         s = es
 

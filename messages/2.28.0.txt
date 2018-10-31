@@ -1,0 +1,10 @@
+# New Features
+
+Single requests that don't start at the first character of a line can be parsed correctly. This allows you, for example, to execute requests that have been commented out, or requests that are in doc strings, or requests in a markdown list.
+
+Place your cursor on the first line of either of these requests and attempt to execute them.
+
+* get('google.com')
+- get('httpbin.org/get',
+  params={'a': 'b'}
+)

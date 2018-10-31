@@ -12,3 +12,5 @@ requests.post('http://127.0.0.1:8000/anything')
 requests.get(
     '127.0.0.1:8000/get'
 )
+
+# requests.get('127.0.0.1:8000/get')
