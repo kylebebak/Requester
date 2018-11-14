@@ -1,0 +1,5 @@
+# New Features
+
+Requester's parser has been updated to parse prepared requests. Sending prepared requests can be useful for, e.g., sending requests with a self-signed certificate. Read more in the __Sessions__ section of the docs, or here:
+
+http://docs.python-requests.org/en/master/user/advanced/#prepared-requests

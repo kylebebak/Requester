@@ -217,7 +217,7 @@ class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
     def test_session(self):
         """Using session.
         """
-        select_line_beginnings(self.view, 10)
+        select_line_beginnings(self.view, 12)
         self.view.run_command('requester')
         yield self.WAIT_MS
         self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/cookies/set?k1=v1')
@@ -225,3 +225,12 @@ class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
         self._test_string_in_view(self.window.active_view(), "'X-Test': 'true'")  # header added to session
         self._test_string_in_view(self.window.active_view(), "'Cookie': 'k0=v0'")  # cookies added to session
         self._test_string_in_view(self.window.active_view(), "Response Cookies: {'k1': 'v1'}")
+
+    def test_prepared_request(self):
+        """Using prepared request.
+        """
+        select_line_beginnings(self.view, 14)
+        self.view.run_command('requester')
+        yield self.WAIT_MS
+        self._test_name_in_view(self.window.active_view(), 'POST: /post')
+        self._test_string_in_view(self.window.active_view(), "'Cookie': 'k0=v0'")  # cookies added to session

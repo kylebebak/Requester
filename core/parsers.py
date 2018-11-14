@@ -7,6 +7,7 @@ from .helpers import prepend_scheme
 VERBS = '(get|options|head|post|put|patch|delete)\('
 PREFIX = '[\w_][\w\d_]*\.'
 PREFIX_VERBS = PREFIX + VERBS
+SESSION_SEND = PREFIX + 'send\('
 ASSERTIONS = 'assert \{'
 
 Selection = namedtuple('Selection', 'selection, ordering')
@@ -19,14 +20,14 @@ def parse_requests(s, **kwargs):
 
     Returns a list of request strings.
     """
-    selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS], **kwargs)
+    selections = parse(s, '(', ')', [PREFIX_VERBS, VERBS, SESSION_SEND], **kwargs)
     return [sel.selection for sel in selections]
 
 
 def parse_tests(s):
     """Parse string and return an ordered list of (request, assertion) strings.
     """
-    requests = [TypedSelection(sel, 'request') for sel in parse(s, '(', ')', [PREFIX_VERBS, VERBS])]
+    requests = [TypedSelection(sel, 'request') for sel in parse(s, '(', ')', [PREFIX_VERBS, VERBS, SESSION_SEND])]
     assertions = [TypedSelection(sel, 'assertion') for sel in parse(s, '{', '}', [ASSERTIONS])]
     selections = requests + assertions
     selections.sort(key=lambda s: s.selection.ordering)
@@ -71,7 +72,11 @@ def parse(s, open_bracket, close_bracket, match_patterns, n=None, es=None):
     if not start_indices and len(lines) == 1:  # shorthand syntax for basic, one-line GET requests
         # if selection has only one line, we can safely search for start index of first match,
         # even if it's not at start of line
-        match = re.search(pattern, line)
+        match = None
+        for pattern in match_patterns:
+            match = re.search(pattern, line)
+            if match:
+                break
         if not match:
             return [Selection("get('{}')".format(prepend_scheme(s.strip().strip('"').strip("'"))), 0)]
         start_indices.append(match.start())

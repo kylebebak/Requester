@@ -207,6 +207,8 @@ In the example above, each time you execute __Requester: Run Requests__, a new s
 
 If you highlight and run multiple requests that depend a session `s`, they will all share the same session `s`. If you run them serially, you can control the order in which cookies are added to the session.
 
+If you need to send [prepared requests](http://docs.python-requests.org/en/master/user/advanced/#prepared-requests) for some reason, e.g. to use a self-signed SSL certificate, just prepare your request and session in the env block, and use `s.send` to send the request.
+
 
 ### Authentication
 Requests has [excellent support for authentication](http://docs.python-requests.org/en/master/user/authentication/). __Basic Authentication__ and __Digest Authentication__ are built in, and implementing custom auth schemes is easy.
@@ -713,3 +715,7 @@ Requester's modifiable settings, and their default values. You can override any 
 - [Requests](http://docs.python-requests.org/en/master/) — Requester sends all its requests using this amazing library.
 - [HTTPie](https://github.com/jakubroztocil/httpie) — A truly Pythonic tool. Its focus on intuitiveness and ergonomics inspired many of Requester's features, including its [docs site](http://requester.org).
 - [Postman](https://www.getpostman.com/) — A strong influence on much of Requester's "managed" UI.
+
+
+## Requests
+Due to limitations in Sublime Text's [package management system](https://github.com/packagecontrol/requests/pull/5), the last version of Requests supported by Sublime Text, and the version used by Requester, is __2.15.1__. Here's Requests' [version history](http://docs.python-requests.org/en/master/community/updates/).
