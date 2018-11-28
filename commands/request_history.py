@@ -141,8 +141,9 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
             header = '{} - {}'.format(tabname, header)
 
         try:  # in case, e.g., schema has changed
+            seconds = time() - req[1]['ts']
             return [
-                truncate(header, 100),
+                truncate(header, 100) + chr(8203) * min(round(pow(round(seconds / 60), 0.4)), 150),
                 approximate_age(req[1]['ts']),
                 str(req[1]['code']),
                 req[1]['file'] or '?',
