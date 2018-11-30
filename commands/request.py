@@ -21,17 +21,21 @@ Content = namedtuple('Content', 'content, point')
 platform = sublime.platform()
 
 
-def response_tab_bindings():
+def response_tab_bindings(include_delete=False):
     """Returns string with special key bindings for response tab commands.
     """
     replay = '[cmd+r]' if platform == 'osx' else '[ctrl+r]'
     nav = '[ctrl+alt+ ←/→]'
+    delete = '[ctrl+alt+delete]'
     pin = '[cmd+t]' if platform == 'osx' else '[ctrl+t]'
     save = '[cmd+s]' if platform == 'osx' else '[ctrl+s]'
     explore = '[cmd+e]' if platform == 'osx' else '[ctrl+e]'
 
-    return '{} replay request, {} prev/next request, {} pin/unpin tab, {} save request, {} explore URL'.format(
-        replay, nav, pin, save, explore)
+    if not include_delete:
+        return '{} replay request, {} prev/next request, {} pin/unpin tab, {} save request, {} explore URL'.format(
+            replay, nav, pin, save, explore)
+    s = '{} replay request, {} prev/next request, {} delete request, {} pin/unpin tab, {} save request, {} explore URL'
+    return s.format(replay, nav, delete, pin, save, explore)
 
 
 def get_content(res, fmt):

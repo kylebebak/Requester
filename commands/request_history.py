@@ -52,7 +52,7 @@ def populate_staging_view(view, index, total,
         file,
     ]
     meta_string = '\n'.join(s for s in meta_parts if s)
-    content = '{}\n\n{}\n\n{}\n'.format(request, response_tab_bindings(), meta_string)
+    content = '{}\n\n{}\n\n{}\n'.format(request, response_tab_bindings(include_delete=True), meta_string)
     view.run_command('requester_replace_view_text', {'text': content, 'point': 0})
 
     path = parse.urlparse(url).path
@@ -170,7 +170,7 @@ class RequesterPageRequestHistoryCommand(sublime_plugin.TextCommand):
     only be executed from response view. Replaces text in view with request string
     and response metadata.
     """
-    def run(self, edit, back):
+    def run(self, edit, pages):
         view = self.view
         if not view.settings().get('requester.response_view', False):
             return
@@ -178,12 +178,14 @@ class RequesterPageRequestHistoryCommand(sublime_plugin.TextCommand):
         index = view.settings().get('requester.request_history_index', len(reqs)-1)
         total = len(reqs)
 
-        if back:
-            index -= 1
-        else:
-            index += 1
-        if index < 0 or index >= len(reqs):
+        if total == 0:
             return
+
+        index += pages
+        if index < 0:
+            index = 0
+        if index >= len(reqs):
+            index -= 1
 
         try:
             params_dict = reqs[index][1]
@@ -203,6 +205,7 @@ class RequesterDeleteRequestHistoryCommand(sublime_plugin.TextCommand):
         from . import RequestCommandMixin
         with RequestCommandMixin.LOCK:
             delete_request(self.view)
+            self.view.run_command('requester_page_request_history', {'pages': -1})
 
 
 def delete_request(view, history_path=None):

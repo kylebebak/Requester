@@ -23,7 +23,7 @@
   {
     "keys": ["ctrl+alt+left"],
     "command": "requester_page_request_history",
-    "args": {"back": true},
+    "args": {"pages": -1},
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
     ]
@@ -31,7 +31,7 @@
   {
     "keys": ["ctrl+alt+right"],
     "command": "requester_page_request_history",
-    "args": {"back": false},
+    "args": {"pages": 1},
     "context": [
       { "key": "setting.requester.response_view", "operator": "equal", "operand": true }
     ]
