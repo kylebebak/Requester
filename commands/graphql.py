@@ -103,10 +103,15 @@ def set_graphql_schema_on_view(view, req):
         kwargs.pop('params', None)
         kwargs.pop('json', None)
         kwargs['timeout'] = 3
-        response = requests.get(url, params={'query': introspection_query}, **kwargs)
 
-        schema = response.json()['data']['__schema']  # get root `Query` type
-        query_type = schema['queryType']['name']
+        try:
+            response = requests.get(url, params={'query': introspection_query}, **kwargs)
+            schema = response.json()['data']['__schema']  # get root `Query` type
+            query_type = schema['queryType']['name']
+        except:
+            response = requests.post(url, json={'query': introspection_query}, **kwargs)
+            schema = response.json()['data']['__schema']  # get root `Query` type
+            query_type = schema['queryType']['name']
 
         types = {}
         for t in schema['types']:
