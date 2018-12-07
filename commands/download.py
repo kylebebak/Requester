@@ -3,7 +3,7 @@ import sublime_plugin
 
 import os
 
-import requests
+from ..deps import requests
 
 from .request import RequestsMixin
 from ..core.helpers import truncate, absolute_path, get_transfer_indicator

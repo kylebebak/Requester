@@ -1,14 +1,14 @@
 import sublime
 import sublime_plugin
 
-from requests import options
-
 import os
 import json
 import time
 from sys import maxsize
 from urllib import parse
 from collections import namedtuple
+
+from ..deps.requests import options
 
 from .graphql import set_graphql_schema_on_view
 from ..core import RequestCommandMixin
