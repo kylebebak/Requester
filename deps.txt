@@ -1,4 +1,4 @@
-requests==2.15.1
+requests==2.18.3
 jsonschema==2.6.0
 graphql-py==0.7.1
 requests-oauthlib==1.0.0

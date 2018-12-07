@@ -23,9 +23,8 @@ from ._internal_utils import to_native_string
 from .utils import to_key_val_list, default_headers
 from .exceptions import (
     TooManyRedirects, InvalidSchema, ChunkedEncodingError, ContentDecodingError)
-from .packages.urllib3._collections import RecentlyUsedContainer
-from .structures import CaseInsensitiveDict
 
+from .structures import CaseInsensitiveDict
 from .adapters import HTTPAdapter
 
 from .utils import (
@@ -37,8 +36,6 @@ from .status_codes import codes
 
 # formerly defined here, reexposed here for backward compatibility
 from .models import REDIRECT_STATI
-
-REDIRECT_CACHE_SIZE = 1000
 
 # Preferred clock, based on which one is more accurate on a given system.
 if platform.system() == 'Windows':
@@ -100,6 +97,12 @@ class SessionRedirectMixin(object):
 
     def get_redirect_target(self, resp):
         """Receives a Response. Returns a redirect URI or ``None``"""
+        # Due to the nature of how requests processes redirects this method will
+        # be called at least once upon the original response and at least twice
+        # on each subsequent redirect response (if any).
+        # If a custom mixin is used to handle this logic, it may be advantageous
+        # to cache the redirect location onto the response object as a private
+        # attribute.
         if resp.is_redirect:
             location = resp.headers['location']
             # Currently the underlying http module on py3 decode headers
@@ -117,7 +120,7 @@ class SessionRedirectMixin(object):
                           verify=True, cert=None, proxies=None, yield_requests=False, **adapter_kwargs):
         """Receives a Response. Returns a generator of Responses or Requests."""
 
-        hist = [] # keep track of history
+        hist = []  # keep track of history
 
         url = self.get_redirect_target(resp)
         while url:
@@ -157,15 +160,12 @@ class SessionRedirectMixin(object):
                 url = requote_uri(url)
 
             prepared_request.url = to_native_string(url)
-            # Cache the url, unless it redirects to itself.
-            if resp.is_permanent_redirect and req.url != prepared_request.url:
-                self.redirect_cache[req.url] = prepared_request.url
 
             self.rebuild_method(prepared_request, resp)
 
-            # https://github.com/kennethreitz/requests/issues/1084
+            # https://github.com/requests/requests/issues/1084
             if resp.status_code not in (codes.temporary_redirect, codes.permanent_redirect):
-                # https://github.com/kennethreitz/requests/issues/3490
+                # https://github.com/requests/requests/issues/3490
                 purged_headers = ('Content-Length', 'Content-Type', 'Transfer-Encoding')
                 for header in purged_headers:
                     prepared_request.headers.pop(header, None)
@@ -392,9 +392,6 @@ class Session(SessionRedirectMixin):
         self.mount('https://', HTTPAdapter())
         self.mount('http://', HTTPAdapter())
 
-        # Only store 1000 redirects to prevent using infinite memory
-        self.redirect_cache = RecentlyUsedContainer(REDIRECT_CACHE_SIZE)
-
     def __enter__(self):
         return self
 
@@ -442,20 +439,9 @@ class Session(SessionRedirectMixin):
         return p
 
     def request(self, method, url,
-        params=None,
-        data=None,
-        headers=None,
-        cookies=None,
-        files=None,
-        auth=None,
-        timeout=None,
-        allow_redirects=True,
-        proxies=None,
-        hooks=None,
-        stream=None,
-        verify=None,
-        cert=None,
-        json=None):
+            params=None, data=None, headers=None, cookies=None, files=None,
+            auth=None, timeout=None, allow_redirects=True, proxies=None,
+            hooks=None, stream=None, verify=None, cert=None, json=None):
         """Constructs a :class:`Request <Request>`, prepares it and sends it.
         Returns :class:`Response <Response>` object.
 
@@ -494,16 +480,16 @@ class Session(SessionRedirectMixin):
         """
         # Create the Request.
         req = Request(
-            method = method.upper(),
-            url = url,
-            headers = headers,
-            files = files,
-            data = data or {},
-            json = json,
-            params = params or {},
-            auth = auth,
-            cookies = cookies,
-            hooks = hooks,
+            method=method.upper(),
+            url=url,
+            headers=headers,
+            files=files,
+            data=data or {},
+            json=json,
+            params=params or {},
+            auth=auth,
+            cookies=cookies,
+            hooks=hooks,
         )
         prep = self.prepare_request(req)
 
@@ -588,7 +574,7 @@ class Session(SessionRedirectMixin):
         :rtype: requests.Response
         """
 
-        return self.request('PATCH', url,  data=data, **kwargs)
+        return self.request('PATCH', url, data=data, **kwargs)
 
     def delete(self, url, **kwargs):
         r"""Sends a DELETE request. Returns :class:`Response` object.
@@ -621,16 +607,6 @@ class Session(SessionRedirectMixin):
         allow_redirects = kwargs.pop('allow_redirects', True)
         stream = kwargs.get('stream')
         hooks = request.hooks
-
-        # Resolve URL in redirect cache, if available.
-        if allow_redirects:
-            checked_urls = set()
-            while request.url in self.redirect_cache:
-                checked_urls.add(request.url)
-                new_url = self.redirect_cache.get(request.url)
-                if new_url in checked_urls:
-                    break
-                request.url = new_url
 
         # Get the appropriate adapter to use
         adapter = self.get_adapter(url=request.url)
@@ -734,7 +710,7 @@ class Session(SessionRedirectMixin):
     def mount(self, prefix, adapter):
         """Registers a connection adapter to a prefix.
 
-        Adapters are sorted in descending order by key length.
+        Adapters are sorted in descending order by prefix length.
         """
         self.adapters[prefix] = adapter
         keys_to_move = [k for k in self.adapters if len(k) < len(prefix)]
@@ -744,17 +720,11 @@ class Session(SessionRedirectMixin):
 
     def __getstate__(self):
         state = dict((attr, getattr(self, attr, None)) for attr in self.__attrs__)
-        state['redirect_cache'] = dict(self.redirect_cache)
         return state
 
     def __setstate__(self, state):
-        redirect_cache = state.pop('redirect_cache', {})
         for attr, value in state.items():
             setattr(self, attr, value)
-
-        self.redirect_cache = RecentlyUsedContainer(REDIRECT_CACHE_SIZE)
-        for redirect, to in redirect_cache.items():
-            self.redirect_cache[redirect] = to
 
 
 def session():
