@@ -10,6 +10,7 @@ from threading import Thread, Lock
 from time import time
 from queue import Queue
 
+from ..add_path import add_path
 from .responses import ResponseThreadPool, prepend_library
 
 
@@ -319,7 +320,8 @@ class RequestCommandMixin:
 
         env = imp.new_module('requester.env')
         try:
-            exec(s, env.__dict__)
+            with add_path(__file__, '..', '..', 'deps'):
+                exec(s, env.__dict__)
         except Exception as e:
             sublime.error_message('EnvBlock Error:\n{}'.format(e))
             return {}

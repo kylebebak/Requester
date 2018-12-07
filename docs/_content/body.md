@@ -427,7 +427,7 @@ Requester lints your query and displays syntax errors with their line and column
 
 
 ## Import Any Python Package with Requester
-Requester comes bundled with a few packages (`requests`, `requests-oauthlib`, `requests-toolbelt`) that you can import in an env block or env file, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
+Requester comes bundled with a few packages (`requests`, `requests-oauthlib`, `requests-toolbelt`, `jsonschema`) that you can import in an env block or env file, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
 In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
 
@@ -481,7 +481,7 @@ Use this path as your `packages_path` setting in Requester's settings file. To o
 ### Cookies Interceptor
 Want to use sessions currently open in your browser in requests sent by Requester? Look for __Requester: Authentication Options__ and choose __Cookies Interceptor__.
 
-This depends on the [browsercookie](https://github.com/requests/toolbelt) package, which must be installed with the same version of Python 3 as the one used by Sublime Text. See the __Note__ in the [pip3 quickstart section](#pip3-quickstart).
+This depends on the [browsercookie](https://bitbucket.org/richardpenman/browsercookie) package, which must be installed with the same version of Python 3 as the one used by Sublime Text. See the __Note__ in the [pip3 quickstart section](#pip3-quickstart).
 
 
 ## Test Runner
