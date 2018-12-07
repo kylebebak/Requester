@@ -8,6 +8,8 @@ sandbox/*
 
 .coverage
 
+setup.cfg
+
 # Jekyll
 .sass-cache
 .jekyll-metadata

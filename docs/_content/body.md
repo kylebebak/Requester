@@ -431,15 +431,9 @@ Autocomplete depends on [graphql-py](https://github.com/ivelum/graphql-py/), a p
 
 
 ## Import Any Python Package with Requester
-Requester comes bundled with the `requests` and `jsonschema` packages, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
+Requester comes bundled with various packages (`requests`, `jsonschema`, `requests-oauthlib`, `requests-toolbelt`, `graphql-py`) but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
 In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
-
-Here are a couple of no-brainers:
-
-- [requests-oauthlib](https://github.com/requests/requests-oauthlib)
-- [requests-toolbelt](https://github.com/requests/toolbelt)
-- [graphql-py](https://github.com/ivelum/graphql-py/), to enable GraphQL autocomplete
 
 
 ### Pip3 Quickstart

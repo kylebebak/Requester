@@ -7,6 +7,8 @@ from time import time
 from urllib import parse
 from collections import namedtuple
 
+from ..deps.jsonschema import validate, ValidationError
+
 from ..core import RequestCommandMixin
 from ..core.parsers import parse_tests
 from ..core.responses import prepare_request
@@ -137,8 +139,6 @@ class RequesterRunTestsCommand(TestParserMixin, RequestCommandMixin, sublime_plu
                     errors.append(Error(prop, True, False, 'function "{}" validation failed'.format(name)))
 
             elif prop in ('cookies_schema', 'json_schema', 'headers_schema'):  # jsonschema validation
-                from jsonschema import validate, ValidationError
-
                 if prop == 'cookies_schema':
                     got = res.cookies.get_dict()
                 if prop == 'json_schema':

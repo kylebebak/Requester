@@ -6,7 +6,9 @@ import sys
 import traceback
 from threading import Thread
 
-import requests
+from ..deps import requests
+from ..deps.graphql.parser import GraphQLParser
+from ..deps.graphql.lexer import GraphQLLexer
 
 from ..core import RequestCommandMixin
 from ..core.parsers import parse_requests
@@ -174,17 +176,6 @@ def get_completions(gql, idx, schema):
     string, and uses `schema` to get appropriate completions. Doesn't protect
     against exceptions. They should be handled by calling code.
     """
-    try:  # at module import time this package is not available
-        from graphql.parser import GraphQLParser
-        from graphql.lexer import GraphQLLexer
-    except ImportError:
-        raise Exception('Install graphql-py with pip for GraphQL autocomplete')
-
-    try:  # monkey-patch this class, the `t_NULL` method breaks parsing
-        delattr(GraphQLLexer, 't_NULL')
-    except AttributeError:
-        pass
-
     start, end = slurp_word(gql, idx)
     gql_parser = GraphQLParser()
     ast = gql_parser.parse(gql[:start] + placeholder + gql[end:], lexer=GraphQLLexer())
