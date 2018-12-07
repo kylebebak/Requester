@@ -13,10 +13,10 @@ from collections import namedtuple
 from urllib.parse import urlencode, parse_qsl
 
 from ..deps.requests import Request
-from ..deps.requests.auth import HTTPBasicAuth, HTTPDigestAuth
 
 from .request import RequesterCommand
 from ..core.responses import prepare_request
+from ..core.helpers import is_instance
 
 
 PreparedRequest = namedtuple('PreparedRequest', 'request, args, kwargs, session')
@@ -223,7 +223,7 @@ def request_to_curl(request):
     auth = kwargs.get('auth', None)
     if isinstance(auth, tuple):
         auth_string = " -u '{}:{}'".format(auth[0], auth[1])
-    elif isinstance(auth, HTTPBasicAuth):
+    elif is_instance(auth, 'HTTPBasicAuth'):
         auth_string = " -u '{}:{}'".format(auth.username, auth.password)
 
     return "curl -X {method}{auth}{headers}{cookies}{data} '{url}{qs}'".format(
@@ -263,9 +263,9 @@ def request_to_httpie(request):
     if auth:
         if isinstance(auth, tuple):
             auth_string = ' -a {}:{}'.format(auth[0], auth[1])
-        elif isinstance(auth, HTTPBasicAuth):
+        elif is_instance(auth, 'HTTPBasicAuth'):
             auth_string = ' -a {}:{}'.format(auth.username, auth.password)
-        elif isinstance(auth, HTTPDigestAuth):
+        elif is_instance(auth, 'HTTPDigestAuth'):
             auth_string = ' -A digest -a {}:{}'.format(auth.username, auth.password)
 
     qs = ''

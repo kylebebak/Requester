@@ -58,3 +58,9 @@ def prepend_scheme(url):
         scheme = sublime.load_settings('Requester.sublime-settings').get('scheme', 'http')
         return scheme + '://' + url
     return url
+
+
+def is_instance(obj, s):
+    """Is object an instance of class named `s`?
+    """
+    return s in str(type(obj))

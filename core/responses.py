@@ -8,7 +8,7 @@ from collections import namedtuple, deque
 from ..deps import requests
 
 from .parsers import PREFIX
-from .helpers import truncate, prepend_scheme
+from .helpers import truncate, prepend_scheme, is_instance
 
 
 Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session, skwargs, error')
@@ -73,7 +73,7 @@ class ResponseThreadPool:
         try:
             if req.session:
                 session = self.env.get(req.session)
-                if isinstance(session, requests.sessions.Session):
+                if is_instance(session, 'requests.sessions.Session'):
                     res = getattr(session, req.method.lower())(*req.args, **req.kwargs)
                 else:
                     err = 'Session Error: there is no session `{}` defined in your environment'.format(req.session)
