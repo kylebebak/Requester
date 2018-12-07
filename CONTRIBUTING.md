@@ -43,7 +43,7 @@ Tests are divided into tests of the `core` package, which depend on a mocked `su
 
 Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by __httpbin__. You can install __httpbin__ by running `docker pull kennethreitz/httpbin`. You can then run it with `docker run -p 8000:80 kennethreitz/httpbin`.
 
-To run `core` tests, execute `python3 -m unittest tests.core -v` from the root of the repo. 
+To run `core` tests, execute `cd .. && python3 -m unittest Requester.tests.core -v && cd Requester` from the root of the repo. Running the tests from the package's parent directory [avoids this issue](https://stackoverflow.com/questions/30669474/beyond-top-level-package-error-in-relative-import).
 
 To run the integration tests, install __UnitTesting__ via Package Control. Read more about [UnitTesting](https://github.com/randy3k/UnitTesting-example). Also, make sure you've cloned the Requester repo into your __Packages__ directory.
 

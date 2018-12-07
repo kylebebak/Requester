@@ -17,7 +17,7 @@ sys.modules['sublime'] = sublime
 
 
 # patch class method before importing `RequestCommandMixin`
-from core.responses import ResponseThreadPool
+from Requester.core.responses import ResponseThreadPool
 
 def handle_special(self, req):
     """Mock this on ResponseThreadPool so it doesn't touch anything in
@@ -28,7 +28,7 @@ def handle_special(self, req):
     return False
 ResponseThreadPool.handle_special = handle_special
 
-from core import RequestCommandMixin, persist_requests, helpers, parsers, responses
+from Requester.core import RequestCommandMixin, persist_requests, helpers, parsers, responses
 
 
 # mock `sublime` module
