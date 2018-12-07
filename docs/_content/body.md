@@ -217,8 +217,6 @@ To use a custom auth scheme with Requester you define the auth class in your env
 
 Requester comes with a few pre-written auth "plugins" you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
 
->Handling complicated auth protocols, like OAuth1 and OAuth2, might require Python packages not bundled with Requester. This section explains how to [extend Requester to import any package](#import-any-python-package-with-requester).
-
 
 ### Forms and File Uploads
 Requests makes posting forms and uploading files easy. See how in the Requests documentation.
@@ -236,7 +234,7 @@ post('https://requestb.in/<your_request_bin>', chunked='/path/to/file')
 
 If you pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header is added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled.
 
->If you need streaming uploads for multipart forms, or uploads of multiple files, the `requests-toolbelt` packages has your back. Check out [this section](#import-any-python-package-with-requester).
+>If you need streaming uploads for multipart forms, or uploads of multiple files, the `requests-toolbelt` package has your back. Check out [this section](#import-any-python-package-with-requester).
 
 
 ### Downloads
@@ -423,29 +421,15 @@ Requester provides autocomplete/autosuggest and linting for GraphQL queries, lik
 
 Requester lints your query and displays syntax errors with their line and column numbers. More detailed debug information is printed to the Sublime Text console. Try it on one of the requests above.
 
-Autocomplete depends on [graphql-py](https://github.com/ivelum/graphql-py/), a package you can install as an extension to Requester. See [this section](#import-any-python-package-with-requester) for more details.
-
 >If autocomplete doesn't work, it's probably being overridden by another autocomplete package, like __All Autocomplete__, __tern_for_sublime__, etc. Remove these packages, or disable them for Requester response views if possible.
 
 >GraphQL autocomplete will never override autocompletions provided by your other packages.
 
 
 ## Import Any Python Package with Requester
-Requester comes bundled with various packages (`requests`, `jsonschema`, `requests-oauthlib`, `requests-toolbelt`, `graphql-py`) but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
+Requester comes bundled with a few packages (`requests`, `requests-oauthlib`, `requests-toolbelt`) that you can import in an env block or env file, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
 In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
-
-
-### Pip3 Quickstart
-If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
-
-Then run `pip3 install requests-oauthlib`, `pip3 install requests-toolbelt`, `pip3 install graphql-py`, and so on for whatever packages you'd like to use with Requester.
-
-Finally, run `pip3 show requests-oauthlib`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
-
-Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
-
->Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advice: don't bother unless you really want to use one of these packages.
 
 
 ### OAuth1 and OAuth2
@@ -481,7 +465,17 @@ get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackov
 # ...
 ~~~
 
-Python has auth libraries for authenticating with a wide variety of APIs. With `pip` and the `packages_path` setting Requester can access them all.
+
+### Pip3 Quickstart
+If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
+
+Then run `pip3 install <package>`, and so on for whatever packages you'd like to use with Requester.
+
+Finally, run `pip3 show <package>`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
+
+Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
+
+>Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advice: don't bother unless you really want to use one of these packages.
 
 
 ### Cookies Interceptor
