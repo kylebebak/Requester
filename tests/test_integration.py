@@ -1,7 +1,6 @@
 import sublime
 
 import sys
-from os import path
 
 from unittesting import DeferrableTestCase
 
@@ -65,7 +64,10 @@ class TestRequesterMixin:
         self.config = sublime.load_settings('Requester.sublime-settings')
 
         self.window = sublime.active_window()
-        self.view = self.get_scratch_view_from_resource(self.REQUESTER_FILE)
+        if hasattr(self, 'REQUESTER_RESOURCE'):
+            self.view = self.get_scratch_view_from_resource(self.REQUESTER_RESOURCE)
+        if hasattr(self, 'REQUESTER_FILE'):
+            self.view = self.get_scratch_view_from_file(self.REQUESTER_FILE)
 
     def tearDown(self):
         if self.view:
@@ -75,6 +77,11 @@ class TestRequesterMixin:
     def close_view(self, view):
         self.window.focus_view(view)
         self.window.run_command('close_file')
+
+    def get_scratch_view_from_file(self, file):
+        view = self.window.open_file(file)
+        view.set_scratch(True)
+        return view
 
     def get_scratch_view_from_resource(self, resource):
         content = sublime.load_resource(resource)
@@ -100,9 +107,24 @@ class TestRequesterMixin:
         self.assertTrue(string in content)
 
 
+class TestRequesterEnvFile(TestRequesterMixin, DeferrableTestCase):
+
+    REQUESTER_FILE = './tests/requester_env_file.py'
+
+    def test_single_request_with_env_file(self):
+        """From env file.
+        """
+        yield 1000
+        select_line_beginnings(self.view, 4)
+        self.view.run_command('requester')
+        yield self.WAIT_MS
+        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')
+        self._test_name_in_view(self.window.active_view(), 'GET: /get')
+
+
 class TestRequester(TestRequesterMixin, DeferrableTestCase):
 
-    REQUESTER_FILE = 'Packages/Requester/tests/requester.py'
+    REQUESTER_RESOURCE = 'Packages/Requester/tests/requester.py'
 
     def test_single_request(self):
         """Generic.
@@ -149,20 +171,6 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
         self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get?key1=value1')
         self._test_name_in_view(self.window.active_view(), 'GET: /get')
 
-    def test_single_request_with_env_file(self):
-        """From env file.
-        """
-        view = self.window.open_file(
-            path.join(sublime.packages_path(), 'Requester', 'tests', 'requester_env_file.py')
-        )
-        yield 1000  # not waiting here causes a strange bug to happen
-        select_line_beginnings(view, 4)
-        view.run_command('requester')
-        yield self.WAIT_MS
-        view.close()
-        self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')
-        self._test_name_in_view(self.window.active_view(), 'GET: /get')
-
     def test_single_request_focus_change(self):
         """Test that re-executing request in requester file doesn't open response
         tab, but rather reuses already open response tab.
@@ -183,7 +191,7 @@ class TestRequester(TestRequesterMixin, DeferrableTestCase):
 
 class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
 
-    REQUESTER_FILE = 'Packages/Requester/tests/requester.py'
+    REQUESTER_RESOURCE = 'Packages/Requester/tests/requester.py'
     WAIT_MS = 750
 
     def test_multiple_requests(self):
@@ -211,7 +219,7 @@ class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
 
 class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
 
-    REQUESTER_FILE = 'Packages/Requester/tests/requester_session.py'
+    REQUESTER_RESOURCE = 'Packages/Requester/tests/requester_session.py'
     WAIT_MS = 1000
 
     def test_session(self):

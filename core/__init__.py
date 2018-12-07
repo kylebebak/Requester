@@ -137,7 +137,7 @@ class RequestCommandMixin:
         scope = {}
         p = re.compile('\s*env_file\s*=.*')  # `env_file` can be overridden from within requester file
         for line in self.view.substr(
-                sublime.Region(0, self.view.size())
+            sublime.Region(0, self.view.size())
         ).splitlines():
             if p.match(line):  # matches only at beginning of string
                 try:
