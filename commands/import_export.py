@@ -12,7 +12,7 @@ from time import time
 from collections import namedtuple
 from urllib.parse import urlencode, parse_qsl
 
-from ..deps.requests import Request
+from requests import Request
 
 from .request import RequesterCommand
 from ..core.responses import prepare_request

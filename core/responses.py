@@ -5,7 +5,7 @@ from urllib import parse
 from concurrent import futures
 from collections import namedtuple, deque
 
-from ..deps import requests
+import requests
 
 from .parsers import PREFIX
 from .helpers import truncate, prepend_scheme, is_instance

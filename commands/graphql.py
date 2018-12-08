@@ -6,7 +6,7 @@ import sys
 import traceback
 from threading import Thread
 
-from ..deps import requests
+import requests
 from ..deps.graphql.parser import GraphQLParser
 from ..deps.graphql.lexer import GraphQLLexer
 
