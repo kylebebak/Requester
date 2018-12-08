@@ -179,8 +179,8 @@ class RequestsMixin:
                     sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
                     print(e)
                     continue
-            elif view.match_selector(region.begin(), 'meta.function-call.python'):
-                for func_region in view.find_by_selector('meta.function-call.python'):
+            elif view.match_selector(region.begin(), 'source.python meta.function-call'):
+                for func_region in view.find_by_selector('source.python meta.function-call'):
                     if func_region.contains(region):
                         selection = view.substr(func_region)
                         break

@@ -1,6 +1,7 @@
 import sublime
 
 import sys
+import os
 
 from unittesting import DeferrableTestCase
 
@@ -64,10 +65,11 @@ class TestRequesterMixin:
         self.config = sublime.load_settings('Requester.sublime-settings')
 
         self.window = sublime.active_window()
+        if hasattr(self, 'REQUESTER_FILE'):
+            path = self.window.project_data()['folders'][0]['path']
+            self.view = self.get_scratch_view_from_file(os.path.join(path, self.REQUESTER_FILE))
         if hasattr(self, 'REQUESTER_RESOURCE'):
             self.view = self.get_scratch_view_from_resource(self.REQUESTER_RESOURCE)
-        if hasattr(self, 'REQUESTER_FILE'):
-            self.view = self.get_scratch_view_from_file(self.REQUESTER_FILE)
 
     def tearDown(self):
         if self.view:
@@ -109,7 +111,7 @@ class TestRequesterMixin:
 
 class TestRequesterEnvFile(TestRequesterMixin, DeferrableTestCase):
 
-    REQUESTER_FILE = './tests/requester_env_file.py'
+    REQUESTER_FILE = 'tests/requester_env_file.py'
 
     def test_single_request_with_env_file(self):
         """From env file.
