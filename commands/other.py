@@ -44,7 +44,7 @@ class RequesterShowTutorialCommand(sublime_plugin.WindowCommand):
             self.window.new_file(),
             sublime.load_resource('Packages/Requester/docs/tutorial.pyr'),
             'Requester Tutorial.pyr',
-            syntax='Packages/Requester/syntax/requester-source.sublime-syntax'
+            ['Packages/Requester/syntax/requester-source.sublime-syntax'],
         )
 
 
@@ -55,35 +55,31 @@ class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
         if online:
             webbrowser.open_new_tab('http://requester.org')
             return
-        show_read_only_doc_view(self.window.new_file(),
-                                sublime.load_resource('Packages/Requester/docs/_content/body.md'),
-                                'Requester Documentation')
+        show_read_only_doc_view(
+            self.window.new_file(),
+            sublime.load_resource('Packages/Requester/docs/_content/body.md'),
+            'Requester Documentation.md',
+            ['Packages/MarkdownEditing/Markdown.sublime-syntax', 'Packages/Markdown/Markdown.sublime-syntax']
+        )
 
 
-def show_read_only_doc_view(view, content, name, point=0, syntax=''):
+def show_read_only_doc_view(view, content, name, syntaxes, point=0):
     """Helper for creating read-only scratch view.
     """
     view.run_command('requester_replace_view_text', {'text': content, 'point': point})
     view.set_read_only(True)
     view.set_scratch(True)
-    if not syntax:
-        if not set_syntax(view, 'Packages/MarkdownEditing/Markdown.tmLanguage'):
-            set_syntax(view, 'Packages/Markdown/Markdown.sublime-syntax')
-    else:
-        set_syntax(view, syntax)
     view.set_name(name)
 
-
-def set_syntax(view, syntax):
-    """Attempts to set syntax for view without showing error pop-up.
-    """
-    try:
-        sublime.load_resource(syntax)
-    except:
-        return False
-    else:
-        view.set_syntax_file(syntax)
-        return True
+    # attempts to set first valid syntax for view without showing error pop-up
+    for syntax in syntaxes:
+        try:
+            sublime.load_resource(syntax)
+        except:
+            pass
+        else:
+            view.set_syntax_file(syntax)
+            return
 
 
 class RequesterShowSyntaxCommand(sublime_plugin.WindowCommand):
@@ -127,6 +123,5 @@ class RequesterNewRequesterFileCommand(sublime_plugin.TextCommand):
             view.insert(edit, 0, NEW_REQUESTER_FILE_NAVIGATION)
         else:
             view.insert(edit, 0, NEW_REQUESTER_FILE)
-        set_syntax(view, 'Packages/Python/Python.sublime-syntax')
         view.set_name('untitled.pyr')
         view.set_syntax_file('Packages/Requester/syntax/requester-source.sublime-syntax')
