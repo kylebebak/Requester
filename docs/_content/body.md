@@ -211,11 +211,47 @@ If you need to send [prepared requests](http://docs.python-requests.org/en/maste
 
 
 ### Authentication
-Requests has [excellent support for authentication](http://docs.python-requests.org/en/master/user/authentication/). __Basic Authentication__ and __Digest Authentication__ are built in, and implementing custom auth schemes is easy.
+Requests has [excellent support for authentication](http://docs.python-requests.org/en/master/user/authentication/). __Basic Authentication__ and __Digest Authentication__ are built in, and adding custom auth schemes is easy.
 
 To use a custom auth scheme with Requester you define the auth class in your env block or env file, then pass an instance of this class to the `auth` argument of a request.
 
-Requester comes with a few pre-written auth "plugins" you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
+Requester comes with a few pre-written auth schemes, you can use in your code, or as a reference. Run __Requester: Authentication Options__ in the command palette to see the list. Have a look at __Token__ auth, which simplifies passing a token in the __"Authorization"__ header of your requests.
+
+
+#### OAuth1 and OAuth2
+__requests-oauthlib__ is bundled with Requester, which provides first-class support for [OAuth1](https://github.com/requests/requests-oauthlib) and [OAuth2](https://requests-oauthlib.readthedocs.io/en/latest/oauth2_workflow.html).
+
+Let's say you want explore the Twitter REST API, which uses OAuth1 for authentication. Go to <https://apps.twitter.com/app/new>, create a new application, then go to the __Keys and Access Tokens__ tab for your application. Generate an access token and an access token secret, grab your API key and secret, and pass them to `OAuth1`.
+
+~~~py
+###env
+from requests_oauthlib import OAuth1
+auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
+###env
+
+get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackoverflow&count=100', auth=auth)
+
+# ...
+#   "created_at": "Wed Sep 13 19:10:10 +0000 2017",
+#   "entities": {
+#     "hashtags": [],
+#     "symbols": [],
+#     "urls": [
+#       {
+#         "display_url": "stackoverflow.blog/2017/09/06/inc\u2026",
+#         "expanded_url": "https://stackoverflow.blog/2017/09/06/incredible-growth-python/",
+#         "indices": [
+#           32,
+#           55
+#         ],
+#         "url": "https://t.co/4NCaBp5RKh"
+#       }
+#     ],
+#     "user_mentions": []
+#   },
+#   "favorite_count": 2,
+# ...
+~~~
 
 
 ### Forms and File Uploads
@@ -377,40 +413,23 @@ Requester provides full support for GraphQL. It provides a shorthand for the `qu
 
 `gqlv` and `gqlo` have no effect unless `gql` is also passed. For GET requests, the params are URL encoded and added to the query string. For POST requests, they get JSON encoded and added to the request body, as described in the spec.
 
-Here are some examples, hitting [this graphloc API](https://graphloc.com/). The following requests look up country info for the specified IP address.
+Here's an example, hitting [this countries GraphQL API](https://countries.trevorblades.com/).
 
 ~~~py
-requests.get('https://api.graphloc.com/graphql', gql="""
+requests.post('https://countries.trevorblades.com/', gql="""
 {
-  getLocation(ip: "189.59.228.170") {
-    country {
-      geoname_id
-      iso_code
-    }
-    location {
-      latitude
-      longitude
+  continents {
+    name
+    code
+  }
+  country(code: "BZ") {
+    name
+    currency
+    languages {
+      name
+      code
     }
   }
-}
-""")
-
-requests.post('https://api.graphloc.com/graphql', gql="""
-query Location($ip: String!) {
-  getLocation(ip: $ip) {
-    country {
-      geoname_id
-      iso_code
-    }
-    location {
-      latitude
-      longitude
-    }
-  }
-}
-""", gqlv="""
-{
-  "ip": "189.59.228.170"
 }
 """)
 ~~~
@@ -430,40 +449,6 @@ Requester lints your query and displays syntax errors with their line and column
 Requester comes bundled with a few packages (`requests`, `requests-oauthlib`, `requests-toolbelt`, `jsonschema`) that you can import in an env block or env file, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
 In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
-
-
-### OAuth1 and OAuth2
-__requests-oauthlib__ makes OAuth1 and OAuth2 a lot easier. Let's say you want explore the Twitter REST API, which uses OAuth1 for authentication. Go to <https://apps.twitter.com/app/new>, create a new application, then go to the __Keys and Access Tokens__ tab for your application. Generate an access token and an access token secret, grab your API key and secret, and pass them to `OAuth1`.
-
-~~~py
-###env
-from requests_oauthlib import OAuth1
-auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
-###env
-
-get('https://api.twitter.com/1.1/statuses/user_timeline.json?screen_name=stackoverflow&count=100', auth=auth)
-
-# ...
-#   "created_at": "Wed Sep 13 19:10:10 +0000 2017",
-#   "entities": {
-#     "hashtags": [],
-#     "symbols": [],
-#     "urls": [
-#       {
-#         "display_url": "stackoverflow.blog/2017/09/06/inc\u2026",
-#         "expanded_url": "https://stackoverflow.blog/2017/09/06/incredible-growth-python/",
-#         "indices": [
-#           32,
-#           55
-#         ],
-#         "url": "https://t.co/4NCaBp5RKh"
-#       }
-#     ],
-#     "user_mentions": []
-#   },
-#   "favorite_count": 2,
-# ...
-~~~
 
 
 ### Pip3 Quickstart
@@ -706,6 +691,6 @@ Requester's modifiable settings, and their default values. You can override any 
 
 
 ## Requests
-The last version of Requests that supports Python 3.3 is __2.18.3__. This is the version bundled with Requester. Hopefully the next iteration of ST will support a more recent Python version!
+The last version of Requests that supports Python 3.3 is __2.18.3__. This is the version bundled with Requester. Hopefully the next iteration of Sublime Text will support a more recent Python version!
 
 Here's Requests' [version history](http://docs.python-requests.org/en/master/community/updates/).

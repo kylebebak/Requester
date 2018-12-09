@@ -55,7 +55,7 @@ requests.get('http://httpbin.org/headers', auth=TokenAuth('Bearer', 'big_auth_to
     (
         'OAuth1',
         """###env
-# http://requester.org/#import-any-python-package-with-requester
+# https://github.com/requests/requests-oauthlib
 from requests_oauthlib import OAuth1
 auth = OAuth1(API_KEY, API_SECRET, ACCESS_TOKEN, ACCESS_TOKEN_SECRET)
 ###env
