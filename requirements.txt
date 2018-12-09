@@ -1,3 +1,0 @@
-requests==2.18.3
-httpbin==0.7.0
-coveralls

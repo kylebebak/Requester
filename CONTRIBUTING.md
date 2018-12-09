@@ -41,9 +41,9 @@ All classes and methods should have docstrings, limited to 82 characters per lin
 ### Tests
 Tests are divided into tests of the `core` package, which depend on a mocked `sublime` and run on Travis, and integration tests run within Sublime Text.
 
-Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by __httpbin__. You can install __httpbin__ by running `docker pull kennethreitz/httpbin`. You can then run it with `docker run -p 8000:80 kennethreitz/httpbin`.
+Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by __httpbin__. You can install __httpbin__ with `docker pull kennethreitz/httpbin`, or `pip install httpbin gunicorn`. You can then run it with `docker run -p 8000:80 kennethreitz/httpbin`, or `gunicorn httpbin:app`
 
-To run `core` tests, execute `cd .. && python3 -m unittest Requester.tests.core -v && cd Requester` from the root of the repo. Running the tests from the package's parent directory [avoids this issue](https://stackoverflow.com/questions/30669474/beyond-top-level-package-error-in-relative-import).
+To run `core` tests, execute `cd .. && python3 -m unittest Requester.tests.core -v && cd Requester` from the root of the repo. If you don't `cd` into the package's parent directory, you'll run into [this issue](https://stackoverflow.com/questions/30669474/beyond-top-level-package-error-in-relative-import).
 
 To run the integration tests, install __UnitTesting__ via Package Control. Read more about [UnitTesting](https://github.com/randy3k/UnitTesting-example). Also, make sure you've cloned the Requester repo into your __Packages__ directory.
 

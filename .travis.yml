@@ -3,13 +3,13 @@ python:
   - 3.4
 # command to install dependencies
 install:
-  - pip install -r requirements.txt
+  - pip install requests==2.18.3 httpbin==0.7.0 gunicorn==19.7.1 coveralls
 # start local http server in background, give it a few seconds to start
 before_script:
   - gunicorn httpbin:app &
-  - sleep 2
+  - sleep 3
 # command to run tests
 script:
-  - coverage run --source=core -m unittest tests.core -v
+  - cd .. && coverage run --source=Requester.core -m unittest Requester.tests.core -v
 after_success:
   - coveralls
