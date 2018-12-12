@@ -142,8 +142,9 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
 
         try:  # in case, e.g., schema has changed
             seconds = time() - req[1]['ts']
+            pad = chr(8203) * min(round(pow(round(seconds / 60), 0.4)), 150)
             return [
-                truncate(header, 100) + chr(8203) * min(round(pow(round(seconds / 60), 0.4)), 150),
+                pad + truncate(header, 100),
                 approximate_age(req[1]['ts']),
                 str(req[1]['code']),
                 req[1]['file'] or '?',
