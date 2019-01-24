@@ -3,7 +3,6 @@
 2. Install [Package Control for Sublime Text](https://packagecontrol.io/).
 3. Open the command palette <kbd>shift+cmd+p</kbd> and type __Package Control: Install Package__.
 4. Search for __Requester__ (not ~~Http Requester~~) and install it.
-5. __If you're seeing errors__ every time you run a request, this probably means the __requests__ dependency wasn't installed successfully. To fix this, look for __Package Control: Satisfy Dependencies__ in the command palette, run it, and restart Sublime Text.
 
 
 ## Getting Started
