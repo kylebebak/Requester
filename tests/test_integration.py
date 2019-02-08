@@ -117,7 +117,7 @@ class TestRequesterEnvFile(TestRequesterMixin, DeferrableTestCase):
         """From env file.
         """
         yield 1000
-        select_line_beginnings(self.view, 4)
+        select_line_beginnings(self.view, 8)
         self.view.run_command('requester')
         yield self.WAIT_MS
         self._test_url_in_view(self.window.active_view(), 'http://127.0.0.1:8000/get')

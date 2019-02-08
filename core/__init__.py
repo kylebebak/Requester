@@ -69,7 +69,6 @@ class RequestCommandMixin:
         self.reset_status()
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
-        self.reset_env_string()
         self.reset_file()
         self.reset_env_file()
         thread = Thread(target=self._get_env)
@@ -108,18 +107,6 @@ class RequestCommandMixin:
         if self.view.settings().get('requester.test_view', False):
             return True
         return False
-
-    def reset_env_string(self):
-        """(Re)sets the `requester.env_string` setting on the view, if appropriate.
-        """
-        if self.is_auxiliary_view():
-            return
-        env_string, _, _ = self.parse_env_block(self.view.substr(
-            sublime.Region(0, self.view.size())
-        ))
-        if env_string:
-            self.view.settings().set('requester.env_block_parsed', True)
-        self.view.settings().set('requester.env_string', env_string)
 
     def reset_file(self):
         """(Re)sets the `requester.file` setting on the view, if appropriate.
@@ -171,21 +158,27 @@ class RequestCommandMixin:
         if packages_path and packages_path not in sys.path:  # makes it possible to import any Python package in env
             sys.path.append(packages_path)
 
-        env_strings.append(self.view.settings().get('requester.env_string', None))
         env_string_line_number = None
         env_file_line_number = None
+        env_string = ''
 
-        file = self.view.settings().get('requester.file', None)
-        if file:
-            try:
-                with open(file, 'r', encoding='utf-8') as f:
-                    text = f.read()
-            except Exception as e:
-                self.add_error_status_bar(str(e))
-            else:
-                env_string, env_string_line_number, env_file_line_number = self.parse_env_block(text)
-                if not self.view.settings().get('requester.env_block_parsed', None):
-                    env_strings.append(env_string)
+        if not self.is_auxiliary_view():  # (1) try to get env from current view
+            text = self.view.substr(sublime.Region(0, self.view.size()))
+            env_string, env_string_line_number, env_file_line_number = self.parse_env_block(text)
+        else:
+            parsed = False
+            file = self.view.settings().get('requester.file', None)
+            if file:  # (2) try to get env from saved requester file if (1) not possible
+                try:
+                    with open(file, 'r', encoding='utf-8') as f:
+                        env_string, env_string_line_number, env_file_line_number = self.parse_env_block(f.read())
+                        parsed = True
+                except Exception as e:
+                    self.add_error_status_bar(str(e))
+            if not parsed:  # (3) try to get env from saved env string if (1) and (2) not possible
+                env_string = self.view.settings().get('requester.env_string', None)
+
+        env_strings.append(env_string)
 
         env_file = self.view.settings().get('requester.env_file', None)
         if env_file:
@@ -195,10 +188,12 @@ class RequestCommandMixin:
             except Exception as e:
                 self.add_error_status_bar(str(e))
 
+        non_empty_env_strings = [s for s in env_strings if s]
         if env_string_line_number is not None and env_file_line_number is not None:
             if env_string_line_number > env_file_line_number:
-                env_strings.reverse()
-        env_string = '\n\n'.join(s for s in env_strings if s)
+                non_empty_env_strings.reverse()
+
+        env_string = '\n\n'.join(non_empty_env_strings)
         return self.get_env_dict_from_string(env_string), env_string
 
     def _get_env(self):

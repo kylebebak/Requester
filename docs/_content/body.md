@@ -156,11 +156,39 @@ Requester will now look for the env file at the path `requester_env.py`, which i
 
 
 #### Merging Vars from Env Block and Env File
-Is totally fine. If a var has the same name in the env block and the env file, the var from the env file takes precedence.
+Is totally fine!
 
-Why? If you're working on a team, your requester file should probably be in version control. Static env vars and default values for dynamic env vars can be defined in the env block of your requester file.
+Why? If you're working on a team, your requester file should probably be in version control. Static env vars can be defined in the env block of your requester file.
 
-Dynamic env vars, like a `base_url` that might point to staging one minute and production the next, can be (re)defined in an env file. Put the env file in your `.gitignore`. This way devs can tweak their envs without making useless commits or stepping on each other's toes.
+Dynamic env vars, like a `base_url` that might point to staging one minute and production the next, can be defined in an env file. Put the env file in your `.gitignore`. This way devs can tweak their envs without making useless commits or stepping on each other's toes.
+
+What if a var has the same name in the env block and the env file: which one takes precedence? This depends on where you put your __env block__ and the `env_file` line in your requester file. Check out the examples below:
+
+~~~py
+env_file = 'vars.py'
+
+###env
+base_url = 'https://jsonplaceholder.typicode.com'
+###env
+
+get(base_url + '/albums')
+~~~
+
+vs...
+
+~~~py
+###env
+base_url = 'https://jsonplaceholder.typicode.com'
+###env
+
+env_file = 'vars.py'
+
+get(base_url + '/albums')
+~~~
+
+In the first example, because `env_file` is declared __before__ the env block, the vars in the env block override any identically named vars in the env file.
+
+In the second example, because `env_file` is declared __after__ the env block, the reverse is true. The vars in the env file override any identically named vars in the env block.
 
 
 ### Request Body, Query Params, Custom Headers, Cookies
