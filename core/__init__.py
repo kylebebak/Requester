@@ -114,7 +114,7 @@ class RequestCommandMixin:
         """
         if self.is_auxiliary_view():
             return
-        env_string = self.parse_env_block(self.view.substr(
+        env_string, _, _ = self.parse_env_block(self.view.substr(
             sublime.Region(0, self.view.size())
         ))
         if env_string:
@@ -142,8 +142,8 @@ class RequestCommandMixin:
             if p.match(line):  # matches only at beginning of string
                 try:
                     exec(line, scope)  # add `env_file` to `scope` dict
-                except:
-                    pass
+                except Exception as e:
+                    print(e)
                 break  # stop looking after first match
 
         env_file = scope.get('env_file')
@@ -172,18 +172,20 @@ class RequestCommandMixin:
             sys.path.append(packages_path)
 
         env_strings.append(self.view.settings().get('requester.env_string', None))
+        env_string_line_number = None
+        env_file_line_number = None
 
-        if not self.view.settings().get('requester.env_block_parsed', None):
-            # if env block was already parsed don't parse it again
-            file = self.view.settings().get('requester.file', None)
-            if file:
-                try:
-                    with open(file, 'r', encoding='utf-8') as f:
-                        text = f.read()
-                except Exception as e:
-                    self.add_error_status_bar(str(e))
-                else:
-                    env_strings.append(self.parse_env_block(text))
+        file = self.view.settings().get('requester.file', None)
+        if file:
+            try:
+                with open(file, 'r', encoding='utf-8') as f:
+                    text = f.read()
+            except Exception as e:
+                self.add_error_status_bar(str(e))
+            else:
+                env_string, env_string_line_number, env_file_line_number = self.parse_env_block(text)
+                if not self.view.settings().get('requester.env_block_parsed', None):
+                    env_strings.append(env_string)
 
         env_file = self.view.settings().get('requester.env_file', None)
         if env_file:
@@ -193,6 +195,9 @@ class RequestCommandMixin:
             except Exception as e:
                 self.add_error_status_bar(str(e))
 
+        if env_string_line_number is not None and env_file_line_number is not None:
+            if env_string_line_number > env_file_line_number:
+                env_strings.reverse()
         env_string = '\n\n'.join(s for s in env_strings if s)
         return self.get_env_dict_from_string(env_string), env_string
 
@@ -287,11 +292,17 @@ class RequestCommandMixin:
     def parse_env_block(text):
         """Parses `text` for first env block, and returns text within this env
         block.
+
+        Also returns line numbers for start of env block and env file.
         """
         delimeter = '###env'
         in_block = False
         env_lines = []
-        for line in text.splitlines():
+
+        env_string_line_number = None
+        env_file_line_number = None
+
+        for i, line in enumerate(text.splitlines()):
             if in_block:
                 if line == delimeter:
                     in_block = False
@@ -299,10 +310,22 @@ class RequestCommandMixin:
                 env_lines.append(line)
             else:
                 if line == delimeter:
+                    env_string_line_number = i
                     in_block = True
+
+        p = re.compile('\s*env_file\s*=.*')
+        for i, line in enumerate(text.splitlines()):
+            if p.match(line):  # matches only at beginning of string
+                try:
+                    exec(line)  # add `env_file` to `scope` dict
+                    env_file_line_number = i
+                except Exception as e:
+                    print(e)
+                break  # stop looking after first match
+
         if not len(env_lines) or in_block:  # env block must be closed to take effect
-            return None
-        return '\n'.join(env_lines)
+            return None, None, env_file_line_number
+        return '\n'.join(env_lines), env_string_line_number, env_file_line_number
 
     @staticmethod
     def get_env_dict_from_string(s):
@@ -323,7 +346,9 @@ class RequestCommandMixin:
             with add_path(__file__, '..', '..', 'deps'):
                 exec(s, env.__dict__)
         except Exception as e:
-            sublime.error_message('EnvBlock Error:\n{}'.format(e))
+            sublime.error_message(
+                'EnvBlock Error:\n{}\n\nOpen the console to see the full environment string'.format(e))
+            print('\nEnvString:\n```\n{}\n```'.format(s))
             return {}
         else:
             return dict(env.__dict__)

@@ -10,4 +10,4 @@ git add docs/_content/toc.md
 git add README.md
 
 # exits with non-zero status if there are lint or style errors in any Python source files
-flake8 --exclude deps
+# flake8 --exclude deps
