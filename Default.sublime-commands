@@ -44,6 +44,11 @@
   },
 
   {
+    "caption": "Requester: Open Request History File",
+    "command": "requester_open_request_history_file"
+  },
+
+  {
     "caption": "Requester: Cancel Requests",
     "command": "requester_cancel_requests"
   },

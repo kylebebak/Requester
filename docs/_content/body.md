@@ -645,6 +645,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_save_request__: save request back to requester file
 - __requester_history__: search and re-execute past requests
 - __requester_delete_request_history__: delete request from history (history tab only)
+- __requester_open_request_history_file__: open request history file in read only view
 - __requester_cancel_requests__: cancel all outstanding requests
 - __requester_cancel_downloads__: cancel outstanding file downloads
 - __requester_cancel_uploads__: cancel outstanding file uploads

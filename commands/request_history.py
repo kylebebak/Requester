@@ -166,6 +166,17 @@ class RequesterHistoryCommand(sublime_plugin.WindowCommand):
         populate_staging_view(view, index, total, **params_dict)
 
 
+class RequesterOpenRequestHistoryFileCommand(sublime_plugin.WindowCommand):
+    """Open request history file in read only view.
+    """
+    def run(self):
+        history_file = sublime.load_settings('Requester.sublime-settings').get('history_file', None)
+        if not history_file:
+            raise KeyError
+        view = self.window.open_file(os.path.join(sublime.packages_path(), 'User', history_file))
+        view.set_read_only(True)
+
+
 class RequesterPageRequestHistoryCommand(sublime_plugin.TextCommand):
     """`TextCommand` to page through and stage previously executed requests. Can
     only be executed from response view. Replaces text in view with request string
