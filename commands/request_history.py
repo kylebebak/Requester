@@ -39,7 +39,6 @@ def populate_staging_view(view, index, total,
     view.settings().set('requester.history_view', True)
     view.settings().set('requester.file', file)
     view.settings().set('requester.env_string', env_string)
-    view.settings().set('requester.env_file', env_file)
     set_save_info_on_view(view, original_request or request)
 
     config = sublime.load_settings('Requester.sublime-settings')

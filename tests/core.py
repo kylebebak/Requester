@@ -150,10 +150,10 @@ class TestCore(unittest.TestCase):
 
     def test_parse_env_block(self):
         text = '###env\na=1\n###env\nb=2\n###env'
-        block, _, _ = RequestCommand.parse_env_block(text)
+        block, _, _, _ = RequestCommand.parse_env(text)
         self.assertEqual(block, 'a=1')
         text = '###env\na=1\n'
-        block, _, _ = RequestCommand.parse_env_block(text)
+        block, _, _, _ = RequestCommand.parse_env(text)
         self.assertEqual(block, None)
 
     def test_successful_requests(self):

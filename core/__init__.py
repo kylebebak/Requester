@@ -69,8 +69,6 @@ class RequestCommandMixin:
         self.reset_status()
         self.config = sublime.load_settings('Requester.sublime-settings')
         # `run` runs first, which means `self.config` is available to all methods
-        self.reset_file()
-        self.reset_env_file()
         thread = Thread(target=self._get_env)
         thread.start()
         self._run(thread)
@@ -108,48 +106,10 @@ class RequestCommandMixin:
             return True
         return False
 
-    def reset_file(self):
-        """(Re)sets the `requester.file` setting on the view, if appropriate.
-        """
-        if self.is_auxiliary_view():
-            return
-        self.view.settings().set('requester.file', self.view.file_name())
-
-    def reset_env_file(self):
-        """(Re)sets the `requester.env_file` setting on the view, if appropriate.
-        """
-        if self.is_auxiliary_view():
-            return
-
-        scope = {}
-        p = re.compile('\s*env_file\s*=.*')  # `env_file` can be overridden from within requester file
-        for line in self.view.substr(
-            sublime.Region(0, self.view.size())
-        ).splitlines():
-            if p.match(line):  # matches only at beginning of string
-                try:
-                    exec(line, scope)  # add `env_file` to `scope` dict
-                except Exception as e:
-                    print(e)
-                break  # stop looking after first match
-
-        env_file = scope.get('env_file')
-        if env_file:
-            env_file = str(env_file)
-            if os.path.isabs(env_file):
-                self.view.settings().set('requester.env_file', env_file)
-            else:
-                file_path = self.view.file_name()
-                if file_path:
-                    self.view.settings().set('requester.env_file',
-                                             os.path.join(os.path.dirname(file_path), env_file))
-        else:
-            self.view.settings().set('requester.env_file', None)
-
     def get_env(self):
-        """Computes an env from various settings: `requester.env_string`,
-        `requester.file`, `requester.env_file` settings. Returns a tuple
-        containing an env dictionary and a combined env string.
+        """Computes an env from `requester.env_string` and `requester.file`
+        settings. Returns a tuple containing an env dictionary and a combined env
+        string.
 
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
@@ -158,44 +118,51 @@ class RequestCommandMixin:
         if packages_path and packages_path not in sys.path:  # makes it possible to import any Python package in env
             sys.path.append(packages_path)
 
-        env_block_line_number = None
-        env_file_line_number = None
-        env_string = None
+        env_block, env_block_line_number, env_file, env_file_line_number = [None] * 4
+        parsed = False
 
         if not self.is_auxiliary_view():  # (1) try to get env from current view
+            self.view.settings().set('requester.file', self.view.file_name())
             text = self.view.substr(sublime.Region(0, self.view.size()))
-            env_string, env_block_line_number, env_file_line_number = self.parse_env_block(text)
+            env_block, env_block_line_number, env_file, env_file_line_number = self.parse_env(text)
+            parsed = True
         else:
-            parsed = False
             file = self.view.settings().get('requester.file', None)
             if file:  # (2) try to get env from saved requester file if (1) not possible
                 try:
                     with open(file, 'r', encoding='utf-8') as f:
-                        env_string, env_block_line_number, env_file_line_number = self.parse_env_block(f.read())
-                        parsed = True
+                        text = f.read()
                 except Exception as e:
                     self.add_error_status_bar(str(e))
-            if not parsed:  # (3) try to get env from saved env string if (1) and (2) not possible
-                env_string = self.view.settings().get('requester.env_string', None)
+                else:
+                    env_block, env_block_line_number, env_file, env_file_line_number = self.parse_env(text)
+                    parsed = True
 
-        self.view.settings().set('requester.env_string', env_string)
-        env_strings.append(env_string)
+        if not parsed:  # (3) try to get env from saved env string if (1) and (2) not possible
+            env_string = self.view.settings().get('requester.env_string', None)
+            return self.get_env_dict_from_string(env_string), env_string
 
-        env_file = self.view.settings().get('requester.env_file', None)
         if env_file:
+            if not os.path.isabs(env_file):
+                file_path = self.view.settings().get('requester.file')
+                if file_path:
+                    env_file = os.path.join(os.path.dirname(file_path), env_file)
             try:
                 with open(env_file, 'r') as f:
                     env_strings.append(f.read())
             except Exception as e:
                 self.add_error_status_bar(str(e))
 
+        env_strings.append(env_block)
+
         non_empty_env_strings = [s for s in env_strings if s]
         if env_block_line_number is not None and env_file_line_number is not None:
-            if env_block_line_number > env_file_line_number:
+            if env_block_line_number < env_file_line_number:
                 non_empty_env_strings.reverse()
 
-        combined_env_string = '\n\n'.join(non_empty_env_strings)
-        return self.get_env_dict_from_string(combined_env_string), combined_env_string
+        env_string = '\n\n'.join(non_empty_env_strings)
+        self.view.settings().set('requester.env_string', env_string)
+        return self.get_env_dict_from_string(env_string), env_string
 
     def _get_env(self):
         """Wrapper calls `get_env`, assigns return values to instance properties.
@@ -205,7 +172,7 @@ class RequestCommandMixin:
     def set_env_on_view(self, view):
         """Convenience method that copies env settings from this view to `view`.
         """
-        for setting in ['requester.file', 'requester.env_string', 'requester.env_file']:
+        for setting in ['requester.file', 'requester.env_string']:
             view.settings().set(setting, self.view.settings().get(setting, None))
 
     def make_requests(self, requests, env=None):
@@ -285,7 +252,7 @@ class RequestCommandMixin:
         self.view.set_status('requester.benchmarks', '')
 
     @staticmethod
-    def parse_env_block(text):
+    def parse_env(text):
         """Parses `text` for first env block, and returns text within this env
         block.
 
@@ -293,8 +260,8 @@ class RequestCommandMixin:
         """
         delimeter = '###env'
         in_block = False
-        env_lines = []
 
+        env_lines = []
         env_block_line_number = None
         env_file_line_number = None
 
@@ -309,19 +276,21 @@ class RequestCommandMixin:
                     env_block_line_number = i
                     in_block = True
 
+        scope = {}
         p = re.compile('\s*env_file\s*=.*')
         for i, line in enumerate(text.splitlines()):
             if p.match(line):  # matches only at beginning of string
                 try:
-                    exec(line)  # add `env_file` to `scope` dict
+                    exec(line, scope)  # add `env_file` to `scope` dict
                     env_file_line_number = i
                 except Exception as e:
                     print(e)
                 break  # stop looking after first match
 
+        env_file = scope.get('env_file')
         if not len(env_lines) or in_block:  # env block must be closed to take effect
-            return None, None, env_file_line_number
-        return '\n'.join(env_lines), env_block_line_number, env_file_line_number
+            return None, None, env_file, env_file_line_number
+        return '\n'.join(env_lines), env_block_line_number, env_file, env_file_line_number
 
     @staticmethod
     def get_env_dict_from_string(s):
@@ -413,7 +382,6 @@ def persist_requests(self, responses, history_path=None):
             'ts': int(time()),
             'env_string': self.view.settings().get('requester.env_string', None),
             'file': file,
-            'env_file': self.view.settings().get('requester.env_file', None),
             'method': method,
             'meta': meta,
             'url': url,
