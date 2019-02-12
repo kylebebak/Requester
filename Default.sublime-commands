@@ -49,6 +49,11 @@
   },
 
   {
+    "caption": "Requester: Move Requester File",
+    "command": "requester_move_requester_file"
+  },
+
+  {
     "caption": "Requester: Cancel Requests",
     "command": "requester_cancel_requests"
   },

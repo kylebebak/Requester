@@ -410,6 +410,14 @@ Iterating on a request to get it right can take time. You might inadvertently fi
 You can delete a request from your history by pressing <kbd>ctrl+alt+backspace</kbd> in the history tab. To undo your delete, just replay the request before closing the history tab.
 
 
+#### Moving Your Requester File
+Is not as simple as dragging it from one folder to another... Why not? Because when you send a request from a requester file, the requester file's path is saved along with other metadata in your request history.
+
+If you move your requester file, the history entries for requests sent from this file now point to a file that no longer exists! You'd have to update these entries to point to the new path of your requester file.
+
+Editing your history file by hand is not advised: if you mess something up, the file might become corrupted. Fortunately, Requester comes with a command that moves your requester file to a new path, and updates all the relevant history entries for you. Just go to your requester file, look for __Requester: Move Requester File__ in the command palette, and choose a new path for your requester file.
+
+
 ### Explore Hyperlinked APIs (HATEOAS)
 Ever used an API that returns __hyperlinks__ to other resources in the response? This pattern is part of a larger concept in REST called HATEOAS, or [hypermedia as the engine of application state](http://www.django-rest-framework.org/topics/rest-hypermedia-hateoas/). 
 
@@ -646,6 +654,7 @@ Commands defined by this package, in case you want to add or change key bindings
 - __requester_history__: search and re-execute past requests
 - __requester_delete_request_history__: delete request from history (history tab only)
 - __requester_open_request_history_file__: open request history file in read only view
+- __requester_move_requester_file__: move requester file to new path and update request history for all requests sent from this file
 - __requester_cancel_requests__: cancel all outstanding requests
 - __requester_cancel_downloads__: cancel outstanding file downloads
 - __requester_cancel_uploads__: cancel outstanding file uploads

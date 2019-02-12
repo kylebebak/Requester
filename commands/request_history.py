@@ -257,6 +257,47 @@ def delete_request(view, history_path=None):
     write_json_file(rh, history_path)
 
 
+class RequesterMoveRequesterFileCommand(sublime_plugin.TextCommand):
+    """Moves requester file in active view to new path, and updates request
+    history for all requests sent from this file. Locks access to
+    `move_requester_file`, using same lock that protects `persist_requests`.
+    """
+    def run(self, edit):
+        old_path = self.view.file_name()
+        if not old_path:
+            return
+
+        def on_done(new_path):
+            from . import RequestCommandMixin
+            with RequestCommandMixin.LOCK:
+                move_requester_file(self.view, old_path, new_path)
+
+        self.view.window().show_input_panel('New path for requester file:', old_path, on_done, None, None)
+
+
+def move_requester_file(view, old_path, new_path):
+    if os.path.exists(new_path):
+        sublime.error_message('Move Requester File Error: `{}` already exists'.format(new_path))
+        return
+    try:
+        os.rename(old_path, new_path)
+    except Exception as e:
+        sublime.error_message('Move Requester File Error: {}'.format(e))
+        return
+    window = view.window()
+    window.run_command('close_file')
+    window.open_file(new_path)
+
+    rh = load_history(as_dict=True)
+    for k, v in rh.items():
+        if v.get('file') == old_path:
+            v['file'] = new_path
+
+    config = sublime.load_settings('Requester.sublime-settings')
+    history_file = config.get('history_file', None)
+    write_json_file(rh, os.path.join(sublime.packages_path(), 'User', history_file))
+
+
 def write_json_file(data, path):
     """Safely write `data` to file at `path`.
 

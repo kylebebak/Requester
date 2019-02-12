@@ -26,6 +26,7 @@
   + [Request History](#request-history)
     * [Page Through Past Requests](#page-through-past-requests)
     * [Delete Requests From History](#delete-requests-from-history)
+    * [Moving Your Requester File](#moving-your-requester-file)
   + [Explore Hyperlinked APIs (HATEOAS)](#explore-hyperlinked-apis-hateoas)
   + [Options Requests](#options-requests)
 - [GraphQL](#graphql)
