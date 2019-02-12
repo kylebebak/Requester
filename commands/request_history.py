@@ -281,8 +281,9 @@ def move_requester_file(view, old_path, new_path):
         return
     try:
         os.rename(old_path, new_path)
-    except Exception as e:
-        sublime.error_message('Move Requester File Error: {}'.format(e))
+    except Exception:
+        sublime.error_message("Move Requester File Error: you couldn't move file to `{}`\n\n\
+Remember to create the destination folder first".format(new_path))
         return
     window = view.window()
     window.run_command('close_file')
