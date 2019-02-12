@@ -158,26 +158,27 @@ class RequestCommandMixin:
         if packages_path and packages_path not in sys.path:  # makes it possible to import any Python package in env
             sys.path.append(packages_path)
 
-        env_string_line_number = None
+        env_block_line_number = None
         env_file_line_number = None
-        env_string = ''
+        env_string = None
 
         if not self.is_auxiliary_view():  # (1) try to get env from current view
             text = self.view.substr(sublime.Region(0, self.view.size()))
-            env_string, env_string_line_number, env_file_line_number = self.parse_env_block(text)
+            env_string, env_block_line_number, env_file_line_number = self.parse_env_block(text)
         else:
             parsed = False
             file = self.view.settings().get('requester.file', None)
             if file:  # (2) try to get env from saved requester file if (1) not possible
                 try:
                     with open(file, 'r', encoding='utf-8') as f:
-                        env_string, env_string_line_number, env_file_line_number = self.parse_env_block(f.read())
+                        env_string, env_block_line_number, env_file_line_number = self.parse_env_block(f.read())
                         parsed = True
                 except Exception as e:
                     self.add_error_status_bar(str(e))
             if not parsed:  # (3) try to get env from saved env string if (1) and (2) not possible
                 env_string = self.view.settings().get('requester.env_string', None)
 
+        self.view.settings().set('requester.env_string', env_string)
         env_strings.append(env_string)
 
         env_file = self.view.settings().get('requester.env_file', None)
@@ -189,12 +190,12 @@ class RequestCommandMixin:
                 self.add_error_status_bar(str(e))
 
         non_empty_env_strings = [s for s in env_strings if s]
-        if env_string_line_number is not None and env_file_line_number is not None:
-            if env_string_line_number > env_file_line_number:
+        if env_block_line_number is not None and env_file_line_number is not None:
+            if env_block_line_number > env_file_line_number:
                 non_empty_env_strings.reverse()
 
-        env_string = '\n\n'.join(non_empty_env_strings)
-        return self.get_env_dict_from_string(env_string), env_string
+        combined_env_string = '\n\n'.join(non_empty_env_strings)
+        return self.get_env_dict_from_string(combined_env_string), combined_env_string
 
     def _get_env(self):
         """Wrapper calls `get_env`, assigns return values to instance properties.
@@ -294,7 +295,7 @@ class RequestCommandMixin:
         in_block = False
         env_lines = []
 
-        env_string_line_number = None
+        env_block_line_number = None
         env_file_line_number = None
 
         for i, line in enumerate(text.splitlines()):
@@ -305,7 +306,7 @@ class RequestCommandMixin:
                 env_lines.append(line)
             else:
                 if line == delimeter:
-                    env_string_line_number = i
+                    env_block_line_number = i
                     in_block = True
 
         p = re.compile('\s*env_file\s*=.*')
@@ -320,7 +321,7 @@ class RequestCommandMixin:
 
         if not len(env_lines) or in_block:  # env block must be closed to take effect
             return None, None, env_file_line_number
-        return '\n'.join(env_lines), env_string_line_number, env_file_line_number
+        return '\n'.join(env_lines), env_block_line_number, env_file_line_number
 
     @staticmethod
     def get_env_dict_from_string(s):
