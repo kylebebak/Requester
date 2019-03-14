@@ -456,19 +456,20 @@ class RequesterUrlOptionsCommand(sublime_plugin.WindowCommand):
         """
         res = options(url, timeout=3)
         if not res.ok:
-            return
-        names = ['Allow', 'Access-Control-Allow-Methods', 'Access-Control-Max-Age']
-        headers = [res.headers.get(name, None) for name in names]
-        items = '\n'.join('<li>{}: {}</li>'.format(n, h) for n, h in zip(names, headers) if h)
-        content = '<h2>OPTIONS: {}</h2>\n<ul>{}</ul>'.format(url, items)
-        try:
-            json_dict = res.json()
-        except:
-            pass
+            content = '<h2>OPTIONS: {}</h2>\n<p>request failed</p>'.format(url)
         else:
-            content = '{}\n<pre><code>{}</pre></code>'.format(
-                content, json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
-            )
+            names = ['Allow', 'Access-Control-Allow-Methods', 'Access-Control-Max-Age']
+            headers = [res.headers.get(name, None) for name in names]
+            items = '\n'.join('<li>{}: {}</li>'.format(n, h) for n, h in zip(names, headers) if h)
+            content = '<h2>OPTIONS: {}</h2>\n<ul>{}</ul>'.format(url, items)
+            try:
+                json_dict = res.json()
+            except:
+                pass
+            else:
+                content = '{}\n<pre><code>{}</pre></code>'.format(
+                    content, json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
+                )
 
         view.show_popup(content, max_width=700, max_height=500)
 

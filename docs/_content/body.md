@@ -134,63 +134,6 @@ get('{}/location/{}/'.format(base_url, woeid))  # use "where on earth id" to get
 Find out what makes Requester really special. In the future if you need to refresh your memory, just press <kbd>shift+cmd+p</kbd> to open the command palette, and type __Requester__.
 
 
-### Separate Env File
-Requester can save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env file, which is convenient. Save it with any name, but use the `.pyr` extension. `requester.pyr` is fine. More on the `.pyr` extension later.
-
-Next, save a file with the name `requester_env.py` in the same directory as `requester.pyr`, and add an env var to it.
-
-~~~py
-base_url = 'https://jsonplaceholder.typicode.com'
-~~~
-
-Finally, define the path of your `env_file` in your requester file like so:
-
-~~~py
-env_file = 'requester_env.py'
-
-get(base_url + '/albums')
-post(base_url + '/albums')
-~~~
-
-Requester will now look for the env file at the path `requester_env.py`, which is relative to the location of the requester file. You can change this path to any relative path you want, e.g. `relative/path/to/env.py`. You can also use an __absolute path__ to the env vars file if you want.
-
-
-#### Merging Vars from Env Block and Env File
-Is totally fine!
-
-Why? If you're working on a team, your requester file should probably be in version control. Static env vars can be defined in the env block of your requester file.
-
-Dynamic env vars, like a `base_url` that might point to staging one minute and production the next, can be defined in an env file. Put the env file in your `.gitignore`. This way devs can tweak their envs without making useless commits or stepping on each other's toes.
-
-What if a var has the same name in the env block and the env file: which one takes precedence? This depends on where you put your __env block__ and the `env_file` line in your requester file. Check out the examples below:
-
-~~~py
-env_file = 'vars.py'
-
-###env
-base_url = 'https://jsonplaceholder.typicode.com'
-###env
-
-get(base_url + '/albums')
-~~~
-
-vs...
-
-~~~py
-###env
-base_url = 'https://jsonplaceholder.typicode.com'
-###env
-
-env_file = 'vars.py'
-
-get(base_url + '/albums')
-~~~
-
-In the first example, because `env_file` is declared __before__ the env block, the vars in the env block override any identically named vars in the env file.
-
-In the second example, because `env_file` is declared __after__ the env block, the reverse is true. The vars in the env file override any identically named vars in the env block.
-
-
 ### Request Body, Query Params, Custom Headers, Cookies
 ~~~py
 post('httpbin.org/post', data={'key1': 'value1', 'key2': 'value2'})
@@ -443,6 +386,109 @@ Execute the request above. In the response tab, try highlighting each of the URL
 Want to see which HTTP verbs a given endpoint accepts? Send an `OPTIONS` request to the endpoint. Requester makes this ridiculously easy -- from a response tab, just press <kbd>ctrl+o</kbd> (<kbd>cmd+o</kbd> on macOS).
 
 
+## More on Env Vars
+Env vars are one of Requester's most powerful features. This section explains everything you can do with them, and how they work in detail.
+
+
+### Separate Env File
+Requester can save and source your env vars from a separate env file. To do this, first you want to save your requester file. This way you can use a __relative path__ from your requester file to your env file, which is convenient. Save it with any name (using the `.pyr` extension of course). `requester.pyr` is fine.
+
+Next, save a file with the name `requester_env.py` in the same directory as `requester.pyr`, and add an env var to it.
+
+~~~py
+base_url = 'https://jsonplaceholder.typicode.com'
+~~~
+
+Finally, define the path of your `env_file` in your requester file like so:
+
+~~~py
+env_file = 'requester_env.py'
+
+get(base_url + '/albums')
+post(base_url + '/albums')
+~~~
+
+Requester will now look for the env file at the path `requester_env.py`, which is relative to the location of the requester file. You can change this path to any relative path you want, e.g. `relative/path/to/env.py`. You can also use an __absolute path__ to the env vars file if you want.
+
+
+#### Merging Vars from Env Block and Env File
+Is totally fine!
+
+Why? If you're working on a team, you might want you requester file in version control. Static env vars can be defined in the env block of your requester file.
+
+Dynamic env vars, like a `base_url` that could point to staging one minute and production the next, can be defined in an env file. Put the env file in your `.gitignore`. This way devs can tweak their envs without making useless commits or stepping on each other's toes.
+
+What if a var has the same name in the env block and the env file: which one takes precedence? This depends on where you put your __env block__ and the `env_file` line in your requester file. Check out the examples below:
+
+~~~py
+env_file = 'vars.py'
+
+###env
+base_url = 'https://jsonplaceholder.typicode.com'
+###env
+
+get(base_url + '/albums')
+~~~
+
+vs...
+
+~~~py
+###env
+base_url = 'https://jsonplaceholder.typicode.com'
+###env
+
+env_file = 'vars.py'
+
+get(base_url + '/albums')
+~~~
+
+In the first example, because `env_file` is declared __before__ the env block, the vars in the env block override any identically named vars in the env file.
+
+In the second example, because `env_file` is declared __after__ the env block, the reverse is true. The vars in the env file override any identically named vars in the env block.
+
+
+### How Env Vars are Parsed
+If env vars aren't behaving the way you expected, or you just want to know how Requester computes an env before requests are run, read on.
+
+Requester computes an env by evaluating an env string, which is the concatenation of an env block and the contents of an env file.
+
+If the request is sent from a normal view, Requester tries to get the env string from the contents of the view (which is exactly what you'd expect).
+
+---
+
+If the request is resent from a response tab, Requester tries to get the env string from the requester file from which the request was originally sent.
+
+If that file has been deleted, or the request wasn't originally sent from a saved file, Requester uses the same env string as the one that was computed originally.
+
+This means if you resend a request and you've since changed the env vars in the requester file, the request uses the updated env vars. If you've since deleted the requester file, the request uses the same env vars it used when it was first sent. If you haven't deleted the requester file, but you deleted an env var used by the request, the request fails.
+
+That Requester retrieves updated env vars from the requester file when resending a request might seem like a matter of taste, __but on balance it's very convenient__. If you hit a protected API that requires an auth token or cookie, just put the credentials in your env vars. When your credentials expire, go to your env vars and update them. The old requests you sent, whose original credentials are no longer valid, __will just keep working__.
+
+
+### Import Any Python Package In Requester Env
+Requester comes bundled with a few packages (`requests`, `requests-oauthlib`, `requests-toolbelt`, `jsonschema`) that you can import in an env block or env file, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
+
+In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
+
+
+#### Pip3 Quickstart
+If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
+
+Then run `pip3 install <package>`, and so on for whatever packages you'd like to use with Requester.
+
+Finally, run `pip3 show <package>`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
+
+Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
+
+>Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a pain. My advice: don't bother unless you really want to use one of these packages.
+
+
+#### Cookies Interceptor
+Want to use sessions currently open in your browser in requests sent by Requester? Look for __Requester: Authentication Options__ and choose __Cookies Interceptor__.
+
+This depends on the [browsercookie](https://bitbucket.org/richardpenman/browsercookie) package, which must be installed with the same version of Python 3 as the one used by Sublime Text. See the __Note__ in the [pip3 quickstart section](#pip3-quickstart).
+
+
 ## GraphQL
 Requester provides full support for GraphQL. It provides a shorthand for the `query`, `variables`, and `operationName` params described in the [GraphQL spec](http://graphql.org/learn/serving-over-http/), for both __GET__ and __POST__ requests, via the `gql`, `gqlv`, `gqlo` kwargs.
 
@@ -478,30 +524,6 @@ Requester lints your query and displays syntax errors with their line and column
 >If autocomplete doesn't work, it's probably being overridden by another autocomplete package, like __All Autocomplete__, __tern_for_sublime__, etc. Remove these packages, or disable them for Requester response views if possible.
 
 >GraphQL autocomplete will never override autocompletions provided by your other packages.
-
-
-## Import Any Python Package with Requester
-Requester comes bundled with a few packages (`requests`, `requests-oauthlib`, `requests-toolbelt`, `jsonschema`) that you can import in an env block or env file, but you can trivially extend it to import __any__ Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
-
-In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
-
-
-### Pip3 Quickstart
-If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.
-
-Then run `pip3 install <package>`, and so on for whatever packages you'd like to use with Requester.
-
-Finally, run `pip3 show <package>`, and look for the __LOCATION__ field in the output. Now you know where pip is installing your packages.
-
-Use this path as your `packages_path` setting in Requester's settings file. To open these settings, look for __Requester: Settings__ in the command palette.
-
->Note: Sublime Text runs Python 3.3, and there are some packages, such as `browsercookie`, that can only be imported by Sublime Text if they are downloaded with `pip3.3`. The best way to download Python 3.3 is with [pyenv](https://gist.github.com/Bouke/11261620), but this can be a bit of pain. My advice: don't bother unless you really want to use one of these packages.
-
-
-### Cookies Interceptor
-Want to use sessions currently open in your browser in requests sent by Requester? Look for __Requester: Authentication Options__ and choose __Cookies Interceptor__.
-
-This depends on the [browsercookie](https://bitbucket.org/richardpenman/browsercookie) package, which must be installed with the same version of Python 3 as the one used by Sublime Text. See the __Note__ in the [pip3 quickstart section](#pip3-quickstart).
 
 
 ## Test Runner
