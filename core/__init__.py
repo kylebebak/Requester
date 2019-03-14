@@ -277,7 +277,7 @@ class RequestCommandMixin:
                     in_block = True
 
         scope = {}
-        p = re.compile('\s*env_file\s*=.*')
+        p = re.compile(r'\s*env_file\s*=.*')
         for i, line in enumerate(text.splitlines()):
             if p.match(line):  # matches only at beginning of string
                 try:

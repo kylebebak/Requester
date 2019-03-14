@@ -3,5 +3,6 @@ ignore =
   C812,
   C813,
   C814,
-  E226
+  E226,
+  E722
 max-line-length = 120

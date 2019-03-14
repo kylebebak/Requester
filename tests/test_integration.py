@@ -48,9 +48,9 @@ def select_line_beginnings(view, lines, clear=True):
 
 
 def get_line(view, line):
-        return view.substr(view.line(
-            view.text_point(line-1, 0)
-        ))
+    return view.substr(view.line(
+        view.text_point(line-1, 0)
+    ))
 
 
 ####################

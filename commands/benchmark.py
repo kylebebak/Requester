@@ -13,9 +13,9 @@ from ..core.parsers import parse_requests
 ResponseMetrics = namedtuple('ResponseMetrics', 'elapsed, sent, received, code, success')
 AggregateMetrics = namedtuple(
     'ResponseMetrics',
-    'success, failure,' +
-    'ok, redirect, client_error, server_error,' +
-    'sent, received,' +
+    'success, failure,'
+    'ok, redirect, client_error, server_error,'
+    'sent, received,'
     'min_time, max_time, avg_time'
 )
 

@@ -4,11 +4,11 @@ from collections import namedtuple
 from .helpers import prepend_scheme
 
 
-VERBS = '(get|options|head|post|put|patch|delete)\('
-PREFIX = '[\w_][\w\d_]*\.'
+VERBS = r'(get|options|head|post|put|patch|delete)\('
+PREFIX = r'[\w_][\w\d_]*\.'
 PREFIX_VERBS = PREFIX + VERBS
-SESSION_SEND = PREFIX + 'send\('
-ASSERTIONS = 'assert \{'
+SESSION_SEND = PREFIX + r'send\('
+ASSERTIONS = r'assert \{'
 
 Selection = namedtuple('Selection', 'selection, ordering')
 TypedSelection = namedtuple('TypedSelection', 'selection, type')

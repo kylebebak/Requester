@@ -611,7 +611,7 @@ class RequesterSaveRequestCommand(sublime_plugin.WindowCommand):
             content = requester_view.substr(sublime.Region(0, requester_view.size()))
             try:
                 start_index = content.index(original_request)
-            except ValueError as e:
+            except ValueError:
                 sublime.error_message('Save Error: your original request was modified since you first sent it!')
                 return
 
