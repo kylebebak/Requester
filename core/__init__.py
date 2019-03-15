@@ -11,6 +11,7 @@ from time import time
 from queue import Queue
 
 from ..add_path import add_path
+from .helpers import is_auxiliary_view
 from .responses import ResponseThreadPool, prepend_library
 
 
@@ -96,16 +97,6 @@ class RequestCommandMixin:
             self.view.set_status('requester.activity', '')
             self.make_requests(requests, self._env)
 
-    def is_auxiliary_view(self):
-        """Was this view opened by a Requester command? This is useful, e.g., to
-        avoid resetting `env_file` and `env_string` on these views.
-        """
-        if self.view.settings().get('requester.response_view', False):
-            return True
-        if self.view.settings().get('requester.test_view', False):
-            return True
-        return False
-
     def get_env(self):
         """Computes an env from `requester.env_string` and `requester.file`
         settings. Returns a tuple containing an env dictionary and a combined env
@@ -121,7 +112,7 @@ class RequestCommandMixin:
         env_block, env_block_line_number, env_file, env_file_line_number = [None] * 4
         parsed = False
 
-        if not self.is_auxiliary_view():  # (1) try to get env from current view
+        if not is_auxiliary_view(self.view):  # (1) try to get env from current view
             self.view.settings().set('requester.file', self.view.file_name())
             text = self.view.substr(sublime.Region(0, self.view.size()))
             env_block, env_block_line_number, env_file, env_file_line_number = self.parse_env(text)
@@ -180,7 +171,7 @@ class RequestCommandMixin:
         an alternate thread so as not to block the UI.
         """
         pools = self.RESPONSE_POOLS
-        pool = ResponseThreadPool(requests, env, self.MAX_WORKERS)  # pass along env vars to thread pool
+        pool = ResponseThreadPool(requests, env, self.MAX_WORKERS, self.view)  # pass along env vars to thread pool
         pools.put(pool)
         while pools.qsize() > self.MAX_NUM_RESPONSE_POOLS:
             old_pool = pools.get()

@@ -1,0 +1,4 @@
+# Docs and Error Messages
+Adds detailed docs on how env vars are parsed, and improves error messages, most notably for when an env string can't be evaluated successfully because of a missing env var.
+
+Check out "How Env Vars are Parsed" in the docs for more info: https://requester.org/#how-env-vars-are-parsed

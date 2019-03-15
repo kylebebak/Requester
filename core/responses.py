@@ -8,7 +8,7 @@ from collections import namedtuple, deque
 from ..deps import requests
 
 from .parsers import PREFIX
-from .helpers import truncate, prepend_scheme, is_instance
+from .helpers import truncate, prepend_scheme, is_instance, is_auxiliary_view
 
 
 Request_ = namedtuple('Request', 'request, method, url, args, kwargs, ordering, session, skwargs, error')
@@ -59,7 +59,7 @@ class ResponseThreadPool:
         if isinstance(request, Request):  # no need to prepare request
             req = request._replace(ordering=ordering)
         else:
-            req = prepare_request(request, self.env, ordering)
+            req = prepare_request(request, self.env, ordering, self.view)
         if req.error is not None:
             return Response(req, None, None)
 
@@ -115,13 +115,14 @@ class ResponseThreadPool:
             return True
         return False
 
-    def __init__(self, requests, env, max_workers):
+    def __init__(self, requests, env, max_workers, view):
         self.is_done = False
         self.responses = deque()
         self.requests = requests
         self.pending_requests = set()
         self.env = env
         self.max_workers = max_workers
+        self.view = view
 
     def get_pending_requests(self):
         """Getter for `self.pending_requests`. This is a `set` that's shared
@@ -154,7 +155,7 @@ class ResponseThreadPool:
         self.is_done = True
 
 
-def prepare_request(request, env, ordering):
+def prepare_request(request, env, ordering, view=None):
     """Parse and evaluate args and kwargs in request string under context of
     env.
 
@@ -179,9 +180,10 @@ def prepare_request(request, env, ordering):
     try:
         args, kwargs = eval('__parse_args__{}'.format(req[index:]), env)
     except Exception as e:
-        sublime.error_message('PrepareRequest Error: {}\n{}'.format(
-            e, truncate(req, 150)
-        ))
+        msg = 'PrepareRequest Error: {}\n\n{}'.format(e, truncate(req, 150))
+        if type(e) is NameError and view and is_auxiliary_view(view):
+            msg += '\n\nYou may have since deleted env var(s) from your requester file'
+        sublime.error_message(msg)
         return Request(req, method, None, [], {}, ordering, session, {}, error=str(e))
     else:
         args = list(args)

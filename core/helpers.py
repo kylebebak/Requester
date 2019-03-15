@@ -64,3 +64,14 @@ def is_instance(obj, s):
     """Is object an instance of class named `s`?
     """
     return s in str(type(obj))
+
+
+def is_auxiliary_view(view):
+    """Was view opened by a Requester command? This is useful, e.g., to
+    avoid resetting `env_file` and `env_string` on these views.
+    """
+    if view.settings().get('requester.response_view', False):
+        return True
+    if view.settings().get('requester.test_view', False):
+        return True
+    return False
