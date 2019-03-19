@@ -7,11 +7,22 @@ class add_path():
         self.path = os.path.normpath(os.path.join(*parts))
 
     def __enter__(self):
+        self.cleanup()
         sys.path.insert(0, self.path)
+        return self.path
 
     def __exit__(self, exc_type, exc_value, traceback):
-        while True:
-            try:
-                sys.path.remove(self.path)
-            except ValueError:
-                break
+        self.cleanup()
+
+    def cleanup(self):
+        try:  # guards against possibly non-deterministic bug where self is None
+            path = self.path
+        except Exception as e:
+            print('AddPath Cleanup Error: {}'.format(e))
+            return
+        else:
+            while path in sys.path:
+                try:
+                    sys.path.remove(path)
+                except ValueError:
+                    return
