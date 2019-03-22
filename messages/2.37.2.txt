@@ -1,0 +1,6 @@
+# Bug Fix
+Invokes `json.dumps` with `ensure_ascii = False` so that non-ascii chars aren't ascii-encoded in JSON responses.
+
+This improves readability of responses like this one:
+
+requests.get('https://api.partiyaedi.ru/api/v3/goods/actual')

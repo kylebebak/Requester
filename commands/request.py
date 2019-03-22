@@ -69,9 +69,9 @@ def get_content(res, fmt):
         return res.text
     else:
         if fmt == 'indent_sort':
-            return json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '))
+            return json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '), ensure_ascii=False)
         if fmt == 'indent':
-            return json.dumps(json_dict, indent=2, separators=(',', ': '))
+            return json.dumps(json_dict, indent=2, separators=(',', ': '), ensure_ascii=False)
         return res.text
 
 
