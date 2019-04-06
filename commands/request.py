@@ -62,6 +62,8 @@ def get_content(res, fmt):
             return "Response content is binary, so it won't be displayed. Try downloading this file instead."
         else:
             res.encoding = 'utf-8'
+    if res.encoding == 'ISO-8859-1':  # see this old issue: https://github.com/kennethreitz/requests/issues/1604
+        res.encoding = res.apparent_encoding
 
     try:
         json_dict = res.json()

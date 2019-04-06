@@ -1,0 +1,4 @@
+# Bug Fix
+If response encoding is 'ISO-8859-1' (Latin-1), sets encoding to `response.apparent_encoding`. This gets encoding right in many cases where encoding is not actually Latin-1.
+
+This works around some old, sort of wacky default behavior in Requests: https://github.com/kennethreitz/requests/issues/1604
