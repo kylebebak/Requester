@@ -59,7 +59,9 @@ def get_content(res, fmt):
             res.content.decode('utf-8')
         except UnicodeDecodeError:
             # content is almost certainly binary, and if it's not, requests won't know how to decode it anyway
-            return "Response content is binary, so it won't be displayed. Try downloading this file instead."
+            download = "get('{}', filename='~/Desktop')".format(res.url)
+            return ("Response content is binary, so it won't be displayed. "
+                    "Try downloading this file instead:\n\n{}".format(download))
         else:
             res.encoding = 'utf-8'
     if res.encoding == 'ISO-8859-1':  # see this old issue: https://github.com/kennethreitz/requests/issues/1604
