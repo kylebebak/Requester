@@ -175,37 +175,39 @@ class RequestsMixin:
         view = self.view
         requests = []
         for region in view.sel():
-            if not region.empty():
-                selection = view.substr(region)
-                try:
-                    requests_ = parse_requests(selection)
-                except Exception as e:
-                    sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
-                    print(e)
-                    continue
-            elif view.match_selector(region.begin(), 'source.python meta.function-call'):
-                for func_region in view.find_by_selector('source.python meta.function-call'):
-                    if func_region.contains(region):
-                        selection = view.substr(func_region)
-                        break
-                try:
-                    requests_ = parse_requests(selection)
-                except Exception as e:
-                    sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
-                    print(e)
-                    continue
-            else:
-                selection = view.substr(view.line(region))
-                extended_selection = view.substr(sublime.Region(view.line(region).a, view.size()))
-                try:
-                    requests_ = parse_requests(selection, n=1, es=extended_selection)
-                except Exception as e:
-                    sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
-                    print(e)
-                    continue
-            for request in requests_:
+            for request in self.get_requests_from_region(region):
                 requests.append(request)
         return requests
+
+    def get_requests_from_region(self, region):
+        view = self.view
+        if not region.empty():
+            selection = view.substr(region)
+            try:
+                return parse_requests(selection)
+            except Exception as e:
+                if hasattr(self, 'add_error_status_bar'):
+                    self.add_error_status_bar('there may be unbalanced parentheses in calls to requests ({})'.format(e))
+                return self.get_requests_from_region(sublime.Region(region.begin(), region.begin()))
+        elif view.match_selector(region.begin(), 'source.python meta.function-call'):
+            for func_region in view.find_by_selector('source.python meta.function-call'):
+                if func_region.contains(region):
+                    selection = view.substr(func_region)
+                    break
+            try:
+                return parse_requests(selection)
+            except Exception as e:
+                sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
+                print(e)
+        else:
+            selection = view.substr(view.line(region))
+            extended_selection = view.substr(sublime.Region(view.line(region).a, view.size()))
+            try:
+                return parse_requests(selection, n=1, es=extended_selection)
+            except Exception as e:
+                sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
+                print(e)
+        return []
 
     def show_activity_for_pending_requests(self, requests, count, activity):
         """If there are already open response views waiting to display content from
@@ -345,10 +347,9 @@ class RequesterReplayRequestCommand(RequestsMixin, RequestCommandMixin, sublime_
         """Only parses first request in file.
         """
         try:
-            request = self.get_replay_request()
+            return [self.get_replay_request()]
         except:
             return []
-        return [request]
 
     def get_replay_request(self):
         """Only parses first request in file.
