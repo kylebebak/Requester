@@ -1,2 +1,0 @@
-# New Features
-Support for streamed and chunked file uploads enabled via simple `streamed` and `chunked` special kwargs.

@@ -1,9 +1,0 @@
-# New Features
-Added request benchmarking tool, similar to ab and siege. Check the README for details.
-
-# Code
-New major version. Rewrote core API and parser so that eval is only called once per request, to extract args and kwargs from request string. Among other things, this means that method and URL, along with args and kwargs passed to requests, are known before response returns.
-
-Building new clients of the core API, such as the new benchmarking tool, is much easier.
-
-Also, various small bug fixes.

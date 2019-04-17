@@ -1,2 +1,0 @@
-# File Downloads
-If response content can't be displayed because it's binary, Requester includes instructions for downloading file.

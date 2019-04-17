@@ -1,2 +1,0 @@
-# New Feature/Bug Fix
-File downloads don't always display '?' for content length. First, `content-length` header is inspected, and if it's empty, length of response is taken.

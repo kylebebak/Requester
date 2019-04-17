@@ -1,2 +1,0 @@
-# New Features
-Test coverage was improved significantly. Also, Requester now has a docs site! Check it out at <http://requester.org>, or by running __Requester: Show Documentation (Online)__.

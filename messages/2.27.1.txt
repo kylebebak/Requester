@@ -1,2 +1,0 @@
-# Bug Fix
-Fixes a bug in __Import from cURL__; parser can now handle "#" characters.

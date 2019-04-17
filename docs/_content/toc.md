@@ -49,4 +49,5 @@
 - [Settings](#settings)
 - [Contributing and Tests](#contributing-and-tests)
 - [Inspired By](#inspired-by)
+- [Release Notes](#release-notes)
 - [Requests](#requests)

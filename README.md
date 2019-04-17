@@ -88,6 +88,10 @@ Try it out.
 Wanna see everything else Requester does? Detailed, [__fuzzy searchable documentation here__](http://requester.org).
 
 
+## Release Notes
+[See Requester's version history here](https://github.com/kylebebak/Requester/blob/master/messages/release_notes.txt).
+
+
 ## Why Requester?
 Requester combines features from applications like Postman, Paw, Insomnia and HTTPie with the elegance and power of Requests and rock-solid UX of Sublime Text.
 

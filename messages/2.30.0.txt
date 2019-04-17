@@ -1,5 +1,0 @@
-# New Features
-
-Requester history search has been updated to weight recent request history matches more heavily. This makes history search more predictable and more intuitive.
-
-Closes <https://github.com/kylebebak/Requester/issues/18>.

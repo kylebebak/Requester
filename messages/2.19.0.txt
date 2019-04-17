@@ -1,9 +1,0 @@
-# New Features
-You can save a modified request in a response tab back to the Requester file from which you sent it!
-  - Can be used repeatedly in response view.
-  - Guaranteed to old overwrite old request and nothing else.
-
-Also, the default length of response tab names is limit to 32 characters. You can change this limit in settings.
-
-# Bug Fixes
-Requester doesn't print error messages to status bar if requester file contains non-ascii chars.

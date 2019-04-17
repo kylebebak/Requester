@@ -1,6 +1,0 @@
-# New Features
-Serious GraphQL support! Requester can autocomplete any GraphQL query from a response tab.
-  - Autocomplete provides field type, name, and arguments, similar to [GraphiQL](https://github.com/graphql/graphiql).
-  - Enable autocomplete by installing `graphql-py` using `pip`, see documentation for extending Requester.
-
-As far as I know, Requester make Sublime Text the first text editor with reliable GraphQL support!

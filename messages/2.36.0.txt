@@ -1,8 +1,0 @@
-# New Features
-Adds __Requester: Open Request History File__ and __Requester: Move Requester File__ commands.
-
-The first opens the request history file in a read-only view, and the second moves a requester file to a new path and updates request history for all requests sent from this file.
-
-Also, request history now persists __combined__ env string to history file, which means any request can be re-sent even if original requester file is no longer present.
-
-Internal: further improves and simplifies code for computing env and saving to request history file.

@@ -749,6 +749,10 @@ Requester's modifiable settings, and their default values. You can override any 
 - [Postman](https://www.getpostman.com/) — A strong influence on much of Requester's "managed" UI.
 
 
+## Release Notes
+[See Requester's version history here](https://github.com/kylebebak/Requester/blob/master/messages/release_notes.txt).
+
+
 ## Requests
 The last version of Requests that supports Python 3.3 is __2.18.3__. This is the version bundled with Requester. Hopefully the next iteration of Sublime Text will support a more recent Python version!
 

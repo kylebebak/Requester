@@ -1,3 +1,0 @@
-# New Features
-
-Improvement to request history recency weighting.

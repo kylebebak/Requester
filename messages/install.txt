@@ -8,3 +8,7 @@ From the command palette, type `Requester: Show Tutorial`. If this option doesn'
 ## Issues
 If you find any bugs or if you think something should be added to Requester, please open an issue:
 https://github.com/kylebebak/Requester/issues
+
+## Release Notes
+See here:
+https://github.com/kylebebak/Requester/blob/master/messages/release_notes.txt

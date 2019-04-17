@@ -1,6 +1,0 @@
-# New Features
-Requester's Test Runner now supports __custom validation functions__, which allow you to make assertions about any aspect of response object using anything Python has to offer.
-
-This is a feature I've wanted to add for a long time. I hope you all like the implementation. Check out the docs to see how it works.
-
-Also, Export to cURL now supports basic authentication.

@@ -1,2 +1,0 @@
-# Bug Fix
-__Explore URL in Response Tab__ command works for localhost URLs.

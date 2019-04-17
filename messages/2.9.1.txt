@@ -1,2 +1,0 @@
-# Code
-Fixed a bug for uploads: Requester now displays an error message if the file being uploaded doesn't exist.

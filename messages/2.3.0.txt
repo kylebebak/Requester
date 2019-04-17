@@ -1,5 +1,0 @@
-# New Features
-Added __export to cURL__ and __import from cURL__ commands.
-
-# Code
-Fixed bug with `requests` args that had a trailing comma, re-executing these requests from response tab used to raise exception.

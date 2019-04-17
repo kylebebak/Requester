@@ -72,6 +72,8 @@ def get_content(res, fmt):
     except:
         return res.text
     else:
+        # https://stackoverflow.com/questions/40412714/using-json-dumps-with-ensure-ascii-true
+        # ensures non-ascii chars aren't escaped; if all text is in unicode using ensure_ascii=False is safe
         if fmt == 'indent_sort':
             return json.dumps(json_dict, sort_keys=True, indent=2, separators=(',', ': '), ensure_ascii=False)
         if fmt == 'indent':

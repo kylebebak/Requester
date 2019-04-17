@@ -1,5 +1,0 @@
-# New Features
-Added __export to HTTPie__ command.
-
-# Code
-Fixed subtle bugs in arg parsing for export commands. Also made error messages more explicit for certain syntax and parsing errors.

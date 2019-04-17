@@ -1,4 +1,0 @@
-# New Feature
-Multiline requests can now be executed by placing cursor __anywhere__ inside the request, not just on the first line, thanks again to @jcberquist =)
-
-This works as long as the view's syntax recognizes Python function calls.

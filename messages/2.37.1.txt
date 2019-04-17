@@ -1,2 +1,0 @@
-# Bug Fix
-Fixes strange, possibly non-deterministic context manager bug in `add_path`.

@@ -1,5 +1,0 @@
-# New Features
-Improved syntax highlighting for test run views.
-
-# Code
-Fixed performance issues with benchmark runs, and fixed potential race conditions with pending requests.
