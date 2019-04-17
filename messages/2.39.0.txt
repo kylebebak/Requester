@@ -1,0 +1,14 @@
+# Request parsing
+For request parsing errors with non-empty selections, retry parsing with empty selection starting at `region.begin()`.
+
+This improves ergonomics, for example when navigating through requests in a requester files using fuzzy match.
+
+Try highlighting the first 4, 5, 6, 7... characters of this request and then execute it:
+
+get('google.com')
+
+This works for multi-line requests as well. Try highlighting "get(" on the first line, then executing the request.
+
+get(
+  'google.com'
+)
