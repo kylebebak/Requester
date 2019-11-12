@@ -1,3 +1,7 @@
+# 2.39.2
+Improves `curl_to_request`; to gracefully ignore unknown CURL args.
+
+
 # 2.39.1
 Puts all release notes in this file.
 

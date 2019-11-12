@@ -331,7 +331,7 @@ def curl_to_request(curl):
     parser.add_argument('--compressed', action='store_true')
 
     tokens = shlex.split(curl, comments=True)
-    parsed_args = parser.parse_args(tokens)
+    parsed_args, _ = parser.parse_known_args(tokens)
 
     method = 'get'
     if parsed_args.request:
