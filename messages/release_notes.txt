@@ -53,7 +53,7 @@ Fixes strange, possibly non-deterministic context manager bug in `add_path`.
 ## Docs and Error Messages
 Adds detailed docs on how env vars are parsed, and improves error messages, most notably for when an env string can't be evaluated successfully because of a missing env var.
 
-Check out "How Env Vars are Parsed" in the docs for more info: https://requester.org/#how-env-vars-are-parsed
+Check out "How Env Vars are Parsed" in the docs for more info: https://kylebebak.github.io/Requester/#how-env-vars-are-parsed
 
 
 # 2.36.0
@@ -303,7 +303,7 @@ Extending Requester: no longer writes writes same `packages_path` to `sys.path` 
 
 # 2.16.0
 ## New Features
-Test coverage was improved significantly. Also, Requester now has a docs site! Check it out at <http://requester.org>, or by running __Requester: Show Documentation (Online)__.
+Test coverage was improved significantly. Also, Requester now has a docs site! Check it out at <https://kylebebak.github.io/Requester/>, or by running __Requester: Show Documentation (Online)__.
 
 
 # 2.15.0

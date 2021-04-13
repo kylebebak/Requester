@@ -10,13 +10,13 @@ title: "Requester HTTP Client Documentation"
 email: kylebebak@gmail.com
 description: > # this means to ignore newlines until "baseurl:"
   Searchable Docs
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "http://requester.org" # the base hostname & protocol for your site
+baseurl: "/Requester" # the subpath of your site, e.g. /blog
+url: "https://kylebebak.github.io/Requester/" # the base hostname & protocol for your site
 twitter_username: KyleBebak
 github_username: kylebebak
 # no date or extension in url
 permalink: /post/:title
-home: "http://requester.org"
+home: "https://kylebebak.github.io/Requester/"
 github_url: "https://github.com/kylebebak/Requester"
 youtube_url: "https://www.youtube.com/watch?v=kVO5AWIsmF0"
 

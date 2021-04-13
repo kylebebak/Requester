@@ -745,7 +745,7 @@ Requester's modifiable settings, and their default values. You can override any 
 
 ## Inspired By
 - [Requests](http://docs.python-requests.org/en/master/) — Requester sends all its requests using this amazing library.
-- [HTTPie](https://github.com/jakubroztocil/httpie) — A truly Pythonic tool. Its focus on intuitiveness and ergonomics inspired many of Requester's features, including its [docs site](http://requester.org).
+- [HTTPie](https://github.com/jakubroztocil/httpie) — A truly Pythonic tool. Its focus on intuitiveness and ergonomics inspired many of Requester's features, including its [docs site](https://kylebebak.github.io/Requester/).
 - [Postman](https://www.getpostman.com/) — A strong influence on much of Requester's "managed" UI.
 
 

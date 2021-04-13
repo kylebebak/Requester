@@ -13,4 +13,5 @@ setup.cfg
 # Jekyll
 .sass-cache
 .jekyll-metadata
+.jekyll-cache
 _site

@@ -47,4 +47,4 @@ Try it out.
 
 
 ## Documentation
-Wanna see everything else Requester does? Detailed, [__fuzzy searchable documentation here__](http://requester.org).
+Wanna see everything else Requester does? Detailed, [__fuzzy searchable documentation here__](https://kylebebak.github.io/Requester/).

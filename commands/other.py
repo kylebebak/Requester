@@ -53,7 +53,7 @@ class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
     """
     def run(self, online=False):
         if online:
-            webbrowser.open_new_tab('http://requester.org')
+            webbrowser.open_new_tab('https://kylebebak.github.io/Requester/')
             return
         show_read_only_doc_view(
             self.window.new_file(),
