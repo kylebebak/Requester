@@ -1,3 +1,7 @@
+# 2.39.3
+Changes domain of docs site.
+
+
 # 2.39.2
 Improves `curl_to_request`; to gracefully ignore unknown CURL args.
 

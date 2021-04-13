@@ -25,7 +25,7 @@ markdown: kramdown
 kramdown:
   input: GFM
 
-exclude: [Gemfile, Gemfile.lock, tutorial.pyr, build.py, toc.py]
+exclude: [Gemfile, Gemfile.lock, tutorial.pyr, build.py, toc.py, README.md]
 
 gems:
   - jekyll-seo-tag

@@ -240,7 +240,7 @@ post('https://requestb.in/<your_request_bin>', chunked='/path/to/file')
 
 If you pass the file as a `chunked` upload, the __"Transfer-Encoding": "chunked"__ header is added to your request. Some servers don't allow chunked uploads, in which case you can use a `streamed` upload. If they're an option, chunked uploads are nicer: they come with a progress bar and can be cancelled.
 
->If you need streaming uploads for multipart forms, or uploads of multiple files, the `requests-toolbelt` package has your back. Check out [this section](#import-any-python-package-with-requester).
+>If you need streaming uploads for multipart forms, or uploads of multiple files, the `requests-toolbelt` package has your back. Check out [this section](#import-any-python-package-in-requester-env).
 
 
 ### Downloads

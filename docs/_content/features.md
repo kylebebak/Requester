@@ -21,7 +21,7 @@ __Requester__ is a modern, team-oriented HTTP client for Sublime Text 3 that com
     * [__Export Requester tests to runnable test script__](https://kylebebak.github.io/Requester/#export-tests-to-runnable-script)
   + [AB-style](https://httpd.apache.org/docs/2.4/programs/ab.html) benchmarking tool
   + Runs on Linux, Windows and macOS/OS X
-- [__Highly extensible__](https://kylebebak.github.io/Requester/#import-any-python-package-with-requester)
+- [__Highly extensible__](https://kylebebak.github.io/Requester/#import-any-python-package-in-requester-env)
 
 ---
 
