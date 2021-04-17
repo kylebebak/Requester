@@ -308,7 +308,7 @@ def request_to_httpie(request):
 
 
 def curl_to_request(curl):
-    """Lifted from: https://github.com/spulec/uncurl, but with many improvements.
+    """Lifted from: https://github.com/spulec/uncurl, but with some improvements.
 
     Rewritten to remove `six` and `xerox` dependencies, and add parsing of cookies
     passed in `-b` or `--cookies` named argument Also added support for `-A` and
@@ -328,6 +328,7 @@ def curl_to_request(curl):
     parser.add_argument('-H', '--header', action='append', default=[])
     parser.add_argument('-A', '--user-agent', default=None)
     parser.add_argument('--data-binary', default=None)
+    parser.add_argument('--data-raw', default=None)
     parser.add_argument('--compressed', action='store_true')
 
     tokens = shlex.split(curl, comments=True)
@@ -338,7 +339,7 @@ def curl_to_request(curl):
         method = parsed_args.request
 
     base_indent = ' ' * 4
-    post_data = parsed_args.data or parsed_args.data_binary or ''
+    post_data = parsed_args.data or parsed_args.data_binary or parsed_args.data_raw or ''
     if post_data:
         if not parsed_args.request:
             method = 'post'

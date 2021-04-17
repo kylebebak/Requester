@@ -1,3 +1,7 @@
+# 2.39.4
+Fixes bug in parsing --data-raw cURL arg.
+
+
 # 2.39.3
 Changes domain of docs site.
 
