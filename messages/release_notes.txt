@@ -1,3 +1,7 @@
+# 2.39.5
+Update path to MarkdownEditing syntax file for Requester: Show Documentation (Local)
+
+
 # 2.39.4
 Fixes bug in parsing --data-raw cURL arg.
 

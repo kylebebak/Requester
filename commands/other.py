@@ -59,7 +59,10 @@ class RequesterShowDocumentationCommand(sublime_plugin.WindowCommand):
             self.window.new_file(),
             sublime.load_resource('Packages/Requester/docs/_content/body.md'),
             'Requester Documentation.md',
-            ['Packages/MarkdownEditing/Markdown.sublime-syntax', 'Packages/Markdown/Markdown.sublime-syntax']
+            [
+                'Packages/MarkdownEditing/syntaxes/Markdown.sublime-syntax',
+                'Packages/MarkdownEditing/Markdown.sublime-syntax'
+            ]
         )
 
 
