@@ -12,4 +12,4 @@ If you find any bugs or if you think something should be added to Requester, ple
 
 ## Release Notes
 
-See here: <https://github.com/kylebebak/Requester/blob/master/messages/release_notes.txt>
+See here: <https://github.com/kylebebak/Requester/blob/master/messages/release_notes.md>

@@ -751,7 +751,7 @@ Requester's modifiable settings, and their default values. You can override any 
 
 ## Release Notes
 
-[See Requester's version history here](https://github.com/kylebebak/Requester/blob/master/messages/release_notes.txt).
+[See Requester's version history here](https://github.com/kylebebak/Requester/blob/master/messages/release_notes.md).
 
 ## Requests
 
