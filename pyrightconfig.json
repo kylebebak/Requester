@@ -1,0 +1,19 @@
+{
+  "stubPath": "./typings",
+  "include": ["commands", "core"],
+  "useLibraryCodeForTypes": true,
+  "reportOptionalSubscript": "error",
+  "reportOptionalMemberAccess": "error",
+  "reportOptionalCall": "error",
+  "reportOptionalIterable": "error",
+  "reportOptionalContextManager": "error",
+  "reportOptionalOperand": "error",
+  "strictListInference": true,
+  "strictDictionaryInference": true,
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportUnnecessaryCast": "warning",
+  "reportUnnecessaryComparison": "error",
+  "reportConstantRedefinition": "error",
+  "reportUnnecessaryTypeIgnoreComment": "warning"
+}

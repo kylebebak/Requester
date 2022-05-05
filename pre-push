@@ -1,0 +1,8 @@
+#!/bin/bash -e
+
+# run from root of repo: `cd .git/hooks && ln -s -f ../../pre-push`
+
+isort --check .
+black --check .
+flake8 .
+pyright

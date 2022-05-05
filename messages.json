@@ -1,4 +1,4 @@
 {
-  "install": "messages/install.txt",
-  "2.39.5": "messages/release_notes.txt"
+  "install": "messages/install.md",
+  "2.39.5": "messages/release_notes.md"
 }
