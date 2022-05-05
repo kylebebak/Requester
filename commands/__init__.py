@@ -1,8 +1,8 @@
 # flake8: noqa
-from .graphql import *
 from .auth import *
 from .benchmark import *
 from .download import *
+from .graphql import *
 from .import_export import *
 from .other import *
 from .request import *

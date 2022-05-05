@@ -1,8 +1,8 @@
-import sys
 import os
+import sys
 
 
-class add_path():
+class add_path:
     def __init__(self, *parts):
         self.path = os.path.normpath(os.path.join(*parts))
 
@@ -18,7 +18,7 @@ class add_path():
         try:  # guards against possibly non-deterministic bug where self is None
             path = self.path
         except Exception as e:
-            print('AddPath Cleanup Error: {}'.format(e))
+            print("AddPath Cleanup Error: {}".format(e))
             return
         else:
             while path in sys.path:

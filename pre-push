@@ -4,5 +4,5 @@
 
 isort --check .
 black --check .
-flake8 .
+flake8 . --exclude deps,docs
 pyright

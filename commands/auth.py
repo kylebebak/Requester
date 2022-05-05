@@ -7,7 +7,7 @@ class RequesterAuthOptionsCommand(sublime_plugin.WindowCommand):
     def run(self, fmt=None):
         self.window.show_quick_panel([s[0] for s in snippets], self.on_done)
 
-    def on_done(self, index):
+    def on_done(self, index: int):
         """Create a view with chosen snippet."""
         if index < 0:  # e.g. user presses escape
             return

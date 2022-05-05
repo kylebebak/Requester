@@ -1,39 +1,34 @@
+from collections import defaultdict, namedtuple
+from math import ceil, floor
+from time import time
+
 import sublime
 import sublime_plugin
 
-from math import floor, ceil
-from time import time
-from collections import namedtuple, defaultdict
-
 from ..core import RequestCommandMixin
-from ..core.responses import prepare_request
 from ..core.parsers import parse_requests
+from ..core.responses import prepare_request
 
-
-ResponseMetrics = namedtuple('ResponseMetrics', 'elapsed, sent, received, code, success')
+ResponseMetrics = namedtuple("ResponseMetrics", "elapsed, sent, received, code, success")
 AggregateMetrics = namedtuple(
-    'ResponseMetrics',
-    'success, failure,'
-    'ok, redirect, client_error, server_error,'
-    'sent, received,'
-    'min_time, max_time, avg_time'
+    "ResponseMetrics",
+    "success, failure," "ok, redirect, client_error, server_error," "sent, received," "min_time, max_time, avg_time",
 )
 
 
 def header_size(headers):
-    """https://stackoverflow.com/questions/33064891/python-requests-urllib-monitoring-bandwidth-usage
-    """
+    """https://stackoverflow.com/questions/33064891/python-requests-urllib-monitoring-bandwidth-usage"""
     return sum(len(key) + len(value) + 4 for key, value in headers.items()) + 2
 
 
 def request_response_size_kb(res):
-    """https://stackoverflow.com/questions/33064891/python-requests-urllib-monitoring-bandwidth-usage
-    """
+    """https://stackoverflow.com/questions/33064891/python-requests-urllib-monitoring-bandwidth-usage"""
     request_line_size = len(res.request.method) + len(res.request.path_url) + 12
-    request_size = request_line_size + header_size(res.request.headers)\
-        + int(res.request.headers.get('content-length', 0))
+    request_size = (
+        request_line_size + header_size(res.request.headers) + int(res.request.headers.get("content-length", 0))
+    )
     response_line_size = len(res.reason) + 15
-    response_size = response_line_size + header_size(res.headers) + int(res.headers.get('content-length', 0))
+    response_size = response_line_size + header_size(res.headers) + int(res.headers.get("content-length", 0))
     return (request_size / 1024, response_size / 1024)
 
 
@@ -41,26 +36,27 @@ class RequesterPromptBenchmarksCommand(sublime_plugin.WindowCommand):
     """Parse `num` and `concurrency` from user input and pass them to
     `RequesterBenchmarksCommand`.
     """
+
     def run(self, fmt=None):
-        self.window.show_input_panel('number of repetitions N:', '1', self.on_done_num, None, None)
+        self.window.show_input_panel("number of repetitions N:", "1", self.on_done_num, None, None)
 
     def on_done_num(self, text):
         try:
             self.num = int(text)
         except ValueError:
-            sublime.error_message('Value Error: pass a valid integer for N')
+            sublime.error_message("Value Error: pass a valid integer for N")
             return
-        self.window.show_input_panel('concurrency C:', '10', self.on_done_concurrency, None, None)
+        self.window.show_input_panel("concurrency C:", "10", self.on_done_concurrency, None, None)
 
     def on_done_concurrency(self, text):
         try:
             self.concurrency = int(text)
         except ValueError:
-            sublime.error_message('Value Error: pass a valid integer for C')
+            sublime.error_message("Value Error: pass a valid integer for C")
             return
         if self.window.active_view():
             self.window.active_view().run_command(
-                'requester_benchmarks', {'num': self.num, 'concurrency': self.concurrency}
+                "requester_benchmarks", {"num": self.num, "concurrency": self.concurrency}
             )
 
 
@@ -68,11 +64,11 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
     """Execute each selected request `num` times, with specified `concurrency`,
     and display response time metrics.
     """
+
     MAX_REQUESTS = 100000
 
     def run(self, edit, num, concurrency):
-        """Allow user to specify concurrency.
-        """
+        """Allow user to specify concurrency."""
         self.REPETITIONS = max(1, num)
         self.MAX_WORKERS = min(max(1, concurrency), 1000)
         self.count = 0
@@ -95,7 +91,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             try:
                 requests_ = parse_requests(selection)
             except Exception as e:
-                sublime.error_message('Parse Error: there may be unbalanced parentheses in calls to requests')
+                sublime.error_message("Parse Error: there may be unbalanced parentheses in calls to requests")
                 print(e)
             else:
                 for i, request in enumerate(requests_):
@@ -104,7 +100,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
                     requests.append(prepare_request(request, self._env, i))
         if len(requests) * self.REPETITIONS > self.MAX_REQUESTS:  # avoid attempting to instantiate huge list
             self.REPETITIONS = ceil(self.MAX_REQUESTS / len(requests))
-        requests = (requests * self.REPETITIONS)[:self.MAX_REQUESTS]
+        requests = (requests * self.REPETITIONS)[: self.MAX_REQUESTS]
         self.total = len(requests)
         return requests
 
@@ -113,16 +109,17 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         metrics in bucket according to request URL and response status code.
         """
         req, res, err = response
-        if res is None and err == '':  # this was a cancelled response, don't include it in metrics
+        if res is None and err == "":  # this was a cancelled response, don't include it in metrics
             return
 
         self.count += 1
         if floor(100 * (self.count - 1) / self.total) != floor(100 * self.count / self.total):
-            self.view.set_status('requester.benchmarks', 'Requester Benchmarks: {}'.format(
-                self.get_progress_indicator(self.count, self.total)
-            ))
+            self.view.set_status(
+                "requester.benchmarks",
+                "Requester Benchmarks: {}".format(self.get_progress_indicator(self.count, self.total)),
+            )
 
-        key = '{}: {}'.format(req.method, req.url)
+        key = "{}: {}".format(req.method, req.url)
         if res is None or err:
             self.metrics[key].append(ResponseMetrics(0, 0, 0, None, False))
             return
@@ -132,8 +129,7 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
         self.metrics[key].append(ResponseMetrics(elapsed, sent, received, res.status_code, True))
 
     def handle_responses(self, responses):
-        """Invoke the real function on a different thread to avoid blocking UI.
-        """
+        """Invoke the real function on a different thread to avoid blocking UI."""
         sublime.set_timeout_async(self._handle_responses, 0)
 
     def _handle_responses(self):
@@ -153,53 +149,50 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             response_rate = all_metrics.success / elapsed
             transfer_rate = all_metrics.received / elapsed
 
-        rates = '-- {}s, {} requests/s, {} kB/s, {} concurrency --'.format(
+        rates = "-- {}s, {} requests/s, {} kB/s, {} concurrency --".format(
             round(elapsed, 3),
-            round(response_rate, 2) if response_rate else '?',
-            round(transfer_rate, 2) if transfer_rate else '?',
-            self.MAX_WORKERS
+            round(response_rate, 2) if response_rate else "?",
+            round(transfer_rate, 2) if transfer_rate else "?",
+            self.MAX_WORKERS,
         )
-        profiles = ['{}\n{}'.format(k, self.get_profile_string(v)) for k, v in method_url_metrics.items()]
+        profiles = ["{}\n{}".format(k, self.get_profile_string(v)) for k, v in method_url_metrics.items()]
         if len(method_url_metrics) > 1:
             profiles.insert(0, self.get_profile_string(all_metrics))
 
         view = self.view.window().new_file()
         view.set_scratch(True)
-        view.run_command('requester_replace_view_text',
-                         {'text': rates + '\n\n\n' + '\n\n\n'.join(profiles) + '\n', 'point': 0})
+        view.run_command(
+            "requester_replace_view_text", {"text": rates + "\n\n\n" + "\n\n\n".join(profiles) + "\n", "point": 0}
+        )
         view.set_read_only(True)
-        view.set_name('Requester Benchmarks')
-        view.set_syntax_file('Packages/Requester/syntax/requester-benchmarks.sublime-syntax')
+        view.set_name("Requester Benchmarks")
+        view.set_syntax_file("Packages/Requester/syntax/requester-benchmarks.sublime-syntax")
 
     def handle_errors(self, responses):
-        """Don't allow default error handler to run, don't display error messages.
-        """
+        """Don't allow default error handler to run, don't display error messages."""
 
     def persist_requests(self, responses):
-        """Requests shouldn't be persisted for benchmark runs.
-        """
+        """Requests shouldn't be persisted for benchmark runs."""
 
     @staticmethod
     def get_profile_string(metrics):
-        """Builds the profile string for a given group of metrics.
-        """
+        """Builds the profile string for a given group of metrics."""
         m = metrics
-        header = '{} requests, {} successful'.format(m.success + m.failure, m.success)
-        codes = '{} ok, {} redirect, {} client error, {} server error'.format(
+        header = "{} requests, {} successful".format(m.success + m.failure, m.success)
+        codes = "{} ok, {} redirect, {} client error, {} server error".format(
             m.ok, m.redirect, m.client_error, m.server_error
         )
-        transfer = '{} kB sent, {} kB received'.format(round(m.sent, 2), round(m.received, 2))
-        times = 'fastest: {}s\nslowest: {}s\naverage: {}s'.format(
-            round(m.min_time, 3) if m.min_time is not None else '?',
-            round(m.max_time, 3) if m.max_time is not None else '?',
-            round(m.avg_time, 3) if m.avg_time is not None else '?'
+        transfer = "{} kB sent, {} kB received".format(round(m.sent, 2), round(m.received, 2))
+        times = "fastest: {}s\nslowest: {}s\naverage: {}s".format(
+            round(m.min_time, 3) if m.min_time is not None else "?",
+            round(m.max_time, 3) if m.max_time is not None else "?",
+            round(m.avg_time, 3) if m.avg_time is not None else "?",
         )
-        return '\n'.join([header, codes, transfer, times])
+        return "\n".join([header, codes, transfer, times])
 
     @staticmethod
     def aggregate_metrics(metrics):
-        """Returns a `namedtuple` with metrics aggregated from `metrics`.
-        """
+        """Returns a `namedtuple` with metrics aggregated from `metrics`."""
         success, failure = 0, 0
         ok, redirect, client_error, server_error = 0, 0, 0, 0
         sent, received = 0, 0
@@ -238,16 +231,28 @@ class RequesterBenchmarksCommand(RequestCommandMixin, sublime_plugin.TextCommand
             else:
                 max_time = max(max_time, m.elapsed)
 
-        return AggregateMetrics(success, failure, ok, redirect, client_error, server_error,
-                                sent, received, min_time, max_time, elapsed / success if success else None)
+        return AggregateMetrics(
+            success,
+            failure,
+            ok,
+            redirect,
+            client_error,
+            server_error,
+            sent,
+            received,
+            min_time,
+            max_time,
+            elapsed / success if success else None,
+        )
 
     @staticmethod
     def get_progress_indicator(count, total, spaces=50):
-        """For showing user how many requests are remaining.
-        """
+        """For showing user how many requests are remaining."""
         if not total:
-            return '?'
-        spaces_filled = int(spaces * count/total)
-        return '{} requests, [{}] {} completed'.format(
-            total, '·'*spaces_filled + ' '*(spaces-spaces_filled-1), count,
+            return "?"
+        spaces_filled = int(spaces * count / total)
+        return "{} requests, [{}] {} completed".format(
+            total,
+            "·" * spaces_filled + " " * (spaces - spaces_filled - 1),
+            count,
         )

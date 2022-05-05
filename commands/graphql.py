@@ -1,21 +1,19 @@
-import sublime
-import sublime_plugin
-
 import re
 import sys
 import traceback
 from threading import Thread
 
-from ..deps import requests
-from ..deps.graphql.parser import GraphQLParser
-from ..deps.graphql.lexer import GraphQLLexer
+import sublime
+import sublime_plugin
 
 from ..core import RequestCommandMixin
 from ..core.parsers import parse_requests
 from ..core.responses import prepare_request
+from ..deps import requests
+from ..deps.graphql.lexer import GraphQLLexer
+from ..deps.graphql.parser import GraphQLParser
 
-
-placeholder = '__introspection_placeholder'
+placeholder = "__introspection_placeholder"
 introspection_query = """
 query IntrospectionQuery {
   __schema {
@@ -90,7 +88,7 @@ def set_graphql_schema_on_view(view, req):
     """If request was to a GraphQL endpoint, send introspection query on a separate
     thread, parse response and set it on view.
     """
-    if not req.skwargs.get('gql'):
+    if not req.skwargs.get("gql"):
         return
 
     def _set(view, url):
@@ -102,28 +100,28 @@ def set_graphql_schema_on_view(view, req):
             fieldName -> fieldDict
         """
         kwargs = dict(req.kwargs)
-        kwargs.pop('params', None)
-        kwargs.pop('json', None)
-        kwargs['timeout'] = 3
+        kwargs.pop("params", None)
+        kwargs.pop("json", None)
+        kwargs["timeout"] = 3
 
         try:
-            response = requests.get(url, params={'query': introspection_query}, **kwargs)
-            schema = response.json()['data']['__schema']  # get root `Query` type
-            query_type = schema['queryType']['name']
+            response = requests.get(url, params={"query": introspection_query}, **kwargs)
+            schema = response.json()["data"]["__schema"]  # get root `Query` type
+            query_type = schema["queryType"]["name"]
         except:
-            response = requests.post(url, json={'query': introspection_query}, **kwargs)
-            schema = response.json()['data']['__schema']  # get root `Query` type
-            query_type = schema['queryType']['name']
+            response = requests.post(url, json={"query": introspection_query}, **kwargs)
+            schema = response.json()["data"]["__schema"]  # get root `Query` type
+            query_type = schema["queryType"]["name"]
 
         types = {}
-        for t in schema['types']:
-            types[t['name']] = t
-            fields = {f['name']: f for f in (t['fields'] or [])}
-            t['fields'] = fields
+        for t in schema["types"]:
+            types[t["name"]] = t
+            fields = {f["name"]: f for f in (t["fields"] or [])}
+            t["fields"] = fields
 
-        view.settings().set('requester.gql_schema', (query_type, types))
+        view.settings().set("requester.gql_schema", (query_type, types))
 
-    thread = Thread(target=lambda: _set(view, req.url.split('?')[0]))
+    thread = Thread(target=lambda: _set(view, req.url.split("?")[0]))
     thread.start()
 
 
@@ -133,8 +131,8 @@ class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
         view. Inside gql query string, only completions returned by this method
         are shown.
         """
-        response_view = view.settings().get('requester.response_view', False)
-        history_view = view.settings().get('requester.history_view', False)
+        response_view = view.settings().get("requester.response_view", False)
+        history_view = view.settings().get("requester.history_view", False)
         if not response_view and not history_view:
             return None
 
@@ -148,26 +146,26 @@ class RequesterGqlAutocompleteListener(sublime_plugin.EventListener):
         try:
             request = parse_requests(content, n=1)[0]
 
-            if getattr(view, '_env', None) is None:
+            if getattr(view, "_env", None) is None:
                 view._env = RequestCommandMixin.get_env_dict_from_string(
-                    view.settings().get('requester.env_string', None)
+                    view.settings().get("requester.env_string", None)
                 )
             req = prepare_request(request, view._env, 1)
 
-            schema = view.settings().get('requester.gql_schema', None)
+            schema = view.settings().get("requester.gql_schema", None)
             if not schema:  # let user know schema is being retrieved
                 set_graphql_schema_on_view(view, req)
-                raise Exception('Loading GraphQL schema info')
+                raise Exception("Loading GraphQL schema info")
 
-            gql = req.skwargs['gql']
-            completions = get_completions(gql, idx-offset, schema)
+            gql = req.skwargs["gql"]
+            completions = get_completions(gql, idx - offset, schema)
             return completions
         except Exception as e:
-            print('GraphQL Error:')
+            print("GraphQL Error:")
             traceback.print_exc(file=sys.stdout)
             return (
-                [[str(e), ' '], ['...', ' ']],
-                sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS
+                [[str(e), " "], ["...", " "]],
+                sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS,
             )
 
 
@@ -187,23 +185,22 @@ def get_completions(gql, idx, schema):
 
     query_type, types = schema
     t = resolve_type(path, types, query_type)
-    fields = types[t]['fields']
+    fields = types[t]["fields"]
 
     completions = []
     for f in fields.values():
-        name = f['name']
-        args = [a['name'] + ':' for a in f['args']]
-        args_string = '({})'.format(', '.join(args)) if args else ''
+        name = f["name"]
+        args = [a["name"] + ":" for a in f["args"]]
+        args_string = "({})".format(", ".join(args)) if args else ""
         type_name = resolve_field_type(f)
-        completions.append([
-            '{}{}\t{}'.format(name, args_string, type_name),
-            '{}{}'.format(name, args_string),
-        ])
+        completions.append(
+            [
+                "{}{}\t{}".format(name, args_string, type_name),
+                "{}{}".format(name, args_string),
+            ]
+        )
 
-    return (
-        completions,
-        sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS
-    )
+    return (completions, sublime.INHIBIT_WORD_COMPLETIONS | sublime.INHIBIT_EXPLICIT_COMPLETIONS)
 
 
 def resolve_type(path, types, query_type):
@@ -212,21 +209,20 @@ def resolve_type(path, types, query_type):
     """
     t = query_type
     for f in path[:-1]:  # stop before reaching placeholder
-        field = types[t]['fields'][f]
+        field = types[t]["fields"][f]
         t = resolve_field_type(field)
     return t
 
 
 def resolve_field_type(field):
-    """Keep digging into field type until finding a non-null `name`.
-    """
-    type_ = field['type']
-    while type_['name'] is None:
+    """Keep digging into field type until finding a non-null `name`."""
+    type_ = field["type"]
+    while type_["name"] is None:
         try:
-            type_ = type_['ofType']
+            type_ = type_["ofType"]
         except:
             return None
-    return type_['name']
+    return type_["name"]
 
 
 def placeholder_path(field, placeholder):
@@ -249,13 +245,12 @@ def placeholder_path(field, placeholder):
 
 
 def slurp_word(s, idx):
-    """Returns index boundaries of word adjacent to `idx` in `s`.
-    """
-    alnum = r'[A-Za-z0-9_]'
+    """Returns index boundaries of word adjacent to `idx` in `s`."""
+    alnum = r"[A-Za-z0-9_]"
     start, end = idx, idx
 
     while True:
-        if re.match(alnum, s[start-1]):
+        if re.match(alnum, s[start - 1]):
             start -= 1
         else:
             break

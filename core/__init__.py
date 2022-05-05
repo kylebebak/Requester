@@ -1,14 +1,14 @@
-import sublime
-
-import os
-import sys
 import imp
-import re
 import json
+import os
+import re
+import sys
 from collections import OrderedDict
-from threading import Thread, Lock
-from time import time
 from queue import Queue
+from threading import Lock, Thread
+from time import time
+
+import sublime
 
 from ..add_path import add_path
 from .helpers import is_auxiliary_view
@@ -24,6 +24,7 @@ class RequestCommandMixin:
     It must be mixed in to classes that also inherit from
     `sublime_plugin.TextCommand`.
     """
+
     REFRESH_MS = 100  # period of checks on async operations, e.g. requests
     ACTIVITY_SPACES = 9  # number of spaces in activity indicator
     MAX_WORKERS = 10  # default request concurrency
@@ -36,8 +37,7 @@ class RequestCommandMixin:
 
         Hint: use `core.parsers.parse_requests`.
         """
-        raise NotImplementedError(
-            '"get_requests" must be overridden to return a list of request strings')
+        raise NotImplementedError('"get_requests" must be overridden to return a list of request strings')
 
     def show_activity_for_pending_requests(self, requests, count, activity):
         """Override this method to customize user feedback for pending requests.
@@ -60,15 +60,15 @@ class RequestCommandMixin:
         is a convenience method that is called on all responses after they are
         returned.
         """
-        errors = ['{}\n{}'.format(r.req.request, r.err) for r in responses if r.err]
+        errors = ["{}\n{}".format(r.req.request, r.err) for r in responses if r.err]
         if errors:
-            sublime.error_message('\n\n'.join(errors[:100]))
+            sublime.error_message("\n\n".join(errors[:100]))
             if len(errors) > 100:
-                print('Requester Errors: {} remaining errors not printed'.format(len(errors) - 100))
+                print("Requester Errors: {} remaining errors not printed".format(len(errors) - 100))
 
     def run(self, edit):
         self.reset_status()
-        self.config = sublime.load_settings('Requester.sublime-settings')
+        self.config = sublime.load_settings("Requester.sublime-settings")
         # `run` runs first, which means `self.config` is available to all methods
         thread = Thread(target=self._get_env)
         thread.start()
@@ -80,21 +80,21 @@ class RequestCommandMixin:
         which point `make_requests` can be invoked. Return if thread times out.
         """
         REFRESH_MULTIPLIER = 2
-        activity = self.get_activity_indicator(count//REFRESH_MULTIPLIER, self.ACTIVITY_SPACES)
+        activity = self.get_activity_indicator(count // REFRESH_MULTIPLIER, self.ACTIVITY_SPACES)
         if count > 0:  # don't distract user with RequesterEnv status if env can be evaluated quickly
-            self.view.set_status('requester.activity', '{} {}'.format('RequesterEnv', activity))
+            self.view.set_status("requester.activity", "{} {}".format("RequesterEnv", activity))
 
         if thread.is_alive():
-            timeout = self.config.get('timeout_env', None)
-            if timeout is not None and count * self.REFRESH_MS/REFRESH_MULTIPLIER > timeout * 1000:
-                sublime.error_message('Timeout Error: environment took too long to parse')
-                self.view.set_status('requester.activity', '')
+            timeout = self.config.get("timeout_env", None)
+            if timeout is not None and count * self.REFRESH_MS / REFRESH_MULTIPLIER > timeout * 1000:
+                sublime.error_message("Timeout Error: environment took too long to parse")
+                self.view.set_status("requester.activity", "")
                 return
-            sublime.set_timeout(lambda: self._run(thread, count+1), self.REFRESH_MS/REFRESH_MULTIPLIER)
+            sublime.set_timeout(lambda: self._run(thread, count + 1), self.REFRESH_MS / REFRESH_MULTIPLIER)
 
         else:
             requests = self.get_requests()
-            self.view.set_status('requester.activity', '')
+            self.view.set_status("requester.activity", "")
             self.make_requests(requests, self._env)
 
     def get_env(self):
@@ -105,7 +105,7 @@ class RequestCommandMixin:
         http://stackoverflow.com/questions/67631/how-to-import-a-module-given-the-full-path
         """
         env_strings = []
-        packages_path = self.config.get('packages_path', '')
+        packages_path = self.config.get("packages_path", "")
         if packages_path and packages_path not in sys.path:  # makes it possible to import any Python package in env
             sys.path.append(packages_path)
 
@@ -113,15 +113,15 @@ class RequestCommandMixin:
         parsed = False
 
         if not is_auxiliary_view(self.view):  # (1) try to get env from current view
-            self.view.settings().set('requester.file', self.view.file_name())
+            self.view.settings().set("requester.file", self.view.file_name())
             text = self.view.substr(sublime.Region(0, self.view.size()))
             env_block, env_block_line_number, env_file, env_file_line_number = self.parse_env(text)
             parsed = True
         else:
-            file = self.view.settings().get('requester.file', None)
+            file = self.view.settings().get("requester.file", None)
             if file:  # (2) try to get env from saved requester file if (1) not possible
                 try:
-                    with open(file, 'r', encoding='utf-8') as f:
+                    with open(file, "r", encoding="utf-8") as f:
                         text = f.read()
                 except Exception as e:
                     self.add_error_status_bar(str(e))
@@ -130,16 +130,16 @@ class RequestCommandMixin:
                     parsed = True
 
         if not parsed:  # (3) try to get env from saved env string if (1) and (2) not possible
-            env_string = self.view.settings().get('requester.env_string', None)
+            env_string = self.view.settings().get("requester.env_string", None)
             return self.get_env_dict_from_string(env_string), env_string
 
         if env_file:
             if not os.path.isabs(env_file):
-                file_path = self.view.settings().get('requester.file')
+                file_path = self.view.settings().get("requester.file")
                 if file_path:
                     env_file = os.path.join(os.path.dirname(file_path), env_file)
             try:
-                with open(env_file, 'r') as f:
+                with open(env_file, "r") as f:
                     env_strings.append(f.read())
             except Exception as e:
                 self.add_error_status_bar(str(e))
@@ -151,19 +151,17 @@ class RequestCommandMixin:
             if env_block_line_number < env_file_line_number:
                 non_empty_env_strings.reverse()
 
-        env_string = '\n\n'.join(non_empty_env_strings)
-        self.view.settings().set('requester.env_string', env_string)
+        env_string = "\n\n".join(non_empty_env_strings)
+        self.view.settings().set("requester.env_string", env_string)
         return self.get_env_dict_from_string(env_string), env_string
 
     def _get_env(self):
-        """Wrapper calls `get_env`, assigns return values to instance properties.
-        """
+        """Wrapper calls `get_env`, assigns return values to instance properties."""
         self._env, self._env_string = self.get_env()
 
     def set_env_on_view(self, view):
-        """Convenience method that copies env settings from this view to `view`.
-        """
-        for setting in ['requester.file', 'requester.env_string']:
+        """Convenience method that copies env settings from this view to `view`."""
+        for setting in ["requester.file", "requester.env_string"]:
             view.settings().set(setting, self.view.settings().get(setting, None))
 
     def make_requests(self, requests, env=None):
@@ -181,10 +179,9 @@ class RequestCommandMixin:
         # small delay to show activity for requests that are returned in less than REFRESH_MS
 
     def _show_activity_for_pending_requests(self, requests, count):
-        """Show activity indicator in status bar.
-        """
+        """Show activity indicator in status bar."""
         activity = self.get_activity_indicator(count, self.ACTIVITY_SPACES)
-        self.view.set_status('requester.activity', '{} {}'.format('Requester', activity))
+        self.view.set_status("requester.activity", "{} {}".format("Requester", activity))
         self.show_activity_for_pending_requests(requests, count, activity)
 
     def gather_responses(self, pool, count=0, responses=None):
@@ -211,10 +208,10 @@ class RequestCommandMixin:
             self.handle_responses(responses)
             self.handle_errors(responses)
             self.persist_requests(responses)
-            self.view.set_status('requester.activity', '')
+            self.view.set_status("requester.activity", "")
             return
 
-        sublime.set_timeout(lambda: self.gather_responses(pool, count+1, responses), self.REFRESH_MS)
+        sublime.set_timeout(lambda: self.gather_responses(pool, count + 1, responses), self.REFRESH_MS)
 
     def persist_requests(self, responses):
         """Persisting requests is NOT thread safe, so this wrapper locks access to
@@ -229,18 +226,15 @@ class RequestCommandMixin:
         as `sublime.error_message`.
         """
         self._status_errors.append(error)
-        print('{}: {}'.format('Requester Error', error))
-        self.view.set_status('requester.errors', '{}: {}'.format(
-            'RequesterErrors', ', '.join(self._status_errors)
-        ))
+        print("{}: {}".format("Requester Error", error))
+        self.view.set_status("requester.errors", "{}: {}".format("RequesterErrors", ", ".join(self._status_errors)))
 
     def reset_status(self):
-        """Make sure this is called _before_ `add_error_status_bar`.
-        """
+        """Make sure this is called _before_ `add_error_status_bar`."""
         self._status_errors = []
-        self.view.set_status('requester.errors', '')
-        self.view.set_status('requester.download', '')
-        self.view.set_status('requester.benchmarks', '')
+        self.view.set_status("requester.errors", "")
+        self.view.set_status("requester.download", "")
+        self.view.set_status("requester.benchmarks", "")
 
     @staticmethod
     def parse_env(text):
@@ -249,7 +243,7 @@ class RequestCommandMixin:
 
         Also returns line numbers for start of env block and env file.
         """
-        delimeter = '###env'
+        delimeter = "###env"
         in_block = False
 
         env_lines = []
@@ -268,7 +262,7 @@ class RequestCommandMixin:
                     in_block = True
 
         scope = {}
-        p = re.compile(r'\s*env_file\s*=.*')
+        p = re.compile(r"\s*env_file\s*=.*")
         for i, line in enumerate(text.splitlines()):
             if p.match(line):  # matches only at beginning of string
                 try:
@@ -278,10 +272,10 @@ class RequestCommandMixin:
                     print(e)
                 break  # stop looking after first match
 
-        env_file = scope.get('env_file')
+        env_file = scope.get("env_file")
         if not len(env_lines) or in_block:  # env block must be closed to take effect
             return None, None, env_file, env_file_line_number
-        return '\n'.join(env_lines), env_block_line_number, env_file, env_file_line_number
+        return "\n".join(env_lines), env_block_line_number, env_file, env_file_line_number
 
     @staticmethod
     def get_env_dict_from_string(s):
@@ -290,36 +284,36 @@ class RequestCommandMixin:
         http://stackoverflow.com/questions/5362771/load-module-from-string-in-python
         """
         try:
-            del sys.modules['requester.env']  # this avoids a subtle bug, DON'T REMOVE
+            del sys.modules["requester.env"]  # this avoids a subtle bug, DON'T REMOVE
         except KeyError:
             pass
 
         if not s:
             return {}
 
-        env = imp.new_module('requester.env')
+        env = imp.new_module("requester.env")
         try:
-            with add_path(__file__, '..', '..', 'deps'):
+            with add_path(__file__, "..", "..", "deps"):
                 exec(s, env.__dict__)
         except Exception as e:
             sublime.error_message(
-                'EnvBlock Error:\n{}\n\nOpen the console to see the full environment string'.format(e))
-            print('\nEnvString:\n```\n{}\n```'.format(s))
+                "EnvBlock Error:\n{}\n\nOpen the console to see the full environment string".format(e)
+            )
+            print("\nEnvString:\n```\n{}\n```".format(s))
             return {}
         else:
             return dict(env.__dict__)
 
     @staticmethod
     def get_activity_indicator(count, spaces):
-        """Return activity indicator string.
-        """
+        """Return activity indicator string."""
         cycle = count // spaces
         if cycle % 2 == 0:
             before = count % spaces
         else:
             before = spaces - (count % spaces)
         after = spaces - before
-        return '[{}={}]'.format(' ' * before, ' ' * after)
+        return "[{}={}]".format(" " * before, " " * after)
 
 
 def persist_requests(self, responses, history_path=None):
@@ -329,20 +323,20 @@ def persist_requests(self, responses, history_path=None):
 
     Requests in history are keyed for uniqueness on request string + file.
     """
-    history_file = self.config.get('history_file', None)
+    history_file = self.config.get("history_file", None)
     if not history_file:
         return
     if not history_path:
-        history_path = os.path.join(sublime.packages_path(), 'User', history_file)
+        history_path = os.path.join(sublime.packages_path(), "User", history_file)
 
     try:
-        with open(history_path, 'r') as f:
-            text = f.read() or '{}'
+        with open(history_path, "r") as f:
+            text = f.read() or "{}"
     except FileNotFoundError:
-        open(history_path, 'w').close()  # create history file if it doesn't exist
-        text = '{}'
+        open(history_path, "w").close()  # create history file if it doesn't exist
+        text = "{}"
     except Exception as e:
-        sublime.error_message('HistoryFile Error:\n{}'.format(e))
+        sublime.error_message("HistoryFile Error:\n{}".format(e))
         return
     rh = json.loads(text, object_pairs_hook=OrderedDict)
 
@@ -352,38 +346,38 @@ def persist_requests(self, responses, history_path=None):
         if res is None:
             continue
 
-        if 'streamed' in req.skwargs:
-            meta = 'streamed: {}'.format(req.skwargs['streamed'])
-        if 'chunked' in req.skwargs:
-            meta = 'chunked: {}'.format(req.skwargs['chunked'])
-        if 'filename' in req.skwargs:
-            meta = 'download: {}'.format(req.skwargs['filename'] or './')
+        if "streamed" in req.skwargs:
+            meta = "streamed: {}".format(req.skwargs["streamed"])
+        if "chunked" in req.skwargs:
+            meta = "chunked: {}".format(req.skwargs["chunked"])
+        if "filename" in req.skwargs:
+            meta = "download: {}".format(req.skwargs["filename"] or "./")
 
-        tabname = req.skwargs.get('tabname')
+        tabname = req.skwargs.get("tabname")
         method, url = res.request.method, res.url
-        file = self.view.settings().get('requester.file', None)
-        _, original_request = self.view.settings().get('requester.binding_info', [None, None])
+        file = self.view.settings().get("requester.file", None)
+        _, original_request = self.view.settings().get("requester.binding_info", [None, None])
         if original_request is not None and prepend_library(original_request) == req.request:
             original_request = None  # don't waste space in hist file if these requests are identical
 
-        key = '{};;{}'.format(req.request, file) if file else req.request
+        key = "{};;{}".format(req.request, file) if file else req.request
         if key in rh:
             rh.pop(key, None)  # remove duplicate requests
         rh[key] = {
-            'ts': int(time()),
-            'env_string': self.view.settings().get('requester.env_string', None),
-            'file': file,
-            'method': method,
-            'meta': meta,
-            'url': url,
-            'code': res.status_code,
-            'request': req.request,
-            'original_request': original_request,
-            'tabname': tabname,
+            "ts": int(time()),
+            "env_string": self.view.settings().get("requester.env_string", None),
+            "file": file,
+            "method": method,
+            "meta": meta,
+            "url": url,
+            "code": res.status_code,
+            "request": req.request,
+            "original_request": original_request,
+            "tabname": tabname,
         }
 
     # remove oldest requests if number of requests has exceeded `history_max_entries`
-    history_max_entries = self.config.get('history_max_entries', 250)
+    history_max_entries = self.config.get("history_max_entries", 250)
     to_delete = len(rh) - history_max_entries
     if to_delete > 0:
         keys = []
@@ -406,9 +400,9 @@ def write_json_file(data, path):
 
     https://stackoverflow.com/questions/1812115/how-to-safely-write-to-a-file
     """
-    path_temp = path + '.tmp'
-    path_backup = path + '.bkp'
-    with open(path_temp, 'w') as f:
+    path_temp = path + ".tmp"
+    path_backup = path + ".bkp"
+    with open(path_temp, "w") as f:
         f.write(json.dumps(data))  # write to temp file to ensure no data loss if exception raised here
     os.rename(path, path_backup)  # create backup file in case rename is unsuccessful
     os.rename(path_temp, path)
