@@ -3,288 +3,544 @@ Test runner for the JSON Schema official test suite
 
 Tests comprehensive correctness of each draft's validator.
 
-See https://github.com/json-schema/JSON-Schema-Test-Suite for details.
-
+See https://github.com/json-schema-org/JSON-Schema-Test-Suite for details.
 """
 
-from contextlib import closing
-from decimal import Decimal
-import glob
-import json
-import io
-import itertools
-import os
-import re
-import subprocess
 import sys
 
-try:
-    from sys import pypy_version_info
-except ImportError:
-    pypy_version_info = None
-
-from jsonschema import (
-    FormatError, SchemaError, ValidationError, Draft3Validator,
-    Draft4Validator, FormatChecker, draft3_format_checker,
-    draft4_format_checker, validate,
-)
-from jsonschema.compat import PY3
-from jsonschema.tests.compat import mock, unittest
+from jsonschema.tests._helpers import bug
+from jsonschema.tests._suite import Suite
 import jsonschema
 
-
-REPO_ROOT = os.path.join(os.path.dirname(jsonschema.__file__), os.path.pardir)
-SUITE = os.getenv("JSON_SCHEMA_TEST_SUITE", os.path.join(REPO_ROOT, "json"))
-
-if not os.path.isdir(SUITE):
-    raise ValueError(
-        "Can't find the JSON-Schema-Test-Suite directory. Set the "
-        "'JSON_SCHEMA_TEST_SUITE' environment variable or run the tests from "
-        "alongside a checkout of the suite."
-    )
-
-TESTS_DIR = os.path.join(SUITE, "tests")
-JSONSCHEMA_SUITE = os.path.join(SUITE, "bin", "jsonschema_suite")
-
-remotes_stdout = subprocess.Popen(
-    ["python", JSONSCHEMA_SUITE, "remotes"], stdout=subprocess.PIPE,
-).stdout
-
-with closing(remotes_stdout):
-    if PY3:
-        remotes_stdout = io.TextIOWrapper(remotes_stdout)
-    REMOTES = json.load(remotes_stdout)
+SUITE = Suite()
+DRAFT3 = SUITE.version(name="draft3")
+DRAFT4 = SUITE.version(name="draft4")
+DRAFT6 = SUITE.version(name="draft6")
+DRAFT7 = SUITE.version(name="draft7")
+DRAFT201909 = SUITE.version(name="draft2019-09")
+DRAFT202012 = SUITE.version(name="draft2020-12")
 
 
-def make_case(schema, data, valid, name):
-    if valid:
-        def test_case(self):
-            kwargs = getattr(self, "validator_kwargs", {})
-            validate(data, schema, cls=self.validator_class, **kwargs)
-    else:
-        def test_case(self):
-            kwargs = getattr(self, "validator_kwargs", {})
-            with self.assertRaises(ValidationError):
-                validate(data, schema, cls=self.validator_class, **kwargs)
-
-    if not PY3:
-        name = name.encode("utf-8")
-    test_case.__name__ = name
-
-    return test_case
+def skip(message, **kwargs):
+    def skipper(test):
+        if all(value == getattr(test, attr) for attr, value in kwargs.items()):
+            return message
+    return skipper
 
 
-def maybe_skip(skip, test_case, case, test):
-    if skip is not None:
-        reason = skip(case, test)
-        if reason is not None:
-            test_case = unittest.skip(reason)(test_case)
-    return test_case
-
-
-def load_json_cases(tests_glob, ignore_glob="", basedir=TESTS_DIR, skip=None):
-    if ignore_glob:
-        ignore_glob = os.path.join(basedir, ignore_glob)
-
-    def add_test_methods(test_class):
-        ignored = set(glob.iglob(ignore_glob))
-
-        for filename in glob.iglob(os.path.join(basedir, tests_glob)):
-            if filename in ignored:
-                continue
-
-            validating, _ = os.path.splitext(os.path.basename(filename))
-            id = itertools.count(1)
-
-            with open(filename) as test_file:
-                for case in json.load(test_file):
-                    for test in case["tests"]:
-                        name = "test_%s_%s_%s" % (
-                            validating,
-                            next(id),
-                            re.sub(r"[\W ]+", "_", test["description"]),
-                        )
-                        assert not hasattr(test_class, name), name
-
-                        test_case = make_case(
-                            data=test["data"],
-                            schema=case["schema"],
-                            valid=test["valid"],
-                            name=name,
-                        )
-                        test_case = maybe_skip(skip, test_case, case, test)
-                        setattr(test_class, name, test_case)
-
-        return test_class
-    return add_test_methods
-
-
-class TypesMixin(object):
-    @unittest.skipIf(PY3, "In Python 3 json.load always produces unicode")
-    def test_string_a_bytestring_is_a_string(self):
-        self.validator_class({"type": "string"}).validate(b"foo")
-
-
-class DecimalMixin(object):
-    def test_it_can_validate_with_decimals(self):
-        schema = {"type": "number"}
-        validator = self.validator_class(
-            schema, types={"number": (int, float, Decimal)}
-        )
-
-        for valid in [1, 1.1, Decimal(1) / Decimal(8)]:
-            validator.validate(valid)
-
-        for invalid in ["foo", {}, [], True, None]:
-            with self.assertRaises(ValidationError):
-                validator.validate(invalid)
-
-
-def missing_format(checker):
-    def missing_format(case, test):
-        format = case["schema"].get("format")
-        if format not in checker.checkers:
-            return "Format checker {0!r} not found.".format(format)
-        elif (
-            format == "date-time" and
-            pypy_version_info is not None and
-            pypy_version_info[:2] <= (1, 9)
+def missing_format(Validator):
+    def missing_format(test):  # pragma: no cover
+        schema = test.schema
+        if (
+            schema is True
+            or schema is False
+            or "format" not in schema
+            or schema["format"] in Validator.FORMAT_CHECKER.checkers
+            or test.valid
         ):
-            # datetime.datetime is overzealous about typechecking in <=1.9
-            return "datetime.datetime is broken on this version of PyPy."
+            return
+
+        return "Format checker {0!r} not found.".format(schema["format"])
     return missing_format
 
 
-class FormatMixin(object):
-    def test_it_returns_true_for_formats_it_does_not_know_about(self):
-        validator = self.validator_class(
-            {"format": "carrot"}, format_checker=FormatChecker(),
-        )
-        validator.validate("bugs")
+def complex_email_validation(test):
+    if test.subject != "email":
+        return
 
-    def test_it_does_not_validate_formats_by_default(self):
-        validator = self.validator_class({})
-        self.assertIsNone(validator.format_checker)
-
-    def test_it_validates_formats_if_a_checker_is_provided(self):
-        checker = mock.Mock(spec=FormatChecker)
-        validator = self.validator_class(
-            {"format": "foo"}, format_checker=checker,
-        )
-
-        validator.validate("bar")
-
-        checker.check.assert_called_once_with("bar", "foo")
-
-        cause = ValueError()
-        checker.check.side_effect = FormatError('aoeu', cause=cause)
-
-        with self.assertRaises(ValidationError) as cm:
-            validator.validate("bar")
-        # Make sure original cause is attached
-        self.assertIs(cm.exception.cause, cause)
-
-    def test_it_validates_formats_of_any_type(self):
-        checker = mock.Mock(spec=FormatChecker)
-        validator = self.validator_class(
-            {"format": "foo"}, format_checker=checker,
-        )
-
-        validator.validate([1, 2, 3])
-
-        checker.check.assert_called_once_with([1, 2, 3], "foo")
-
-        cause = ValueError()
-        checker.check.side_effect = FormatError('aoeu', cause=cause)
-
-        with self.assertRaises(ValidationError) as cm:
-            validator.validate([1, 2, 3])
-        # Make sure original cause is attached
-        self.assertIs(cm.exception.cause, cause)
+    message = "Complex email validation is (intentionally) unsupported."
+    return skip(
+        message=message,
+        description="an invalid domain",
+    )(test) or skip(
+        message=message,
+        description="an invalid IPv4-address-literal",
+    )(test) or skip(
+        message=message,
+        description="dot after local part is not valid",
+    )(test) or skip(
+        message=message,
+        description="dot before local part is not valid",
+    )(test) or skip(
+        message=message,
+        description="two subsequent dots inside local part are not valid",
+    )(test)
 
 
-if sys.maxunicode == 2 ** 16 - 1:          # This is a narrow build.
-    def narrow_unicode_build(case, test):
-        if "supplementary Unicode" in test["description"]:
-            return "Not running surrogate Unicode case, this Python is narrow."
+is_narrow_build = sys.maxunicode == 2 ** 16 - 1
+if is_narrow_build:  # pragma: no cover
+    message = "Not running surrogate Unicode case, this Python is narrow."
+
+    def narrow_unicode_build(test):  # pragma: no cover
+        return skip(
+            message=message,
+            description=(
+                "one supplementary Unicode code point is not long enough"
+            ),
+        )(test) or skip(
+            message=message,
+            description="two supplementary Unicode code points is long enough",
+        )(test)
 else:
-    def narrow_unicode_build(case, test):  # This isn't, skip nothing.
+    def narrow_unicode_build(test):  # pragma: no cover
         return
 
 
-@load_json_cases(
-    "draft3/*.json",
-    skip=narrow_unicode_build,
-    ignore_glob="draft3/refRemote.json",
+if sys.version_info < (3, 9):  # pragma: no cover
+    message = "Rejecting leading zeros is 3.9+"
+    allowed_leading_zeros = skip(
+        message=message,
+        subject="ipv4",
+        description="invalid leading zeroes, as they are treated as octals",
+    )
+else:
+    def allowed_leading_zeros(test):  # pragma: no cover
+        return
+
+
+def leap_second(test):
+    message = "Leap seconds are unsupported."
+    return skip(
+        message=message,
+        subject="time",
+        description="a valid time string with leap second",
+    )(test) or skip(
+        message=message,
+        subject="time",
+        description="a valid time string with leap second, Zulu",
+    )(test) or skip(
+        message=message,
+        subject="time",
+        description="a valid time string with leap second with offset",
+    )(test) or skip(
+        message=message,
+        subject="time",
+        description="valid leap second, positive time-offset",
+    )(test) or skip(
+        message=message,
+        subject="time",
+        description="valid leap second, negative time-offset",
+    )(test) or skip(
+        message=message,
+        subject="time",
+        description="valid leap second, large positive time-offset",
+    )(test) or skip(
+        message=message,
+        subject="time",
+        description="valid leap second, large negative time-offset",
+    )(test) or skip(
+        message=message,
+        subject="time",
+        description="valid leap second, zero time-offset",
+    )(test) or skip(
+        message=message,
+        subject="date-time",
+        description="a valid date-time with a leap second, UTC",
+    )(test) or skip(
+        message=message,
+        subject="date-time",
+        description="a valid date-time with a leap second, with minus offset",
+    )(test)
+
+
+TestDraft3 = DRAFT3.to_unittest_testcase(
+    DRAFT3.tests(),
+    DRAFT3.format_tests(),
+    DRAFT3.optional_tests_of(name="bignum"),
+    DRAFT3.optional_tests_of(name="non-bmp-regex"),
+    DRAFT3.optional_tests_of(name="zeroTerminatedFloats"),
+    Validator=jsonschema.Draft3Validator,
+    format_checker=jsonschema.Draft3Validator.FORMAT_CHECKER,
+    skip=lambda test: (
+        narrow_unicode_build(test)
+        or missing_format(jsonschema.Draft3Validator)(test)
+        or complex_email_validation(test)
+        or skip(
+            message=bug(),
+            subject="ref",
+            valid=False,
+            case_description=(
+                "$ref prevents a sibling id from changing the base uri"
+            ),
+        )(test)
+    ),
 )
-@load_json_cases(
-    "draft3/optional/format.json", skip=missing_format(draft3_format_checker)
+
+
+TestDraft4 = DRAFT4.to_unittest_testcase(
+    DRAFT4.tests(),
+    DRAFT4.format_tests(),
+    DRAFT4.optional_tests_of(name="bignum"),
+    DRAFT4.optional_tests_of(name="float-overflow"),
+    DRAFT4.optional_tests_of(name="non-bmp-regex"),
+    DRAFT4.optional_tests_of(name="zeroTerminatedFloats"),
+    Validator=jsonschema.Draft4Validator,
+    format_checker=jsonschema.Draft4Validator.FORMAT_CHECKER,
+    skip=lambda test: (
+        narrow_unicode_build(test)
+        or allowed_leading_zeros(test)
+        or leap_second(test)
+        or missing_format(jsonschema.Draft4Validator)(test)
+        or complex_email_validation(test)
+        or skip(
+            message=bug(),
+            subject="ref",
+            case_description="Recursive references between schemas",
+        )(test)
+        or skip(
+            message=bug(),
+            subject="ref",
+            case_description=(
+                "Location-independent identifier with "
+                "base URI change in subschema"
+            ),
+        )(test)
+        or skip(
+            message=bug(),
+            subject="ref",
+            case_description=(
+                "$ref prevents a sibling id from changing the base uri"
+            ),
+        )(test)
+        or skip(
+            message=bug(),
+            subject="id",
+            description="match $ref to id",
+        )(test)
+        or skip(
+            message=bug(),
+            subject="id",
+            description="no match on enum or $ref to id",
+        )(test)
+        or skip(
+            message=bug(),
+            subject="refRemote",
+            case_description="base URI change - change folder in subschema",
+        )(test)
+        or skip(
+            message=bug(),
+            subject="ref",
+            case_description=(
+                "id must be resolved against nearest parent, "
+                "not just immediate parent"
+            ),
+        )(test)
+    ),
 )
-@load_json_cases("draft3/optional/bignum.json")
-@load_json_cases("draft3/optional/zeroTerminatedFloats.json")
-class TestDraft3(unittest.TestCase, TypesMixin, DecimalMixin, FormatMixin):
-    validator_class = Draft3Validator
-    validator_kwargs = {"format_checker": draft3_format_checker}
-
-    def test_any_type_is_valid_for_type_any(self):
-        validator = self.validator_class({"type": "any"})
-        validator.validate(mock.Mock())
-
-    # TODO: we're in need of more meta schema tests
-    def test_invalid_properties(self):
-        with self.assertRaises(SchemaError):
-            validate({}, {"properties": {"test": True}},
-                     cls=self.validator_class)
-
-    def test_minItems_invalid_string(self):
-        with self.assertRaises(SchemaError):
-            # needs to be an integer
-            validate([1], {"minItems": "1"}, cls=self.validator_class)
 
 
-@load_json_cases(
-    "draft4/*.json",
-    skip=narrow_unicode_build,
-    ignore_glob="draft4/refRemote.json",
+TestDraft6 = DRAFT6.to_unittest_testcase(
+    DRAFT6.tests(),
+    DRAFT6.format_tests(),
+    DRAFT6.optional_tests_of(name="bignum"),
+    DRAFT6.optional_tests_of(name="float-overflow"),
+    DRAFT6.optional_tests_of(name="non-bmp-regex"),
+    Validator=jsonschema.Draft6Validator,
+    format_checker=jsonschema.Draft6Validator.FORMAT_CHECKER,
+    skip=lambda test: (
+        narrow_unicode_build(test)
+        or allowed_leading_zeros(test)
+        or leap_second(test)
+        or missing_format(jsonschema.Draft6Validator)(test)
+        or complex_email_validation(test)
+        or skip(
+            message=bug(),
+            subject="refRemote",
+            case_description="base URI change - change folder in subschema",
+        )(test)
+    ),
 )
-@load_json_cases(
-    "draft4/optional/format.json", skip=missing_format(draft4_format_checker)
+
+
+TestDraft7 = DRAFT7.to_unittest_testcase(
+    DRAFT7.tests(),
+    DRAFT7.format_tests(),
+    DRAFT7.optional_tests_of(name="bignum"),
+    DRAFT7.optional_tests_of(name="cross-draft"),
+    DRAFT7.optional_tests_of(name="float-overflow"),
+    DRAFT7.optional_tests_of(name="non-bmp-regex"),
+    Validator=jsonschema.Draft7Validator,
+    format_checker=jsonschema.Draft7Validator.FORMAT_CHECKER,
+    skip=lambda test: (
+        narrow_unicode_build(test)
+        or allowed_leading_zeros(test)
+        or leap_second(test)
+        or missing_format(jsonschema.Draft7Validator)(test)
+        or complex_email_validation(test)
+        or skip(
+            message=bug(),
+            subject="refRemote",
+            case_description="base URI change - change folder in subschema",
+        )(test)
+        or skip(
+            message=bug(),
+            subject="ref",
+            case_description=(
+                "$id must be resolved against nearest parent, "
+                "not just immediate parent"
+            ),
+        )(test)
+    ),
 )
-@load_json_cases("draft4/optional/bignum.json")
-@load_json_cases("draft4/optional/zeroTerminatedFloats.json")
-class TestDraft4(unittest.TestCase, TypesMixin, DecimalMixin, FormatMixin):
-    validator_class = Draft4Validator
-    validator_kwargs = {"format_checker": draft4_format_checker}
-
-    # TODO: we're in need of more meta schema tests
-    def test_invalid_properties(self):
-        with self.assertRaises(SchemaError):
-            validate({}, {"properties": {"test": True}},
-                     cls=self.validator_class)
-
-    def test_minItems_invalid_string(self):
-        with self.assertRaises(SchemaError):
-            # needs to be an integer
-            validate([1], {"minItems": "1"}, cls=self.validator_class)
 
 
-class RemoteRefResolutionMixin(object):
-    def setUp(self):
-        patch = mock.patch("jsonschema.validators.requests")
-        requests = patch.start()
-        requests.get.side_effect = self.resolve
-        self.addCleanup(patch.stop)
+TestDraft201909 = DRAFT201909.to_unittest_testcase(
+    DRAFT201909.tests(),
+    DRAFT201909.optional_tests_of(name="bignum"),
+    DRAFT201909.optional_tests_of(name="cross-draft"),
+    DRAFT201909.optional_tests_of(name="float-overflow"),
+    DRAFT201909.optional_tests_of(name="non-bmp-regex"),
+    DRAFT201909.optional_tests_of(name="refOfUnknownKeyword"),
+    Validator=jsonschema.Draft201909Validator,
+    skip=lambda test: (
+        skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            case_description=(
+                "$recursiveRef with no $recursiveAnchor in "
+                "the initial target schema resource"
+            ),
+            description=(
+                "leaf node does not match: recursion uses the inner schema"
+            ),
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            description="leaf node matches: recursion uses the inner schema",
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            case_description=(
+                "dynamic $recursiveRef destination (not predictable "
+                "at schema compile time)"
+            ),
+            description="integer node",
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            case_description=(
+                "multiple dynamic paths to the $recursiveRef keyword"
+            ),
+            description="recurse to integerNode - floats are not allowed",
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            description="integer does not match as a property value",
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            description=(
+                "leaf node does not match: "
+                "recursion only uses inner schema"
+            ),
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            description=(
+                "leaf node matches: "
+                "recursion only uses inner schema"
+            ),
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            description=(
+                "two levels, integer does not match as a property value"
+            ),
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            description="recursive mismatch",
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="recursiveRef",
+            description="two levels, no match",
+        )(test)
+        or skip(
+            message="recursiveRef support isn't working yet.",
+            subject="id",
+            case_description=(
+                "Invalid use of fragments in location-independent $id"
+            ),
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="defs",
+            description="invalid definition schema",
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="anchor",
+            case_description="same $anchor with different base uri",
+        )(test)
+        or skip(
+            message="Vocabulary support is still in-progress.",
+            subject="vocabulary",
+            description=(
+                "no validation: invalid number, but it still validates"
+            ),
+        )(test)
+        or skip(
+            message=bug(),
+            subject="ref",
+            case_description=(
+                "$id must be resolved against nearest parent, "
+                "not just immediate parent"
+            ),
+        )(test)
+        or skip(
+            message=bug(),
+            subject="refRemote",
+            case_description="remote HTTP ref with nested absolute ref",
+        )(test)
+    ),
+)
 
-    def resolve(self, reference):
-        _, _, reference = reference.partition("http://localhost:1234/")
-        return mock.Mock(**{"json.return_value": REMOTES.get(reference)})
+
+TestDraft201909Format = DRAFT201909.to_unittest_testcase(
+    DRAFT201909.format_tests(),
+    name="TestDraft201909Format",
+    Validator=jsonschema.Draft201909Validator,
+    format_checker=jsonschema.Draft201909Validator.FORMAT_CHECKER,
+    skip=lambda test: (
+        complex_email_validation(test)
+        or allowed_leading_zeros(test)
+        or leap_second(test)
+        or missing_format(jsonschema.Draft201909Validator)(test)
+        or complex_email_validation(test)
+    ),
+)
 
 
-@load_json_cases("draft3/refRemote.json")
-class Draft3RemoteResolution(RemoteRefResolutionMixin, unittest.TestCase):
-    validator_class = Draft3Validator
+TestDraft202012 = DRAFT202012.to_unittest_testcase(
+    DRAFT202012.tests(),
+    DRAFT202012.optional_tests_of(name="bignum"),
+    DRAFT202012.optional_tests_of(name="cross-draft"),
+    DRAFT202012.optional_tests_of(name="float-overflow"),
+    DRAFT202012.optional_tests_of(name="non-bmp-regex"),
+    DRAFT202012.optional_tests_of(name="refOfUnknownKeyword"),
+    Validator=jsonschema.Draft202012Validator,
+    skip=lambda test: (
+        narrow_unicode_build(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description="The recursive part is not valid against the root",
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description="incorrect extended schema",
+            case_description=(
+                "$ref and $dynamicAnchor are independent of order - "
+                "$defs first"
+            ),
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description="correct extended schema",
+            case_description=(
+                "$ref and $dynamicAnchor are independent of order - "
+                "$defs first"
+            ),
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description="correct extended schema",
+            case_description=(
+                "$ref and $dynamicAnchor are independent of order - $ref first"
+            ),
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description="incorrect extended schema",
+            case_description=(
+                "$ref and $dynamicAnchor are independent of order - $ref first"
+            ),
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description=(
+                "/then/$defs/thingy is the final stop for the $dynamicRef"
+            ),
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description=(
+                "string matches /$defs/thingy, but the $dynamicRef "
+                "does not stop here"
+            ),
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description=(
+                "string matches /$defs/thingy, but the $dynamicRef "
+                "does not stop here"
+            ),
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="dynamicRef",
+            description="recurse to integerNode - floats are not allowed",
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="defs",
+            description="invalid definition schema",
+        )(test)
+        or skip(
+            message="dynamicRef support isn't fully working yet.",
+            subject="anchor",
+            case_description="same $anchor with different base uri",
+        )(test)
+        or skip(
+            message="Vocabulary support is still in-progress.",
+            subject="vocabulary",
+            description=(
+                "no validation: invalid number, but it still validates"
+            ),
+        )(test)
+        or skip(
+            message=bug(),
+            subject="ref",
+            case_description=(
+                "$id must be resolved against nearest parent, "
+                "not just immediate parent"
+            ),
+        )(test)
+        or skip(
+            message=bug(),
+            subject="refRemote",
+            case_description="remote HTTP ref with nested absolute ref",
+        )(test)
+    ),
+)
 
 
-@load_json_cases("draft4/refRemote.json")
-class Draft4RemoteResolution(RemoteRefResolutionMixin, unittest.TestCase):
-    validator_class = Draft4Validator
+TestDraft202012Format = DRAFT202012.to_unittest_testcase(
+    DRAFT202012.format_tests(),
+    name="TestDraft202012Format",
+    Validator=jsonschema.Draft202012Validator,
+    format_checker=jsonschema.Draft202012Validator.FORMAT_CHECKER,
+    skip=lambda test: (
+        complex_email_validation(test)
+        or allowed_leading_zeros(test)
+        or leap_second(test)
+        or missing_format(jsonschema.Draft202012Validator)(test)
+        or complex_email_validation(test)
+    ),
+)

@@ -82,6 +82,7 @@ class GraphQLLexer(object):
         'FRAGMENT',
         'QUERY',
         'MUTATION',
+        'SUBSCRIPTION',
         'ON',
         'TRUE',
         'FALSE',
@@ -155,6 +156,10 @@ class GraphQLLexer(object):
 
     @TOKEN('mutation' + not_followed_by_name)
     def t_MUTATION(self, t):
+        return t
+
+    @TOKEN('subscription' + not_followed_by_name)
+    def t_SUBSCRIPTION(self, t):
         return t
 
     @TOKEN('on' + not_followed_by_name)

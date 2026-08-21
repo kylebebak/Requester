@@ -6,8 +6,6 @@ oauthlib.oauth2.rfc6749
 This module is an implementation of various logic needed
 for consuming and providing OAuth 2.0 RFC6749.
 """
-from __future__ import absolute_import, unicode_literals
-
 from ..parameters import parse_implicit_response, prepare_grant_uri
 from .base import Client
 
@@ -46,6 +44,8 @@ class MobileApplicationClient(Client):
     applications residing on the same device.
     """
 
+    response_type = 'token'
+
     def prepare_request_uri(self, uri, redirect_uri=None, scope=None,
                             state=None, **kwargs):
         """Prepare the implicit grant request URI.
@@ -55,7 +55,7 @@ class MobileApplicationClient(Client):
         using the "application/x-www-form-urlencoded" format, per `Appendix B`_:
 
         :param redirect_uri:  OPTIONAL. The redirect URI must be an absolute URI
-                              and it should have been registerd with the OAuth
+                              and it should have been registered with the OAuth
                               provider prior to use. As described in `Section 3.1.2`_.
 
         :param scope:  OPTIONAL. The scope of the access request as described by
@@ -91,7 +91,8 @@ class MobileApplicationClient(Client):
         .. _`Section 3.3`: https://tools.ietf.org/html/rfc6749#section-3.3
         .. _`Section 10.12`: https://tools.ietf.org/html/rfc6749#section-10.12
         """
-        return prepare_grant_uri(uri, self.client_id, 'token',
+        scope = self.scope if scope is None else scope
+        return prepare_grant_uri(uri, self.client_id, self.response_type,
                                  redirect_uri=redirect_uri, state=state, scope=scope, **kwargs)
 
     def parse_request_uri_response(self, uri, state=None, scope=None):
@@ -167,6 +168,7 @@ class MobileApplicationClient(Client):
         .. _`Section 7.1`: https://tools.ietf.org/html/rfc6749#section-7.1
         .. _`Section 3.3`: https://tools.ietf.org/html/rfc6749#section-3.3
         """
+        scope = self.scope if scope is None else scope
         self.token = parse_implicit_response(uri, state=state, scope=scope)
         self.populate_token_attributes(self.token)
         return self.token

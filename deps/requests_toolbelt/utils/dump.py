@@ -44,7 +44,8 @@ def _build_request_path(url, proxy_info):
     uri = compat.urlparse(url)
     proxy_url = proxy_info.get('request_path')
     if proxy_url is not None:
-        return proxy_url, uri
+        request_path = _coerce_to_bytes(proxy_url)
+        return request_path, uri
 
     request_path = _coerce_to_bytes(uri.path)
     if uri.query:
@@ -79,7 +80,8 @@ def _dump_request_data(request, prefixes, bytearr, proxy_info=None):
         else:
             # In the event that the body is a file-like object, let's not try
             # to read everything into memory.
-            bytearr.extend('<< Request body is not a string-like type >>')
+            bytearr.extend(b'<< Request body is not a string-like type >>')
+        bytearr.extend(b'\r\n')
     bytearr.extend(b'\r\n')
 
 
@@ -109,7 +111,8 @@ def _dump_response_data(response, prefixes, bytearr):
 def _coerce_to_bytes(data):
     if not isinstance(data, bytes) and hasattr(data, 'encode'):
         data = data.encode('utf-8')
-    return data
+    # Don't bail out with an exception if data is None
+    return data if data is not None else b''
 
 
 def dump_response(response, request_prefix=b'< ', response_prefix=b'> ',

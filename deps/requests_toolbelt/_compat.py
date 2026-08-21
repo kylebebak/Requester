@@ -8,7 +8,6 @@ urllib3 without providing a shim.
     This module is private. If you use it, and something breaks, you were
     warned
 """
-from collections import Mapping, MutableMapping
 import sys
 
 import requests
@@ -42,20 +41,14 @@ else:
     except ImportError:
         from urllib3.util import timeout
 
-if requests.__build__ < 0x021000:
-    gaecontrib = None
-else:
-    try:
-        from requests.packages.urllib3.contrib import appengine as gaecontrib
-    except ImportError:
-        from urllib3.contrib import appengine as gaecontrib
-
 PY3 = sys.version_info > (3, 0)
 
 if PY3:
+    from collections.abc import Mapping, MutableMapping
     import queue
     from urllib.parse import urlencode, urljoin
 else:
+    from collections import Mapping, MutableMapping
     import Queue as queue
     from urllib import urlencode
     from urlparse import urljoin
@@ -130,8 +123,8 @@ class HTTPHeaderDict(MutableMapping):
             return False
         if not isinstance(other, type(self)):
             other = type(self)(other)
-        return (dict((k.lower(), v) for k, v in self.itermerged()) ==
-                dict((k.lower(), v) for k, v in other.itermerged()))
+        return ({k.lower(): v for k, v in self.itermerged()} ==
+                {k.lower(): v for k, v in other.itermerged()})
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -305,6 +298,5 @@ __all__ = (
     'HTTPHeaderDict',
     'queue',
     'urlencode',
-    'gaecontrib',
     'urljoin',
 )

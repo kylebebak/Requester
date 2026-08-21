@@ -44,7 +44,7 @@ class FragmentDefinition(Definition):
 
 
 class OperationDefinition(Definition):
-    def __init__(self, selections, name, variable_definitions=None,
+    def __init__(self, selections, name=None, variable_definitions=None,
                  directives=None):
         self.selections = selections
         self.name = name
@@ -53,21 +53,14 @@ class OperationDefinition(Definition):
 
 
 class Query(OperationDefinition):
-    """
-    In shorthand notation (when document contains only one query without
-    variable definitions or directives) query can be anonymous.
-    """
-    def __init__(self, selections, name=None, variable_definitions=None,
-                 directives=None):
-        super(Query, self).__init__(
-            selections=selections,
-            name=name,
-            variable_definitions=variable_definitions,
-            directives=directives,
-        )
+    pass
 
 
 class Mutation(OperationDefinition):
+    pass
+
+
+class Subscription(OperationDefinition):
     pass
 
 

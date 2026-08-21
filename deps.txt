@@ -1,5 +1,5 @@
-requests==2.18.3
-jsonschema==2.6.0
-graphql-py==0.7.1
-requests-oauthlib==1.0.0
-requests-toolbelt==0.8.0
+requests==2.34.2
+jsonschema==4.17.3
+graphql-py==0.8.1
+requests-oauthlib==2.0.0
+requests-toolbelt==1.0.0

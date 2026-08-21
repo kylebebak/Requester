@@ -1,5 +1,4 @@
 {
-  "stubPath": "./typings",
   "include": ["commands", "core"],
   "useLibraryCodeForTypes": true,
   "reportOptionalSubscript": "error",

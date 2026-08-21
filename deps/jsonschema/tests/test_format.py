@@ -1,18 +1,23 @@
 """
-Tests for the parts of jsonschema related to the :validator:`format` property.
-
+Tests for the parts of jsonschema related to the :kw:`format` keyword.
 """
 
-from jsonschema.tests.compat import mock, unittest
+from unittest import TestCase
 
-from jsonschema import FormatError, ValidationError, FormatChecker
+from jsonschema import FormatChecker, FormatError, ValidationError
 from jsonschema.validators import Draft4Validator
 
+BOOM = ValueError("Boom!")
+BANG = ZeroDivisionError("Bang!")
 
-class TestFormatChecker(unittest.TestCase):
-    def setUp(self):
-        self.fn = mock.Mock()
 
+def boom(thing):
+    if thing == "bang":
+        raise BANG
+    raise BOOM
+
+
+class TestFormatChecker(TestCase):
     def test_it_can_validate_no_formats(self):
         checker = FormatChecker(formats=())
         self.assertFalse(checker.checkers)
@@ -22,42 +27,82 @@ class TestFormatChecker(unittest.TestCase):
             FormatChecker(formats=["o noes"])
 
     def test_it_can_register_cls_checkers(self):
-        with mock.patch.dict(FormatChecker.checkers, clear=True):
-            FormatChecker.cls_checks("new")(self.fn)
-            self.assertEqual(FormatChecker.checkers, {"new": (self.fn, ())})
+        original = dict(FormatChecker.checkers)
+        self.addCleanup(FormatChecker.checkers.pop, "boom")
+        with self.assertWarns(DeprecationWarning):
+            FormatChecker.cls_checks("boom")(boom)
+        self.assertEqual(
+            FormatChecker.checkers,
+            dict(original, boom=(boom, ())),
+        )
 
     def test_it_can_register_checkers(self):
         checker = FormatChecker()
-        checker.checks("new")(self.fn)
+        checker.checks("boom")(boom)
         self.assertEqual(
             checker.checkers,
-            dict(FormatChecker.checkers, new=(self.fn, ()))
+            dict(FormatChecker.checkers, boom=(boom, ())),
         )
 
     def test_it_catches_registered_errors(self):
         checker = FormatChecker()
-        cause = self.fn.side_effect = ValueError()
-
-        checker.checks("foo", raises=ValueError)(self.fn)
+        checker.checks("boom", raises=type(BOOM))(boom)
 
         with self.assertRaises(FormatError) as cm:
-            checker.check("bar", "foo")
+            checker.check(instance=12, format="boom")
 
-        self.assertIs(cm.exception.cause, cause)
-        self.assertIs(cm.exception.__cause__, cause)
+        self.assertIs(cm.exception.cause, BOOM)
+        self.assertIs(cm.exception.__cause__, BOOM)
 
         # Unregistered errors should not be caught
-        self.fn.side_effect = AttributeError
-        with self.assertRaises(AttributeError):
-            checker.check("bar", "foo")
+        with self.assertRaises(type(BANG)):
+            checker.check(instance="bang", format="boom")
 
     def test_format_error_causes_become_validation_error_causes(self):
         checker = FormatChecker()
-        checker.checks("foo", raises=ValueError)(self.fn)
-        cause = self.fn.side_effect = ValueError()
-        validator = Draft4Validator({"format": "foo"}, format_checker=checker)
+        checker.checks("boom", raises=ValueError)(boom)
+        validator = Draft4Validator({"format": "boom"}, format_checker=checker)
 
         with self.assertRaises(ValidationError) as cm:
-            validator.validate("bar")
+            validator.validate("BOOM")
 
-        self.assertIs(cm.exception.__cause__, cause)
+        self.assertIs(cm.exception.cause, BOOM)
+        self.assertIs(cm.exception.__cause__, BOOM)
+
+    def test_format_checkers_come_with_defaults(self):
+        # This is bad :/ but relied upon.
+        # The docs for quite awhile recommended people do things like
+        # validate(..., format_checker=FormatChecker())
+        # We should change that, but we can't without deprecation...
+        checker = FormatChecker()
+        with self.assertRaises(FormatError):
+            checker.check(instance="not-an-ipv4", format="ipv4")
+
+    def test_repr(self):
+        checker = FormatChecker(formats=())
+        checker.checks("foo")(lambda thing: True)  # pragma: no cover
+        checker.checks("bar")(lambda thing: True)  # pragma: no cover
+        checker.checks("baz")(lambda thing: True)  # pragma: no cover
+        self.assertEqual(
+            repr(checker),
+            "<FormatChecker checkers=['bar', 'baz', 'foo']>",
+        )
+
+    def test_duration_format(self):
+        try:
+            from jsonschema._format import is_duration  # noqa: F401
+        except ImportError:  # pragma: no cover
+            pass
+        else:
+            checker = FormatChecker()
+            self.assertTrue(checker.conforms(1, "duration"))
+            self.assertTrue(checker.conforms("P4Y", "duration"))
+            self.assertFalse(checker.conforms("test", "duration"))
+
+    def test_uuid_format(self):
+        checker = FormatChecker()
+        self.assertTrue(checker.conforms(1, "uuid"))
+        self.assertTrue(
+            checker.conforms("6e6659ec-4503-4428-9f03-2e2ea4d6c278", "uuid"),
+        )
+        self.assertFalse(checker.conforms("test", "uuid"))

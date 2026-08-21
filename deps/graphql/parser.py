@@ -91,6 +91,8 @@ class GraphQLParser(object):
             return Query
         elif operation_type == 'mutation':
             return Mutation
+        elif operation_type == 'subscription':
+            return Subscription
 
     def p_operation_definition1(self, p):
         """
@@ -167,6 +169,7 @@ class GraphQLParser(object):
         """
         operation_type : QUERY
                        | MUTATION
+                       | SUBSCRIPTION
         """
         p[0] = p[1]
 
@@ -339,6 +342,7 @@ class GraphQLParser(object):
                       | FRAGMENT
                       | QUERY
                       | MUTATION
+                      | SUBSCRIPTION
                       | TRUE
                       | FALSE
                       | NULL
@@ -449,6 +453,7 @@ class GraphQLParser(object):
              | FRAGMENT
              | QUERY
              | MUTATION
+             | SUBSCRIPTION
              | ON
              | TRUE
              | FALSE
@@ -508,6 +513,7 @@ class GraphQLParser(object):
                    | FRAGMENT
                    | QUERY
                    | MUTATION
+                   | SUBSCRIPTION
                    | ON
         """
         p[0] = p[1]

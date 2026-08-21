@@ -12,14 +12,20 @@ import io
 import os
 from uuid import uuid4
 
+import requests
+
 from .._compat import fields
+
+
+class FileNotSupportedError(Exception):
+    """File not supported error."""
 
 
 class MultipartEncoder(object):
 
     """
 
-    The ``MultipartEncoder`` oject is a generic interface to the engine that
+    The ``MultipartEncoder`` object is a generic interface to the engine that
     will create a ``multipart/form-data`` body for you.
 
     The basic usage is:
@@ -30,7 +36,7 @@ class MultipartEncoder(object):
         from requests_toolbelt import MultipartEncoder
 
         encoder = MultipartEncoder({'field': 'value',
-                                    'other_field', 'other_value'})
+                                    'other_field': 'other_value'})
         r = requests.post('https://httpbin.org/post', data=encoder,
                           headers={'Content-Type': encoder.content_type})
 
@@ -74,7 +80,7 @@ class MultipartEncoder(object):
         please weigh in on `this issue`_.
 
     .. _this issue:
-        https://github.com/sigmavirus24/requests-toolbelt/issues/75
+        https://github.com/requests/toolbelt/issues/75
 
     """
 
@@ -83,7 +89,7 @@ class MultipartEncoder(object):
         self.boundary_value = boundary or uuid4().hex
 
         # Computed boundary
-        self.boundary = '--{0}'.format(self.boundary_value)
+        self.boundary = '--{}'.format(self.boundary_value)
 
         #: Encoding of the data being passed in
         self.encoding = encoding
@@ -136,13 +142,13 @@ class MultipartEncoder(object):
         As such, we now calculate the length lazily as a property.
 
         .. _bug #80:
-            https://github.com/sigmavirus24/requests-toolbelt/issues/80
+            https://github.com/requests/toolbelt/issues/80
         """
         # If _len isn't already calculated, calculate, return, and set it
         return self._len or self._calculate_length()
 
     def __repr__(self):
-        return '<MultipartEncoder: {0!r}>'.format(self.fields)
+        return '<MultipartEncoder: {!r}>'.format(self.fields)
 
     def _calculate_length(self):
         """
@@ -184,7 +190,7 @@ class MultipartEncoder(object):
         part = self._current_part or self._next_part()
         while amount == -1 or amount > 0:
             written = 0
-            if not part.bytes_left_to_write():
+            if part and not part.bytes_left_to_write():
                 written += self._write(b'\r\n')
                 written += self._write_boundary()
                 part = self._next_part()
@@ -267,7 +273,7 @@ class MultipartEncoder(object):
     @property
     def content_type(self):
         return str(
-            'multipart/form-data; boundary={0}'.format(self.boundary_value)
+            'multipart/form-data; boundary={}'.format(self.boundary_value)
             )
 
     def to_string(self):
@@ -333,13 +339,13 @@ class MultipartEncoderMonitor(object):
                                        MultipartEncoderMonitor)
         import requests
 
-        def callback(encoder, bytes_read):
+        def callback(monitor):
             # Do something with this information
             pass
 
         m = MultipartEncoder(fields={'field0': 'value0'})
         monitor = MultipartEncoderMonitor(m, callback)
-        headers = {'Content-Type': montior.content_type}
+        headers = {'Content-Type': monitor.content_type}
         r = requests.post('https://httpbin.org/post', data=monitor,
                           headers=headers)
 
@@ -351,7 +357,7 @@ class MultipartEncoderMonitor(object):
         from requests_toolbelt import MultipartEncoderMonitor
         import requests
 
-        def callback(encoder, bytes_read):
+        def callback(monitor):
             # Do something with this information
             pass
 
@@ -568,3 +574,82 @@ class FileWrapper(object):
 
     def read(self, length=-1):
         return self.fd.read(length)
+
+
+class FileFromURLWrapper(object):
+    """File from URL wrapper.
+
+    The :class:`FileFromURLWrapper` object gives you the ability to stream file
+    from provided URL in chunks by :class:`MultipartEncoder`.
+    Provide a stateless solution for streaming file from one server to another.
+    You can use the :class:`FileFromURLWrapper` without a session or with
+    a session as demonstated by the examples below:
+
+    .. code-block:: python
+        # no session
+
+        import requests
+        from requests_toolbelt import MultipartEncoder, FileFromURLWrapper
+
+        url = 'https://httpbin.org/image/png'
+        streaming_encoder = MultipartEncoder(
+            fields={
+                'file': FileFromURLWrapper(url)
+            }
+        )
+        r = requests.post(
+            'https://httpbin.org/post', data=streaming_encoder,
+            headers={'Content-Type': streaming_encoder.content_type}
+        )
+
+    .. code-block:: python
+        # using a session
+
+        import requests
+        from requests_toolbelt import MultipartEncoder, FileFromURLWrapper
+
+        session = requests.Session()
+        url = 'https://httpbin.org/image/png'
+        streaming_encoder = MultipartEncoder(
+            fields={
+                'file': FileFromURLWrapper(url, session=session)
+            }
+        )
+        r = session.post(
+            'https://httpbin.org/post', data=streaming_encoder,
+            headers={'Content-Type': streaming_encoder.content_type}
+        )
+
+    """
+
+    def __init__(self, file_url, session=None):
+        self.session = session or requests.Session()
+        requested_file = self._request_for_file(file_url)
+        self.len = int(requested_file.headers['content-length'])
+        self.raw_data = requested_file.raw
+
+    def _request_for_file(self, file_url):
+        """Make call for file under provided URL."""
+        response = self.session.get(file_url, stream=True)
+        content_length = response.headers.get('content-length', None)
+        if content_length is None:
+            error_msg = (
+                "Data from provided URL {url} is not supported. Lack of "
+                "content-length Header in requested file response.".format(
+                    url=file_url)
+            )
+            raise FileNotSupportedError(error_msg)
+        elif not content_length.isdigit():
+            error_msg = (
+                "Data from provided URL {url} is not supported. content-length"
+                " header value is not a digit.".format(url=file_url)
+            )
+            raise FileNotSupportedError(error_msg)
+        return response
+
+    def read(self, chunk_size):
+        """Read file in chunks."""
+        chunk_size = chunk_size if chunk_size >= 0 else self.len
+        chunk = self.raw_data.read(chunk_size) or b''
+        self.len -= len(chunk) if chunk else 0  # left to read
+        return chunk

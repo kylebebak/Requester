@@ -469,8 +469,6 @@ That Requester retrieves updated env vars from the requester file when resending
 
 Requester comes bundled with a few packages (`requests`, `requests-oauthlib`, `requests-toolbelt`, `jsonschema`) that you can import in an env block or env file, but you can trivially extend it to import **any** Python 3 package in its env. All you have to do is set Requester's `packages_path` setting to a directory with Python 3 packages. Requester can then import these packages in your env block or env file. ✨✨
 
-In my settings for Requester `packages_path` points to a Python 3 virtual env: `/Users/kylebebak/.virtualenvs/general/lib/python3.5/site-packages`. I use `pip` to install these packages.
-
 #### Pip3 Quickstart
 
 If you don't have `virtualenv` or you're not comfortable using it, the quick solution is to install Python 3, which will install `pip3` and `python3` executables. Run `which pip3` to make sure you've done this.

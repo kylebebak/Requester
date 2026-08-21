@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 """
 requests.api
 ~~~~~~~~~~~~
@@ -10,22 +8,36 @@ This module implements the Requests API.
 :license: Apache2, see LICENSE for more details.
 """
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from . import sessions
+from .models import Response
+
+if TYPE_CHECKING:
+    from typing_extensions import Unpack
+
+    from . import _types as _t
 
 
-def request(method, url, **kwargs):
+def request(
+    method: str, url: _t.UriType, **kwargs: Unpack[_t.RequestKwargs]
+) -> Response:
     """Constructs and sends a :class:`Request <Request>`.
 
-    :param method: method for the new :class:`Request` object.
+    :param method: method for the new :class:`Request` object: ``GET``, ``OPTIONS``, ``HEAD``, ``POST``, ``PUT``, ``PATCH``, or ``DELETE``.
     :param url: URL for the new :class:`Request` object.
-    :param params: (optional) Dictionary or bytes to be sent in the query string for the :class:`Request`.
-    :param data: (optional) Dictionary or list of tuples ``[(key, value)]`` (will be form-encoded), bytes, or file-like object to send in the body of the :class:`Request`.
-    :param json: (optional) json data to send in the body of the :class:`Request`.
+    :param params: (optional) Dictionary, list of tuples or bytes to send
+        in the query string for the :class:`Request`.
+    :param data: (optional) Dictionary, list of tuples, bytes, or file-like
+        object to send in the body of the :class:`Request`.
+    :param json: (optional) A JSON serializable Python object to send in the body of the :class:`Request`.
     :param headers: (optional) Dictionary of HTTP Headers to send with the :class:`Request`.
     :param cookies: (optional) Dict or CookieJar object to send with the :class:`Request`.
     :param files: (optional) Dictionary of ``'name': file-like-objects`` (or ``{'name': file-tuple}``) for multipart encoding upload.
         ``file-tuple`` can be a 2-tuple ``('filename', fileobj)``, 3-tuple ``('filename', fileobj, 'content_type')``
-        or a 4-tuple ``('filename', fileobj, 'content_type', custom_headers)``, where ``'content-type'`` is a string
+        or a 4-tuple ``('filename', fileobj, 'content_type', custom_headers)``, where ``'content_type'`` is a string
         defining the content type of the given file and ``custom_headers`` a dict-like object containing additional headers
         to add for the file.
     :param auth: (optional) Auth tuple to enable Basic/Digest/Custom HTTP Auth.
@@ -47,7 +59,8 @@ def request(method, url, **kwargs):
     Usage::
 
       >>> import requests
-      >>> req = requests.request('GET', 'http://httpbin.org/get')
+      >>> req = requests.request('GET', 'https://httpbin.org/get')
+      >>> req
       <Response [200]>
     """
 
@@ -58,21 +71,23 @@ def request(method, url, **kwargs):
         return session.request(method=method, url=url, **kwargs)
 
 
-def get(url, params=None, **kwargs):
+def get(
+    url: _t.UriType, params: _t.ParamsType = None, **kwargs: Unpack[_t.GetKwargs]
+) -> Response:
     r"""Sends a GET request.
 
     :param url: URL for the new :class:`Request` object.
-    :param params: (optional) Dictionary or bytes to be sent in the query string for the :class:`Request`.
+    :param params: (optional) Dictionary, list of tuples or bytes to send
+        in the query string for the :class:`Request`.
     :param \*\*kwargs: Optional arguments that ``request`` takes.
     :return: :class:`Response <Response>` object
     :rtype: requests.Response
     """
 
-    kwargs.setdefault('allow_redirects', True)
-    return request('get', url, params=params, **kwargs)
+    return request("get", url, params=params, **kwargs)
 
 
-def options(url, **kwargs):
+def options(url: _t.UriType, **kwargs: Unpack[_t.RequestKwargs]) -> Response:
     r"""Sends an OPTIONS request.
 
     :param url: URL for the new :class:`Request` object.
@@ -81,66 +96,79 @@ def options(url, **kwargs):
     :rtype: requests.Response
     """
 
-    kwargs.setdefault('allow_redirects', True)
-    return request('options', url, **kwargs)
+    return request("options", url, **kwargs)
 
 
-def head(url, **kwargs):
+def head(url: _t.UriType, **kwargs: Unpack[_t.RequestKwargs]) -> Response:
     r"""Sends a HEAD request.
 
     :param url: URL for the new :class:`Request` object.
-    :param \*\*kwargs: Optional arguments that ``request`` takes.
+    :param \*\*kwargs: Optional arguments that ``request`` takes. If
+        `allow_redirects` is not provided, it will be set to `False` (as
+        opposed to the default :meth:`request` behavior).
     :return: :class:`Response <Response>` object
     :rtype: requests.Response
     """
 
-    kwargs.setdefault('allow_redirects', False)
-    return request('head', url, **kwargs)
+    kwargs.setdefault("allow_redirects", False)
+    return request("head", url, **kwargs)
 
 
-def post(url, data=None, json=None, **kwargs):
+def post(
+    url: _t.UriType,
+    data: _t.DataType = None,
+    json: _t.JsonType = None,
+    **kwargs: Unpack[_t.PostKwargs],
+) -> Response:
     r"""Sends a POST request.
 
     :param url: URL for the new :class:`Request` object.
-    :param data: (optional) Dictionary (will be form-encoded), bytes, or file-like object to send in the body of the :class:`Request`.
-    :param json: (optional) json data to send in the body of the :class:`Request`.
+    :param data: (optional) Dictionary, list of tuples, bytes, or file-like
+        object to send in the body of the :class:`Request`.
+    :param json: (optional) A JSON serializable Python object to send in the body of the :class:`Request`.
     :param \*\*kwargs: Optional arguments that ``request`` takes.
     :return: :class:`Response <Response>` object
     :rtype: requests.Response
     """
 
-    return request('post', url, data=data, json=json, **kwargs)
+    return request("post", url, data=data, json=json, **kwargs)
 
 
-def put(url, data=None, **kwargs):
+def put(
+    url: _t.UriType, data: _t.DataType = None, **kwargs: Unpack[_t.DataKwargs]
+) -> Response:
     r"""Sends a PUT request.
 
     :param url: URL for the new :class:`Request` object.
-    :param data: (optional) Dictionary (will be form-encoded), bytes, or file-like object to send in the body of the :class:`Request`.
-    :param json: (optional) json data to send in the body of the :class:`Request`.
+    :param data: (optional) Dictionary, list of tuples, bytes, or file-like
+        object to send in the body of the :class:`Request`.
+    :param json: (optional) A JSON serializable Python object to send in the body of the :class:`Request`.
     :param \*\*kwargs: Optional arguments that ``request`` takes.
     :return: :class:`Response <Response>` object
     :rtype: requests.Response
     """
 
-    return request('put', url, data=data, **kwargs)
+    return request("put", url, data=data, **kwargs)
 
 
-def patch(url, data=None, **kwargs):
+def patch(
+    url: _t.UriType, data: _t.DataType = None, **kwargs: Unpack[_t.DataKwargs]
+) -> Response:
     r"""Sends a PATCH request.
 
     :param url: URL for the new :class:`Request` object.
-    :param data: (optional) Dictionary (will be form-encoded), bytes, or file-like object to send in the body of the :class:`Request`.
-    :param json: (optional) json data to send in the body of the :class:`Request`.
+    :param data: (optional) Dictionary, list of tuples, bytes, or file-like
+        object to send in the body of the :class:`Request`.
+    :param json: (optional) A JSON serializable Python object to send in the body of the :class:`Request`.
     :param \*\*kwargs: Optional arguments that ``request`` takes.
     :return: :class:`Response <Response>` object
     :rtype: requests.Response
     """
 
-    return request('patch', url, data=data, **kwargs)
+    return request("patch", url, data=data, **kwargs)
 
 
-def delete(url, **kwargs):
+def delete(url: _t.UriType, **kwargs: Unpack[_t.RequestKwargs]) -> Response:
     r"""Sends a DELETE request.
 
     :param url: URL for the new :class:`Request` object.
@@ -149,4 +177,4 @@ def delete(url, **kwargs):
     :rtype: requests.Response
     """
 
-    return request('delete', url, **kwargs)
+    return request("delete", url, **kwargs)

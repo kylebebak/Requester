@@ -34,15 +34,13 @@ Run `cd .git/hooks && ln -s -f ../../docs/_hooks/* ./` from the root of the repo
 
 ### Python Linting and Code Style
 
-Uses `flake8`, `isort`, `black`, `pyright`. To install, run `pip install flake8 isort black`. `pyright` can be installed with `npm` or `yarn`.
+Uses `ruff` and `ty`.
 
 As long as you installed Requester's `pre-push` hook (see above), you will be unable to push anything that doesn't pass validation under these tools.
 
-All classes and methods should have docstrings, limited to 82 characters per line. Except for `run` and `__init__`. Feel free to add comments for anything that's not obvious.
-
 ### Tests
 
-Tests are divided into tests of the `core` package, which depend on a mocked `sublime` and run on Travis, and integration tests run within Sublime Text.
+Tests are divided into tests of the `core` package, which depend on a mocked `sublime` and can run in CI, and integration tests that run within Sublime Text.
 
 Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by **httpbin**. You can install **httpbin** with `docker pull kennethreitz/httpbin`, or `pip install httpbin gunicorn`. You can then run it with `docker run -p 8000:80 kennethreitz/httpbin`, or `gunicorn httpbin:app`
 
