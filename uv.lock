@@ -1,0 +1,27 @@
+version = 1
+revision = 3
+requires-python = ">=3.14"
+
+[[package]]
+name = "requester"
+version = "0.1.0"
+source = { virtual = "." }
+
+[package.dev-dependencies]
+dev = [
+    { name = "sublime-text-stubs" },
+]
+
+[package.metadata]
+
+[package.metadata.requires-dev]
+dev = [{ name = "sublime-text-stubs", specifier = "==1.4200.*" }]
+
+[[package]]
+name = "sublime-text-stubs"
+version = "1.4200.0b2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f7/7c/895f90ef23ac3bc784b88e805d4e8fc26bfe3538f1dc7b0b661bde4b79d6/sublime_text_stubs-1.4200.0b2.tar.gz", hash = "sha256:1e5742bd3eee20140c2b609f5f02544c67e445d0f09ea657c2404436b1fca5f0", size = 72753, upload-time = "2026-08-16T10:22:25.858Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6b/ec/590cd176f8088128ce954d85260f02516a78a27fc93fed9c14e468b34734/sublime_text_stubs-1.4200.0b2-py3-none-any.whl", hash = "sha256:84ab71657d716533e4e269e242b6d3c5989e843f5ffe5fc1267be9e6d868e2e3", size = 36470, upload-time = "2026-08-16T10:22:24.838Z" },
+]

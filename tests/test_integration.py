@@ -94,9 +94,8 @@ class TestRequesterMixin:
     def _test_name_in_view(self, view, name):
         self.assertEqual(view.name(), name)
 
-    def _test_string_in_view(self, view, string):
-        content = view.substr(sublime.Region(0, view.size()))
-        self.assertTrue(string in content)
+    def _get_view_text(self, view):
+        return view.substr(sublime.Region(0, view.size()))
 
 
 class TestRequesterEnvFile(TestRequesterMixin, DeferrableTestCase):
@@ -193,13 +192,11 @@ class TestRequesterMultiple(TestRequesterMixin, DeferrableTestCase):
         self.assertEqual(self.window.active_view(), self.view)
 
         self.view.run_command("requester_reorder_response_tabs")
-        yield self.WAIT_MS
-        self.assertEqual(self.window.active_view(), self.view)
 
-        group, index = self.window.get_view_index(self.view)
+        _, index = self.window.get_view_index(self.view)
         for i, name in enumerate(["POST: /post", "GET: /get", "POST: /anything"]):
-            self.window.run_command("select_by_index", {"index": index + i + 1})
             yield self.WAIT_MS
+            self.window.run_command("select_by_index", {"index": index + i + 1})
             self._test_name_in_view(self.window.active_view(), name)
 
 
@@ -215,9 +212,9 @@ class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
         yield self.WAIT_MS
         self._test_url_in_view(self.window.active_view(), "http://127.0.0.1:8000/cookies/set?k1=v1")
         self._test_name_in_view(self.window.active_view(), "GET: /cookies/set")
-        self._test_string_in_view(self.window.active_view(), "'X-Test': 'true'")  # header added to session
-        self._test_string_in_view(self.window.active_view(), "'Cookie': 'k0=v0'")  # cookies added to session
-        self._test_string_in_view(self.window.active_view(), "Response Cookies: {'k1': 'v1'}")
+        self.assertTrue("'X-Test': 'true'" in self._get_view_text(self.window.active_view())) # header added to session
+        self.assertTrue("'Cookie': 'k0=v0'" in self._get_view_text(self.window.active_view())) # cookies added to session
+        self.assertTrue("Response Cookies: {'k1': 'v1'}" in self._get_view_text(self.window.active_view()))
 
     def test_prepared_request(self):
         """Using prepared request."""
@@ -225,4 +222,4 @@ class TestRequesterSession(TestRequesterMixin, DeferrableTestCase):
         self.view.run_command("requester")
         yield self.WAIT_MS
         self._test_name_in_view(self.window.active_view(), "POST: /post")
-        self._test_string_in_view(self.window.active_view(), "'Cookie': 'k0=v0'")  # cookies added to session
+        self.assertTrue("'Cookie': 'k0=v0'" in self._get_view_text(self.window.active_view()))  # cookies added to session

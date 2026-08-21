@@ -1,14 +1,10 @@
-[tool.black]
-line-length = 120
-target-version = ['py38']
-exclude = '''
-(
-  /(
-      deps
-  )/
-)
-'''
+[project]
+name = "requester"
+version = "0.1.0"
+requires-python = ">=3.14"
+dependencies = []
 
-[tool.isort]
-py_version = 39
-skip = ['deps', 'docs']
+[dependency-groups]
+dev = [
+    "sublime-text-stubs==1.4200.*",
+]

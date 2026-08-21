@@ -1,8 +1,8 @@
-import imp
 import json
 import os
 import re
 import sys
+import types
 from collections import OrderedDict
 from queue import Queue
 from threading import Lock, Thread
@@ -291,7 +291,7 @@ class RequestCommandMixin:
         if not s:
             return {}
 
-        env = imp.new_module("requester.env")
+        env = types.ModuleType("requester.env")
         try:
             with add_path(__file__, "..", "..", "deps"):
                 exec(s, env.__dict__)

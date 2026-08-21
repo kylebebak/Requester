@@ -1,4 +1,3 @@
-# flake8: noqa
 """Usage: from repo root, run `python3 -m unittest tests.core -v`
 
 This test module makes sure that the `commands` packages is not imported
@@ -23,9 +22,7 @@ def handle_special(self, req):
     """Mock this on ResponseThreadPool so it doesn't touch anything in
     `commands` package.
     """
-    if "filename" in req.skwargs or "streamed" in req.skwargs or "chunked" in req.skwargs:
-        return True
-    return False
+    return bool("filename" in req.skwargs or "streamed" in req.skwargs or "chunked" in req.skwargs)
 
 
 ResponseThreadPool.handle_special = handle_special
@@ -57,7 +54,6 @@ error_messages = []
 
 def error_message(msg):
     """Error messages for a given test run are logged here."""
-    global error_messages
     error_messages.append(msg)
 
 

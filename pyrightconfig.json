@@ -1,5 +1,7 @@
 {
   "include": ["commands", "core"],
+  "venvPath": ".",
+  "venv": ".venv",
   "useLibraryCodeForTypes": true,
   "reportOptionalSubscript": "error",
   "reportOptionalMemberAccess": "error",

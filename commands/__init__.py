@@ -1,4 +1,4 @@
-# flake8: noqa
+# noqa: N999
 from .auth import *
 from .benchmark import *
 from .download import *

@@ -28,13 +28,17 @@ If you're going to submit a PR, read on for instructions on how to set up Reques
 
 ---
 
-### Installing the `pre-commit` Git hook
+### Installing the Git hooks
 
-Run `cd .git/hooks && ln -s -f ../../docs/_hooks/* ./` from the root of the repo. This creates a symlink from the `.git/hooks` directory to Requester's `pre-commit` hook. This hook runs code linting and style checking with `flake8`, and builds the documentation from the sources in `docs/_content`.
+Run `cd .git/hooks && ln -s -f ../../docs/_hooks/* ./` from the root of the repo. This creates a symlink from the `.git/hooks` directory to Requester's `pre-commit` hook, which builds the documentation from the sources in `docs/_content`.
+
+Run `cd .git/hooks && ln -s -f ../../pre-push ./` from the root of the repo to also install the `pre-push` hook (see below).
 
 ### Python Linting and Code Style
 
-Uses `ruff` and `ty`.
+Uses `ruff` (linting and formatting), installed as a `uv` tool with `uv tool install ruff`, and `pyright` (type checking) — install however you like (npm, `uv tool install pyright`, etc.), just make sure it's on your `PATH`.
+
+`pyright` type-checks against the real Sublime Text API via [`sublime-text-stubs`](https://github.com/SublimeText/sublime-text-stubs), a PEP 561 stub-only package — not vendored `.pyi` files. Run `uv sync` once after cloning to create a local `.venv` with the stubs installed; `pyrightconfig.json` points `pyright` at that venv. The venv is gitignored and never committed.
 
 As long as you installed Requester's `pre-push` hook (see above), you will be unable to push anything that doesn't pass validation under these tools.
 
@@ -42,9 +46,9 @@ As long as you installed Requester's `pre-push` hook (see above), you will be un
 
 Tests are divided into tests of the `core` package, which depend on a mocked `sublime` and can run in CI, and integration tests that run within Sublime Text.
 
-Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by **httpbin**. You can install **httpbin** with `docker pull kennethreitz/httpbin`, or `pip install httpbin gunicorn`. You can then run it with `docker run -p 8000:80 kennethreitz/httpbin`, or `gunicorn httpbin:app`
+Many tests for Requester are asynchronous, because they depend on responses coming back before examining response tabs. For this reason, tests are executed against a local server powered by **httpbin**. You can run **httpbin** with `docker pull kennethreitz/httpbin && docker run -p 8000:80 kennethreitz/httpbin`, or, without Docker, `uv tool run --with httpbin gunicorn httpbin:app`.
 
-To run `core` tests, execute `cd .. && python3 -m unittest Requester.tests.core -v && cd Requester` from the root of the repo. If you don't `cd` into the package's parent directory, you'll run into [this issue](https://stackoverflow.com/questions/30669474/beyond-top-level-package-error-in-relative-import).
+To run `core` tests, execute `cd .. && uv run python -m unittest Requester.tests.core -v && cd Requester` from the root of the repo. If you don't `cd` into the package's parent directory, you'll run into [this issue](https://stackoverflow.com/questions/30669474/beyond-top-level-package-error-in-relative-import).
 
 To run the integration tests, install **UnitTesting** via Package Control. Read more about [UnitTesting](https://github.com/randy3k/UnitTesting-example). Also, make sure you've cloned the Requester repo into your **Packages** directory.
 
