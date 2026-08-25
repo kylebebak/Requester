@@ -404,5 +404,9 @@ def write_json_file(data, path):
     path_backup = path + ".bkp"
     with open(path_temp, "w") as f:
         f.write(json.dumps(data))  # write to temp file to ensure no data loss if exception raised here
+    try:
+        os.remove(path_backup)
+    except OSError:
+        pass
     os.rename(path, path_backup)  # create backup file in case rename is unsuccessful
     os.rename(path_temp, path)
